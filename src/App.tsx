@@ -21,6 +21,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react';
 import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { CanvasEditor } from './CanvasEditor';
+import { AdminPanel } from './AdminPanel';
 
 type NodeId =
   | 'start'
@@ -354,6 +355,10 @@ export function App() {
 
   if (window.location.pathname === '/canvas') {
     return <CanvasEditor />;
+  }
+
+  if (window.location.pathname === '/admin') {
+    return <AdminPanel />;
   }
 
   const [messages, setMessages] = useState<Message[]>([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
