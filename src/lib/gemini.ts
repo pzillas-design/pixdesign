@@ -8,7 +8,7 @@ let chatSession: ReturnType<typeof ai.chats.create> | null = null;
 function getOrCreateSession() {
   if (!chatSession) {
     chatSession = ai.chats.create({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash-preview-05-20',
       config: {
         systemInstruction: knowledgeBase,
         temperature: 0.7,
