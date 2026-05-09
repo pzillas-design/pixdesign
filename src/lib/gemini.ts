@@ -8,7 +8,7 @@ let chatSession: ReturnType<typeof ai.chats.create> | null = null;
 function getOrCreateSession() {
   if (!chatSession) {
     chatSession = ai.chats.create({
-      model: 'gemini-3.1-flash-lite',
+      model: 'gemini-2.5-flash',
       config: {
         systemInstruction: knowledgeBase,
         temperature: 0.7,
@@ -49,13 +49,13 @@ export async function getGreeting(): Promise<string> {
 export async function generateSpeech(text: string): Promise<string | null> {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.1-flash-tts-preview',
+      model: 'gemini-3.1-flash-live-preview',
       contents: [{ parts: [{ text }] }],
       config: {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Puck' },
+            prebuiltVoiceConfig: { voiceName: 'Charon' },
           },
         },
       },
