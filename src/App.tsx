@@ -22,10 +22,30 @@ import {
   VolumeX,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { MouseEvent, useEffect, useRef, useState } from 'react';
+import { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
 import { sendMessage, generateSpeech, resetSession } from './lib/gemini';
+
+function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
+  const [displayed, setDisplayed] = useState('');
+  const indexRef = useRef(0);
+
+  useEffect(() => {
+    setDisplayed('');
+    indexRef.current = 0;
+    const tick = () => {
+      indexRef.current += 1;
+      setDisplayed(text.slice(0, indexRef.current));
+      if (indexRef.current < text.length) {
+        setTimeout(tick, speed);
+      }
+    };
+    setTimeout(tick, speed);
+  }, [text, speed]);
+
+  return <>{displayed}<span style={{ opacity: displayed.length < text.length ? 1 : 0 }}>▍</span></>;
+}
 
 type NodeId =
   | 'start'
@@ -493,7 +513,9 @@ export function App() {
                   >
                     <div className="system-row__spacer" />
                     <div className="system-content">
-                      <div className="system-bubble">{message.text}</div>
+                      <div className="system-bubble">
+                        <Typewriter text={message.text} speed={16} />
+                      </div>
                     </div>
                   </motion.div>
                 );
