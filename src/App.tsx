@@ -27,7 +27,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
-import { sendMessage, generateSpeech, resetSession } from './lib/gemini';
+import { sendMessage, generateSpeech, resetSession, sendInquiry, type Chip } from './lib/gemini';
 
 function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
@@ -91,7 +91,7 @@ type ChatNode = {
 type Message =
   | { id: string; type: 'system'; nodeId: NodeId }
   | { id: string; type: 'user'; text: string }
-  | { id: string; type: 'ai'; text: string }
+  | { id: string; type: 'ai'; text: string; chips?: Chip[] }
   | { id: string; type: 'typing' };
 
 const flow: Record<NodeId, ChatNode> = {
@@ -432,11 +432,48 @@ export function App() {
     setMessages((current) => [...current, userMessage, typingMessage]);
     setComposerText('');
     setAiLoading(true);
-    const aiText = await sendMessage(text);
-    lastAiTextRef.current = aiText;
-    const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiText };
+    const aiResponse = await sendMessage(text);
+    lastAiTextRef.current = aiResponse.text;
+    const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text, chips: aiResponse.chips };
     setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
     setAiLoading(false);
+  }
+
+  async function handleChipAction(chip: Chip, messageId: string) {
+    // Disable chips on this message
+    setMessages((current) =>
+      current.map((m) => (m.id === messageId && m.type === 'ai' ? { ...m, chips: undefined } : m))
+    );
+
+    if (chip.href) {
+      window.open(chip.href, '_blank');
+      return;
+    }
+
+    if (chip.submit) {
+      const userMsg: Message = { id: createId('user'), type: 'user', text: chip.label };
+      const typingId = createId('typing');
+      setMessages((current) => [...current, userMsg, { id: typingId, type: 'typing' }]);
+      const ok = await sendInquiry(chip.submit);
+      const confirmText = ok
+        ? 'Deine Anfrage ist raus! Michael meldet sich bald bei dir. 🎉'
+        : 'Leider gab es einen Fehler beim Senden. Versuch es nochmal oder schreib direkt an pzillas2@gmail.com.';
+      setMessages((current) =>
+        current.map((m) => (m.id === typingId ? { id: createId('ai'), type: 'ai', text: confirmText } : m))
+      );
+      return;
+    }
+
+    if (chip.reply) {
+      const userMsg: Message = { id: createId('user'), type: 'user', text: chip.reply };
+      const typingId = createId('typing');
+      setMessages((current) => [...current, userMsg, { id: typingId, type: 'typing' }]);
+      setAiLoading(true);
+      const aiResponse = await sendMessage(chip.reply);
+      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text, chips: aiResponse.chips };
+      setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
+      setAiLoading(false);
+    }
   }
 
   async function speakText(text: string): Promise<void> {
@@ -498,12 +535,12 @@ export function App() {
       setMessages((current) => [...current, userMessage, typingMessage]);
       setVoiceMode('thinking');
 
-      const aiText = await sendMessage(spokenText);
-      lastAiTextRef.current = aiText;
-      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiText };
+      const aiResponse = await sendMessage(spokenText);
+      lastAiTextRef.current = aiResponse.text;
+      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text, chips: aiResponse.chips };
       setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
 
-      await speakText(aiText);
+      await speakText(aiResponse.text);
     };
 
     recognition.onerror = () => setVoiceMode('idle');
@@ -558,6 +595,26 @@ export function App() {
                       <div className="system-bubble">
                         <Typewriter text={message.text} speed={16} />
                       </div>
+                      {message.chips && message.chips.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.15 }}
+                          className="chip-row"
+                        >
+                          {message.chips.map((chip, i) => (
+                            <button
+                              key={chip.label}
+                              type="button"
+                              className={`chip-button chip-button--${i % 4}${chip.submit ? ' chip-button--submit' : ''}`}
+                              onClick={() => handleChipAction(chip, message.id)}
+                            >
+                              {chip.submit && <span className="chip-icon"><ArrowUp size={16} strokeWidth={2} /></span>}
+                              <span>{chip.label}</span>
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
                     </div>
                   </motion.div>
                 );
