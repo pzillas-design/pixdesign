@@ -69,7 +69,8 @@ type ChatNode = {
 type Message =
   | { id: string; type: 'system'; nodeId: NodeId }
   | { id: string; type: 'user'; text: string }
-  | { id: string; type: 'ai'; text: string };
+  | { id: string; type: 'ai'; text: string }
+  | { id: string; type: 'typing' };
 
 const flow: Record<NodeId, ChatNode> = {
   start: {
@@ -402,13 +403,15 @@ export function App() {
     const text = composerText.trim();
     if (!text || aiLoading) return;
     const userMessage: Message = { id: createId('user'), type: 'user', text };
-    setMessages((current) => [...current, userMessage]);
+    const typingId = createId('typing');
+    const typingMessage: Message = { id: typingId, type: 'typing' };
+    setMessages((current) => [...current, userMessage, typingMessage]);
     setComposerText('');
     setAiLoading(true);
     const aiText = await sendMessage(text);
     lastAiTextRef.current = aiText;
     const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiText };
-    setMessages((current) => [...current, aiMessage]);
+    setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
     setAiLoading(false);
   }
 
@@ -453,6 +456,29 @@ export function App() {
           <AnimatePresence initial={false}>
             {messages.map((message, index) => {
               if (message.type === 'user') return null;
+
+              // Typing indicator
+              if (message.type === 'typing') {
+                return (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="system-row"
+                  >
+                    <div className="system-row__spacer" />
+                    <div className="system-content">
+                      <div className="system-bubble typing-bubble">
+                        <span className="typing-dot" />
+                        <span className="typing-dot" />
+                        <span className="typing-dot" />
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              }
 
               // AI message
               if (message.type === 'ai') {
