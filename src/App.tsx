@@ -17,11 +17,15 @@ import {
   RotateCcw,
   AudioWaveform,
   ArrowUp,
+  Loader,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
+import { sendMessage, generateSpeech, resetSession } from './lib/gemini';
 
 type NodeId =
   | 'start'
@@ -64,7 +68,8 @@ type ChatNode = {
 
 type Message =
   | { id: string; type: 'system'; nodeId: NodeId }
-  | { id: string; type: 'user'; text: string };
+  | { id: string; type: 'user'; text: string }
+  | { id: string; type: 'ai'; text: string };
 
 const flow: Record<NodeId, ChatNode> = {
   start: {
@@ -364,8 +369,12 @@ export function App() {
   const [messages, setMessages] = useState<Message[]>([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
   const [sliderNodeId, setSliderNodeId] = useState<NodeId>('start');
   const [composerText, setComposerText] = useState('');
-  const [voiceActive, setVoiceActive] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
+  const lastAiTextRef = useRef<string>('');
 
   const activeNode = flow[sliderNodeId];
 
@@ -389,12 +398,52 @@ export function App() {
     setSliderNodeId(targetId);
   }
 
-  function handleComposerSubmit() {
+  async function handleComposerSubmit() {
     const text = composerText.trim();
-    if (!text) return;
+    if (!text || aiLoading) return;
     const userMessage: Message = { id: createId('user'), type: 'user', text };
     setMessages((current) => [...current, userMessage]);
     setComposerText('');
+    setAiLoading(true);
+    const aiText = await sendMessage(text);
+    lastAiTextRef.current = aiText;
+    const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiText };
+    setMessages((current) => [...current, aiMessage]);
+    setAiLoading(false);
+  }
+
+  async function handlePlayTts() {
+    if (isPlaying) {
+      sourceNodeRef.current?.stop();
+      sourceNodeRef.current = null;
+      setIsPlaying(false);
+      return;
+    }
+    const text = lastAiTextRef.current;
+    if (!text) return;
+    setIsPlaying(true);
+    const base64 = await generateSpeech(text);
+    if (!base64) { setIsPlaying(false); return; }
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+      }
+      const ctx = audioContextRef.current;
+      if (ctx.state === 'suspended') await ctx.resume();
+      const binary = atob(base64);
+      const floatData = new Float32Array(binary.length / 2);
+      const view = new DataView(new ArrayBuffer(binary.length));
+      for (let i = 0; i < binary.length; i++) view.setUint8(i, binary.charCodeAt(i));
+      for (let i = 0; i < floatData.length; i++) floatData[i] = view.getInt16(i * 2, true) / 32768;
+      const audioBuffer = ctx.createBuffer(1, floatData.length, 24000);
+      audioBuffer.copyToChannel(floatData, 0);
+      const source = ctx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(ctx.destination);
+      source.onended = () => setIsPlaying(false);
+      sourceNodeRef.current = source;
+      source.start();
+    } catch { setIsPlaying(false); }
   }
 
   return (
@@ -404,6 +453,25 @@ export function App() {
           <AnimatePresence initial={false}>
             {messages.map((message, index) => {
               if (message.type === 'user') return null;
+
+              // AI message
+              if (message.type === 'ai') {
+                return (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="system-row"
+                  >
+                    <div className="system-row__spacer" />
+                    <div className="system-content">
+                      <div className="system-bubble">{message.text}</div>
+                    </div>
+                  </motion.div>
+                );
+              }
 
               const node = flow[message.nodeId];
               // Previous user message → shown at TOP of this section
@@ -504,23 +572,26 @@ export function App() {
               placeholder="Schreibe etwas..."
               aria-label="Nachricht"
             />
-            {composerText.trim() ? (
-              <button
-                type="submit"
-                className="is-active"
-                aria-label="Senden"
-              >
+            {aiLoading ? (
+              <button type="button" disabled aria-label="Lädt...">
+                <Loader size={20} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
+              </button>
+            ) : composerText.trim() ? (
+              <button type="submit" className="is-active" aria-label="Senden">
                 <ArrowUp size={22} strokeWidth={2.2} />
               </button>
-            ) : (
+            ) : lastAiTextRef.current ? (
               <button
                 type="button"
-                className={voiceActive ? 'is-active' : ''}
-                aria-label="Spracheingabe starten"
-                aria-pressed={voiceActive}
-                onClick={() => setVoiceActive((current) => !current)}
+                className={isPlaying ? 'is-active' : ''}
+                aria-label={isPlaying ? 'Stoppen' : 'Vorlesen'}
+                onClick={handlePlayTts}
               >
-                <AudioWaveform size={24} strokeWidth={1.8} />
+                {isPlaying ? <VolumeX size={20} strokeWidth={2} /> : <Volume2 size={20} strokeWidth={2} />}
+              </button>
+            ) : (
+              <button type="button" aria-label="Schreibe etwas" disabled>
+                <AudioWaveform size={22} strokeWidth={1.8} />
               </button>
             )}
           </form>
