@@ -1,0 +1,9 @@
+# Portfolio Chat Prompt
+
+Baue ein Portfolio fuer PIX, eine kreative Agentur in Frankfurt. Die Seite startet als grosser schwarzer Bildschirm mit riesiger Typografie und sehr wenig UI. Oben links steht nur das PIX-Logo. Die Seite fuehlt sich wie ein hochwertiger Chatverlauf an: Inhalte erscheinen linear untereinander, grosse Textbloecke wirken wie Nachrichten der Agentur, Besucher antworten ueber klare, pillenfoermige Quick-Reply-Chips.
+
+Der erste Screen sagt sinngemaess: "Hallo. Wir entwickeln Websites, Apps, Fotos und Filme fuer Marken, Menschen und Orte, die klar aussehen und schnell verstanden werden sollen." Darunter stehen drei klickbare Optionen: "Apps & Websites", "Fotos", "Video". Wenn der Besucher klickt, erscheint seine Auswahl als rechte Nutzer-Nachricht, danach scrollt die Seite automatisch zur passenden Antwort der Agentur. Dort werden Beispiele eingebettet: Bildstreifen, Projektcover, Fotos oder Videothumbnails. Danach fragt der Flow weiter nach Richtungen wie "Business", "Events", "Immobilien", "Tools" oder "Projekt besprechen".
+
+Design: radikal clean, schwarz, weiss, sehr grosse Schrift, keine Marketing-Landingpage, keine dekorativen Farbverlaeufe, keine Kartenstapel. Die Website ist der Chat. Medien sollen gross, ruhig und hochwertig eingebettet sein. Chips sind die zentrale Navigation. Alles muss auf Mobile und Desktop elegant funktionieren.
+
+Parallel dazu gibt es ein Admin-Panel als Canvas. Dort liegen alle Chat-Schritte als Nodes. Jede Node enthaelt Eyebrow, grossen Titel, Fliesstext, Medien und Antwort-Chips. Antwort-Chips zeigen per Linie auf die naechste Node. Im Admin kann man Nodes anlegen, verschieben, Texte bearbeiten, Bilder hinzufuegen, Antworten erstellen und Ziel-Nodes auswaehlen. Aenderungen sollen sofort in der Preview sichtbar sein und lokal gespeichert werden.
