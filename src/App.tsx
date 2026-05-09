@@ -20,6 +20,8 @@ import {
   Loader,
   Volume2,
   VolumeX,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
@@ -392,10 +394,12 @@ export function App() {
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [voiceMode, setVoiceMode] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const lastAiTextRef = useRef<string>('');
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const activeNode = flow[sliderNodeId];
 
@@ -435,38 +439,76 @@ export function App() {
     setAiLoading(false);
   }
 
-  async function handlePlayTts() {
-    if (isPlaying) {
-      sourceNodeRef.current?.stop();
-      sourceNodeRef.current = null;
-      setIsPlaying(false);
-      return;
-    }
-    const text = lastAiTextRef.current;
-    if (!text) return;
-    setIsPlaying(true);
-    const base64 = await generateSpeech(text);
-    if (!base64) { setIsPlaying(false); return; }
-    try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-      }
-      const ctx = audioContextRef.current;
-      if (ctx.state === 'suspended') await ctx.resume();
-      const binary = atob(base64);
-      const floatData = new Float32Array(binary.length / 2);
-      const view = new DataView(new ArrayBuffer(binary.length));
-      for (let i = 0; i < binary.length; i++) view.setUint8(i, binary.charCodeAt(i));
-      for (let i = 0; i < floatData.length; i++) floatData[i] = view.getInt16(i * 2, true) / 32768;
-      const audioBuffer = ctx.createBuffer(1, floatData.length, 24000);
-      audioBuffer.copyToChannel(floatData, 0);
-      const source = ctx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(ctx.destination);
-      source.onended = () => setIsPlaying(false);
-      sourceNodeRef.current = source;
-      source.start();
-    } catch { setIsPlaying(false); }
+  async function speakText(text: string): Promise<void> {
+    return new Promise(async (resolve) => {
+      setVoiceMode('speaking');
+      setIsPlaying(true);
+      const base64 = await generateSpeech(text);
+      if (!base64) { setIsPlaying(false); setVoiceMode('idle'); resolve(); return; }
+      try {
+        if (!audioContextRef.current) {
+          audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+        }
+        const ctx = audioContextRef.current;
+        if (ctx.state === 'suspended') await ctx.resume();
+        const binary = atob(base64);
+        const view = new DataView(new ArrayBuffer(binary.length));
+        for (let i = 0; i < binary.length; i++) view.setUint8(i, binary.charCodeAt(i));
+        const floatData = new Float32Array(binary.length / 2);
+        for (let i = 0; i < floatData.length; i++) floatData[i] = view.getInt16(i * 2, true) / 32768;
+        const audioBuffer = ctx.createBuffer(1, floatData.length, 24000);
+        audioBuffer.copyToChannel(floatData, 0);
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(ctx.destination);
+        source.onended = () => { setIsPlaying(false); setVoiceMode('idle'); resolve(); };
+        sourceNodeRef.current = source;
+        source.start();
+      } catch { setIsPlaying(false); setVoiceMode('idle'); resolve(); }
+    });
+  }
+
+  function stopVoice() {
+    sourceNodeRef.current?.stop();
+    sourceNodeRef.current = null;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setIsPlaying(false);
+    setVoiceMode('idle');
+  }
+
+  async function handleVoiceDialog() {
+    if (voiceMode !== 'idle') { stopVoice(); return; }
+
+    const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert('Dein Browser unterstützt keine Spracheingabe.'); return; }
+
+    setVoiceMode('listening');
+    const recognition: SpeechRecognition = new SR();
+    recognitionRef.current = recognition;
+    recognition.lang = 'de-DE';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = async (event) => {
+      const spokenText = event.results[0][0].transcript;
+      const userMessage: Message = { id: createId('user'), type: 'user', text: spokenText };
+      const typingId = createId('typing');
+      const typingMessage: Message = { id: typingId, type: 'typing' };
+      setMessages((current) => [...current, userMessage, typingMessage]);
+      setVoiceMode('thinking');
+
+      const aiText = await sendMessage(spokenText);
+      lastAiTextRef.current = aiText;
+      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiText };
+      setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
+
+      await speakText(aiText);
+    };
+
+    recognition.onerror = () => setVoiceMode('idle');
+    recognition.onend = () => { if (voiceMode === 'listening') setVoiceMode('idle'); };
+    recognition.start();
   }
 
   return (
@@ -620,26 +662,21 @@ export function App() {
               placeholder="Schreibe etwas..."
               aria-label="Nachricht"
             />
-            {aiLoading ? (
-              <button type="button" disabled aria-label="Lädt...">
-                <Loader size={20} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
-              </button>
-            ) : composerText.trim() ? (
+            {composerText.trim() ? (
               <button type="submit" className="is-active" aria-label="Senden">
                 <ArrowUp size={22} strokeWidth={2.2} />
               </button>
-            ) : lastAiTextRef.current ? (
+            ) : (
               <button
                 type="button"
-                className={isPlaying ? 'is-active' : ''}
-                aria-label={isPlaying ? 'Stoppen' : 'Vorlesen'}
-                onClick={handlePlayTts}
+                className={voiceMode !== 'idle' ? 'is-active' : ''}
+                aria-label={voiceMode === 'idle' ? 'Sprachdialog starten' : 'Stoppen'}
+                onClick={handleVoiceDialog}
               >
-                {isPlaying ? <VolumeX size={20} strokeWidth={2} /> : <Volume2 size={20} strokeWidth={2} />}
-              </button>
-            ) : (
-              <button type="button" aria-label="Schreibe etwas" disabled>
-                <AudioWaveform size={22} strokeWidth={1.8} />
+                {voiceMode === 'idle' && <Mic size={20} strokeWidth={2} />}
+                {voiceMode === 'listening' && <AudioWaveform size={20} strokeWidth={2} style={{ animation: 'pulse 1s ease-in-out infinite' }} />}
+                {voiceMode === 'thinking' && <Loader size={20} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />}
+                {voiceMode === 'speaking' && <Volume2 size={20} strokeWidth={2} />}
               </button>
             )}
           </form>
