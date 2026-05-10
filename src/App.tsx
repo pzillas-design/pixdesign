@@ -762,7 +762,7 @@ export function App() {
       <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
         {voiceMode !== 'idle' ? (
           <div ref={waveformRef} className="voice-waveform-pill" aria-hidden="true">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <span key={i} className="voice-bar" style={{ animationDelay: `${(i * 60) % 500}ms` }} />
             ))}
           </div>
