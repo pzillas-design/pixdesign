@@ -2,7 +2,6 @@ import {
   X,
   Phone,
   Mail,
-  CircleHelp,
   Globe,
   Camera,
   Film,
@@ -280,7 +279,7 @@ function getIconComponent(iconName?: IconName) {
     case 'mail':
       return <Mail {...iconProps} />;
     case 'circlehelp':
-      return <CircleHelp {...iconProps} />;
+      return <span style={{ fontSize: '1.1em', fontWeight: 600, lineHeight: 1 }}>?</span>;
     default:
       return null;
   }
@@ -665,7 +664,7 @@ export function App() {
                       >
                         {node.chips.map((chip, chipIndex) => (
                           <button
-                            key={chip.label}
+                            key={chip.targetId}
                             type="button"
                             onClick={() => handleChipClick(chip.label, chip.targetId, index)}
                             className={`chip-button chip-button--${chipIndex % 4}${selectedChip === chip.label ? ' chip-button--active' : ''}`}
