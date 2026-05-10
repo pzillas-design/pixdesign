@@ -85,7 +85,10 @@ type IconName =
   | 'home'
   | 'play'
   | 'clapperboard'
-  | 'rotateccw';
+  | 'rotateccw'
+  | 'phone'
+  | 'mail'
+  | 'ellipsis';
 
 type ChatNode = {
   id: NodeId;
@@ -110,6 +113,9 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Fotografie', targetId: 'photo', icon: 'camera' },
       { label: 'Videos', targetId: 'video', icon: 'film' },
+      { label: '', targetId: 'contact-call', icon: 'phone' },
+      { label: '', targetId: 'contact-mail', icon: 'mail' },
+      { label: '', targetId: 'contact-more', icon: 'ellipsis' },
     ],
     images: ['/media/detail/slider-start.png'],
     imageMode: 'gallery',
@@ -269,6 +275,12 @@ function getIconComponent(iconName?: IconName) {
       return <Clapperboard {...iconProps} />;
     case 'rotateccw':
       return <RotateCcw {...iconProps} />;
+    case 'phone':
+      return <Phone {...iconProps} />;
+    case 'mail':
+      return <Mail {...iconProps} />;
+    case 'ellipsis':
+      return <Ellipsis {...iconProps} />;
     default:
       return null;
   }
@@ -557,6 +569,11 @@ export function App() {
 
   return (
     <main className={`portfolio-chat theme-${timeTheme}`}>
+      {/* Sticky header */}
+      <header className="chat-header">
+        <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
+      </header>
+
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
         <div className="chat-stack">
           <AnimatePresence initial={false}>
@@ -630,30 +647,7 @@ export function App() {
                   transition={{ type: 'spring', stiffness: 320, damping: 32 }}
                   className="system-row"
                 >
-                  {/* Spacer or logo pushes question to bottom */}
-                  {isFirst ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5 }}
-                      className="chat-logo"
-                    >
-                      <img src="/pix-logo.svg" alt="PIX" />
-                      <div className="chat-logo__actions" aria-label="Kontakt">
-                        <button type="button" aria-label="Anrufen" onClick={() => dropHeaderMessage('Anrufen', 'contact-call')}>
-                          <Phone size={24} strokeWidth={1.8} />
-                        </button>
-                        <button type="button" aria-label="Mail schreiben" onClick={() => dropHeaderMessage('Mail', 'contact-mail')}>
-                          <Mail size={24} strokeWidth={1.8} />
-                        </button>
-                        <button type="button" aria-label="Mehr" onClick={() => dropHeaderMessage('Mehr', 'contact-more')}>
-                          <Ellipsis size={26} strokeWidth={1.8} />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <div className="system-row__spacer" />
-                  )}
+                  <div className="system-row__spacer" />
 
                   {!isFirst && <ImageStrip node={node} variant="inline" />}
 
@@ -677,7 +671,7 @@ export function App() {
                             className={`chip-button chip-button--${chipIndex % 4}${selectedChip === chip.label ? ' chip-button--active' : ''}`}
                           >
                             {chip.icon && <span className="chip-icon">{getIconComponent(chip.icon)}</span>}
-                            <span>{chip.label}</span>
+                            {chip.label && <span>{chip.label}</span>}
                           </button>
                         ))}
                       </motion.div>
@@ -689,35 +683,35 @@ export function App() {
           </AnimatePresence>
 
           <div className="chat-stack__spacer" aria-hidden="true" />
-
-          <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
-            <input
-              type="text"
-              value={composerText}
-              onChange={(event) => setComposerText(event.target.value)}
-              placeholder="Schreibe etwas..."
-              aria-label="Nachricht"
-            />
-            {composerText.trim() ? (
-              <button type="submit" className="is-active" aria-label="Senden">
-                <ArrowUp size={22} strokeWidth={2.2} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={voiceMode !== 'idle' ? 'is-active' : ''}
-                aria-label={voiceMode === 'idle' ? 'Sprachdialog starten' : 'Stoppen'}
-                onClick={handleVoiceDialog}
-              >
-                {voiceMode === 'idle' && <Mic size={20} strokeWidth={2} />}
-                {voiceMode === 'listening' && <AudioWaveform size={20} strokeWidth={2} style={{ animation: 'pulse 1s ease-in-out infinite' }} />}
-                {voiceMode === 'thinking' && <Loader size={20} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />}
-                {voiceMode === 'speaking' && <Volume2 size={20} strokeWidth={2} />}
-              </button>
-            )}
-          </form>
         </div>
       </section>
+
+      <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
+        <input
+          type="text"
+          value={composerText}
+          onChange={(event) => setComposerText(event.target.value)}
+          placeholder="Schreibe etwas..."
+          aria-label="Nachricht"
+        />
+        {composerText.trim() ? (
+          <button type="submit" className="is-active" aria-label="Senden">
+            <ArrowUp size={22} strokeWidth={2.2} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={voiceMode !== 'idle' ? 'is-active' : ''}
+            aria-label={voiceMode === 'idle' ? 'Sprachdialog starten' : 'Stoppen'}
+            onClick={handleVoiceDialog}
+          >
+            {voiceMode === 'idle' && <Mic size={20} strokeWidth={2} />}
+            {voiceMode === 'listening' && <AudioWaveform size={20} strokeWidth={2} style={{ animation: 'pulse 1s ease-in-out infinite' }} />}
+            {voiceMode === 'thinking' && <Loader size={20} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />}
+            {voiceMode === 'speaking' && <Volume2 size={20} strokeWidth={2} />}
+          </button>
+        )}
+      </form>
 
       <ImageStrip
         node={aiGalleryImages ? { ...activeNode, images: aiGalleryImages } : activeNode}

@@ -119,6 +119,27 @@ img {
   color: #fff;
 }
 
+.chat-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(560px, 48vw, 900px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  padding: clamp(18px, 2.2vw, 32px) clamp(28px, 3vw, 48px);
+  pointer-events: none;
+}
+
+.chat-header__logo {
+  width: clamp(72px, 9vw, 120px);
+  display: block;
+}
+
+.theme-light .chat-header__logo {
+  filter: invert(1);
+}
+
 .portfolio-chat.theme-light {
   background: #f3f0ea;
   color: #090909;
@@ -229,7 +250,7 @@ img {
   flex-direction: column;
   gap: 0;
   width: 100%;
-  padding: 0;
+  padding: clamp(80px, 10vh, 120px) 0 clamp(100px, 12vh, 140px);
   flex: 1;
 }
 
@@ -238,6 +259,11 @@ img {
 }
 
 .chat-composer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: clamp(560px, 48vw, 900px);
+  z-index: 10;
   flex-shrink: 0;
 }
 
