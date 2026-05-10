@@ -215,8 +215,8 @@ img {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(160px) saturate(1.4);
-  opacity: 0.035;
+  filter: blur(160px) saturate(1.2);
+  opacity: 0.02;
   pointer-events: none;
   transform: scale(1.2);
 }
