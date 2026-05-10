@@ -92,7 +92,7 @@ type IconName =
 type ChatNode = {
   id: NodeId;
   text: string;
-  chips?: Array<{ label: string; targetId: NodeId; icon?: IconName }>;
+  chips?: Array<{ label: string; displayLabel?: string; targetId: NodeId; icon?: IconName }>;
   images: string[];
   imageMode?: 'logo' | 'gallery';
 };
@@ -112,9 +112,9 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
       { label: 'Video', targetId: 'video', icon: 'film' },
-      { label: '', targetId: 'contact-call', icon: 'phone' },
-      { label: '', targetId: 'contact-mail', icon: 'mail' },
-      { label: '', targetId: 'contact-more', icon: 'circlehelp' },
+      { label: '', displayLabel: 'Anrufen', targetId: 'contact-call', icon: 'phone' },
+      { label: '', displayLabel: 'E-Mail', targetId: 'contact-mail', icon: 'mail' },
+      { label: '', displayLabel: 'Mehr erfahren', targetId: 'contact-more', icon: 'circlehelp' },
     ],
     images: ['/media/detail/slider-start.png'],
     imageMode: 'gallery',
@@ -214,33 +214,25 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-call': {
     id: 'contact-call',
-    text: 'Klar. Am schnellsten ist ein kurzer Call. Erzaehl in zwei Saetzen, worum es geht, dann schauen wir gemeinsam, ob und wie PIX helfen kann.',
+    text: 'Einfach anrufen — 0159 06401995. Am besten werktags zwischen 9 und 18 Uhr.',
+    chips: [],
+    images: ['/media/detail/portrait.webp'],
+  },
+  'contact-mail': {
+    id: 'contact-mail',
+    text: 'Schreib direkt an pzillas2@gmail.com — kurz Projekt, Zeitraum, Idee. Ich melde mich schnell.',
+    chips: [],
+    images: ['/media/detail/portrait.webp'],
+  },
+  'contact-more': {
+    id: 'contact-more',
+    text: 'PIX macht Webdesign, Fotografie und Video in Frankfurt. Einfach ein Thema tippen oder einen der Chips wählen.',
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
       { label: 'Video', targetId: 'video', icon: 'film' },
     ],
-    images: ['/media/detail/portrait.webp', '/media/detail/konferenz-foto.webp'],
-  },
-  'contact-mail': {
-    id: 'contact-mail',
-    text: 'Schick uns gern eine kurze Mail mit Ziel, Zeitraum und ein paar Bildern oder Links. Wir sortieren das und melden uns mit einer klaren Rueckfrage.',
-    chips: [
-      { label: 'Beispiele', targetId: 'web', icon: 'briefcase' },
-      { label: 'Fotos', targetId: 'photo', icon: 'camera' },
-      { label: 'Filme', targetId: 'video', icon: 'film' },
-    ],
-    images: ['/media/detail/booking.webp', '/media/detail/interface.webp'],
-  },
-  'contact-more': {
-    id: 'contact-more',
-    text: 'Du kannst dich einfach treiben lassen: Arbeiten ansehen, eine Richtung waehlen oder direkt ein Projekt erzaehlen. Der Chat fuehrt dich durch.',
-    chips: [
-      { label: 'Website', targetId: 'web', icon: 'globe' },
-      { label: 'Fotos', targetId: 'photo', icon: 'camera' },
-      { label: 'Video', targetId: 'video', icon: 'film' },
-    ],
-    images: ['/media/detail/slider-start.png', '/media/detail/system.webp'],
+    images: ['/media/detail/slider-start.png'],
   },
 };
 
@@ -427,10 +419,19 @@ export function App() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  async function handleChipClick(label: string, targetId: NodeId, fromIndex: number) {
+  async function handleChipClick(label: string, targetId: NodeId, fromIndex: number, displayLabel?: string) {
+    const bubbleText = displayLabel || label;
+    // Contact chips → navigate directly to contact node
+    if (targetId.startsWith('contact-')) {
+      const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
+      const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
+      setMessages((current) => [...current, userMessage, systemMessage]);
+      setSliderNodeId(targetId);
+      return;
+    }
     // Chips on the start node → hand off to AI
     if (fromIndex === 0) {
-      const userMessage: Message = { id: createId('user'), type: 'user', text: label };
+      const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
       const typingId = createId('typing');
       setMessages((current) => [...current, userMessage, { id: typingId, type: 'typing' }]);
       setAiLoading(true);
@@ -441,8 +442,8 @@ export function App() {
       setAiLoading(false);
       return;
     }
-    // Other chips → static flow (unused after start)
-    const userMessage: Message = { id: createId('user'), type: 'user', text: label };
+    // Other chips → static flow
+    const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
     const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
     setMessages((current) => [...current.slice(0, fromIndex + 1), userMessage, systemMessage]);
     setSliderNodeId(targetId);
@@ -666,7 +667,7 @@ export function App() {
                           <button
                             key={chip.targetId}
                             type="button"
-                            onClick={() => handleChipClick(chip.label, chip.targetId, index)}
+                            onClick={() => handleChipClick(chip.label, chip.targetId, index, chip.displayLabel)}
                             className={`chip-button chip-button--${chipIndex % 4}${selectedChip === chip.label ? ' chip-button--active' : ''}`}
                           >
                             {chip.icon && <span className="chip-icon">{getIconComponent(chip.icon)}</span>}
