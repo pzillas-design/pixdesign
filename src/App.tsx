@@ -46,7 +46,7 @@ function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
     setTimeout(tick, speed);
   }, [text, speed]);
 
-  return <>{displayed}<span style={{ opacity: displayed.length < text.length ? 1 : 0 }}>▍</span></>;
+  return <>{displayed}</>;
 }
 
 type NodeId =
@@ -559,10 +559,10 @@ export function App() {
                 return (
                   <motion.div
                     key={message.id}
-                    initial={{ opacity: 0, y: 10, x: 20 }}
-                    animate={{ opacity: 1, y: 0, x: 0 }}
+                    initial={{ opacity: 0, y: 28, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
                     className="user-row"
                   >
                     <div className="user-bubble">{message.text}</div>
