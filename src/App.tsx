@@ -596,37 +596,29 @@ export function App() {
               // Typing indicator
               if (message.type === 'typing') {
                 return (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="system-row"
-                  >
+                  <div key={message.id} className="system-row">
                     <div className="system-row__spacer" />
                     <div className="system-content">
-                      <div className="system-bubble typing-bubble">
+                      <motion.div
+                        className="system-bubble typing-bubble"
+                        initial={{ opacity: 0, y: 22, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.92 }}
+                        transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
+                      >
                         <span className="typing-dot" />
                         <span className="typing-dot" />
                         <span className="typing-dot" />
-                      </div>
+                      </motion.div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               }
 
               // Gallery message
               if (message.type === 'gallery') {
                 return (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="system-row"
-                  >
+                  <div key={message.id} className="system-row">
                     <div className="system-row__spacer" />
                     <div className="system-content">
                       <div className="chat-gallery">
@@ -647,28 +639,26 @@ export function App() {
                         )}
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               }
 
               // AI message
               if (message.type === 'ai') {
                 return (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="system-row"
-                  >
+                  <div key={message.id} className="system-row">
                     <div className="system-row__spacer" />
                     <div className="system-content">
-                      <div className="system-bubble">
-                        <Typewriter text={message.text} speed={16} />
-                      </div>
+                      <motion.div
+                        className="system-bubble"
+                        initial={{ opacity: 0, y: 22, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
+                      >
+                        {message.text}
+                      </motion.div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               }
 
