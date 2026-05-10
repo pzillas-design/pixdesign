@@ -95,13 +95,10 @@ type ChatNode = {
   imageMode?: 'logo' | 'gallery';
 };
 
-type MediaItem = { url: string; alt: string; description: string };
-
 type Message =
   | { id: string; type: 'system'; nodeId: NodeId }
   | { id: string; type: 'user'; text: string }
   | { id: string; type: 'ai'; text: string }
-  | { id: string; type: 'gallery'; category: GalleryCategory; images: MediaItem[] }
   | { id: string; type: 'sent' }
   | { id: string; type: 'typing' };
 
@@ -402,6 +399,7 @@ export function App() {
 
   const [messages, setMessages] = useState<Message[]>([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
   const [sliderNodeId, setSliderNodeId] = useState<NodeId>('start');
+  const [aiGalleryImages, setAiGalleryImages] = useState<string[] | null>(null);
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -462,13 +460,12 @@ export function App() {
     if (aiResponse.gallery) {
       const { data } = await supabase
         .from('pix_media')
-        .select('url, alt, description')
+        .select('url')
         .eq('category', aiResponse.gallery);
-      const images: MediaItem[] = data ?? [];
-      const msgs: Message[] = [];
-      if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
-      msgs.push({ id: createId('gallery'), type: 'gallery', category: aiResponse.gallery, images });
-      setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
+      const urls = (data ?? []).map((r: any) => r.url);
+      setAiGalleryImages(urls);
+      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text || '' };
+      setMessages((current) => current.map((m) => m.id === typingId ? aiMessage : m));
     } else if (aiResponse.sendEmail) {
       const ok = await sendInquiry(aiResponse.sendEmail);
       const confirmText = ok
@@ -603,34 +600,6 @@ export function App() {
                 );
               }
 
-              // Gallery message
-              if (message.type === 'gallery') {
-                return (
-                  <div key={message.id} className="system-row">
-                    <div className="system-row__spacer" />
-                    <div className="system-content">
-                      <div className="chat-gallery">
-                        {message.images.map((img, i) => (
-                          <motion.div
-                            key={img.url}
-                            className="chat-gallery__item"
-                            initial={{ opacity: 0, scale: 0.94 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.06, type: 'spring', stiffness: 260, damping: 28 }}
-                          >
-                            <img src={img.url} alt={img.alt} />
-                            {img.alt && <p className="chat-gallery__label">{img.alt}</p>}
-                          </motion.div>
-                        ))}
-                        {message.images.length === 0 && (
-                          <p style={{ opacity: 0.4, fontSize: 14 }}>Noch keine Bilder in dieser Kategorie.</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
               // AI message
               if (message.type === 'ai') {
                 return (
@@ -750,7 +719,9 @@ export function App() {
         </div>
       </section>
 
-      <ImageStrip node={activeNode} />
+      <ImageStrip
+        node={aiGalleryImages ? { ...activeNode, images: aiGalleryImages } : activeNode}
+      />
     </main>
   );
 }
