@@ -780,7 +780,7 @@ export function App() {
             onClick={handleVoiceDialog}
           >
             <div ref={waveformRef} className="voice-waveform-pill" aria-hidden="true">
-              {Array.from({ length: 10 }).map((_, i) => (
+              {Array.from({ length: 5 }).map((_, i) => (
                 <span key={i} className="voice-bar" style={{ animationDelay: `${(i * 60) % 500}ms` }} />
               ))}
             </div>
