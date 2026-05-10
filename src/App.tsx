@@ -20,7 +20,7 @@ import {
   Volume2,
   VolumeX,
   AudioLines,
-  MessageCircleQuestion,
+  CircleQuestionMark,
   MicOff,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -272,7 +272,7 @@ function getIconComponent(iconName?: IconName) {
     case 'mail':
       return <Mail {...iconProps} />;
     case 'circlehelp':
-      return <MessageCircleQuestion {...iconProps} />;
+      return <CircleQuestionMark {...iconProps} />;
     default:
       return null;
   }
