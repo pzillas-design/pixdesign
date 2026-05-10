@@ -550,7 +550,7 @@ img {
 
 .voice-bar {
   display: inline-block;
-  width: 2px;
+  width: 3px;
   border-radius: 999px;
   background: currentColor;
   opacity: 0.5;
