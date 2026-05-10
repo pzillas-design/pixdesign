@@ -215,7 +215,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-call': {
     id: 'contact-call',
-    text: 'Einfachste Option: anrufen. Werktags zwischen 9 und 18 Uhr.',
+    text: 'Einfachste Option: anrufen.',
     action: { label: '0159 06401995', href: 'tel:+4915906401995', icon: 'phone' },
     chips: [],
     images: ['/media/detail/portrait.webp'],
