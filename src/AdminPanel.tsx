@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { supabase, PixMedia, PixFlowNode, PixAiConfig } from './lib/supabase';
-import { Upload, Trash2, Tag, Save, LogOut, Image, MessageSquare, Bot, X, Plus, Loader } from 'lucide-react';
+import { supabase, PixMedia } from './lib/supabase';
+import { Upload, Trash2, Save, LogOut, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic } from 'lucide-react';
 
-type Tab = 'media' | 'flow' | 'ai';
+type Tab = 'media' | 'knowledge' | 'inquiry';
 
 // ─────────────────────────────────────────────
 // Auth Gate
@@ -29,16 +29,8 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         <img src="/pix-logo.svg" alt="PIX" style={{ width: 80, marginBottom: 16, filter: 'invert(1)' }} />
         <h1 style={{ color: '#fff', fontSize: 20, fontWeight: 600, margin: 0 }}>Admin</h1>
         {error && <p style={{ color: '#ff6b6b', fontSize: 14, margin: 0 }}>{error}</p>}
-        <input
-          type="email" placeholder="E-Mail" value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={inputStyle}
-        />
-        <input
-          type="password" placeholder="Passwort" value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={inputStyle}
-        />
+        <input type="email" placeholder="E-Mail" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
+        <input type="password" placeholder="Passwort" value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
         <button type="submit" disabled={loading} style={primaryBtn}>
           {loading ? 'Einloggen...' : 'Einloggen'}
         </button>
@@ -75,12 +67,7 @@ function MediaTab() {
       const { error: upErr } = await supabase.storage.from('pix-media').upload(path, file);
       if (upErr) continue;
       const { data: urlData } = supabase.storage.from('pix-media').getPublicUrl(path);
-      await supabase.from('pix_media').insert({
-        storage_path: path,
-        url: urlData.publicUrl,
-        filename: file.name,
-        size_bytes: file.size,
-      });
+      await supabase.from('pix_media').insert({ storage_path: path, url: urlData.publicUrl, filename: file.name, size_bytes: file.size });
     }
     await fetchMedia();
     setUploading(false);
@@ -108,46 +95,28 @@ function MediaTab() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 320px' : '1fr', height: '100%', gap: 0 }}>
-      {/* Grid */}
+    <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 300px' : '1fr', height: '100%' }}>
       <div style={{ padding: 24, overflowY: 'auto' }}>
         <div style={{ display: 'flex', gap: 12, marginBottom: 24, alignItems: 'center' }}>
           <button onClick={() => fileRef.current?.click()} disabled={uploading} style={primaryBtn}>
             {uploading ? <Loader size={16} /> : <Upload size={16} />}
             {uploading ? 'Uploading...' : 'Bilder hochladen'}
           </button>
-          <input ref={fileRef} type="file" multiple accept="image/*" style={{ display: 'none' }}
-            onChange={e => handleUpload(e.target.files)} />
+          <input ref={fileRef} type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={e => handleUpload(e.target.files)} />
           <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{media.length} Bilder</span>
         </div>
-
         {loading ? (
           <div style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', paddingTop: 60 }}>Lädt...</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
             {media.map(item => (
-              <div key={item.id}
-                onClick={() => setSelected(item)}
-                style={{
-                  aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', cursor: 'pointer',
-                  border: selected?.id === item.id ? '2px solid #fff' : '2px solid transparent',
-                  background: '#111', position: 'relative',
-                }}>
+              <div key={item.id} onClick={() => setSelected(item)} style={{ aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', border: selected?.id === item.id ? '2px solid #fff' : '2px solid transparent', background: '#111' }}>
                 <img src={item.url} alt={item.alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                {item.tags.length > 0 && (
-                  <div style={{ position: 'absolute', bottom: 6, left: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {item.tags.slice(0, 2).map(t => (
-                      <span key={t} style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: 10, padding: '2px 6px', borderRadius: 999 }}>{t}</span>
-                    ))}
-                  </div>
-                )}
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {/* Inspector */}
       {selected && (
         <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -158,10 +127,6 @@ function MediaTab() {
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={labelStyle}>Alt-Text</span>
             <input value={selected.alt} onChange={e => setSelected({ ...selected, alt: e.target.value })} style={inputStyle} />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={labelStyle}>Theme</span>
-            <input value={selected.theme} onChange={e => setSelected({ ...selected, theme: e.target.value })} placeholder="z.B. web, photo, video" style={inputStyle} />
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={labelStyle}>Tags</span>
@@ -189,136 +154,176 @@ function MediaTab() {
 }
 
 // ─────────────────────────────────────────────
-// Flow Editor
+// Knowledge Base Editor
 // ─────────────────────────────────────────────
-function FlowTab() {
-  const [nodes, setNodes] = useState<PixFlowNode[]>([]);
-  const [selected, setSelected] = useState<PixFlowNode | null>(null);
+type KnowledgeRow = { id: string; key: string; value: string; label: string; hint: string };
+
+const DEFAULT_KNOWLEDGE: Omit<KnowledgeRow, 'id'>[] = [
+  { key: 'persona', label: 'Persona & Ton', hint: 'Wie verhält sich der Assistent? Was ist sein Stil?', value: 'Du bist der persönliche KI-Assistent von PIX, einer Kreativagentur in Frankfurt. Ruhig, direkt, auf Augenhöhe. Kein Marketing-Speak. Chat-typisch kurz. Antworte immer auf Deutsch.' },
+  { key: 'services_web', label: 'Webdesign', hint: 'Was bietet PIX im Bereich Web an?', value: 'Websites, Web-Apps, Tools, Landing Pages. Modern, durchdacht, mit Fokus auf Wirkung. Ab 3.000 EUR.' },
+  { key: 'services_photo', label: 'Fotografie', hint: 'Was bietet PIX im Bereich Foto an?', value: 'Business-Portraits, Events, Immobilien, Architektur. Klare Bildsprache, kein Show-Effekt. Ab 800 EUR (Halbtag).' },
+  { key: 'services_video', label: 'Video', hint: 'Was bietet PIX im Bereich Video an?', value: 'Imagefilme, Eventfilme, Immobilienvideos, Drohne. Bewegtbild, das nicht nur dekoriert. Ab 1.500 EUR.' },
+  { key: 'not_offered', label: 'Was wir NICHT machen', hint: 'Was lehnt PIX ab?', value: 'Kein Printdesign (Flyer, Visitenkarten). Keine Social-Media-Verwaltung. Kein Massengeschäft.' },
+  { key: 'contact', label: 'Kontakt & E-Mail', hint: 'Kontaktdaten die der Assistent nennen darf', value: 'E-Mail: pzillas2@gmail.com — Erstkontakt ist unverbindlich.' },
+  { key: 'location', label: 'Standort', hint: 'Wo ist PIX tätig?', value: 'Frankfurt am Main und Umgebung.' },
+];
+
+function KnowledgeTab() {
+  const [rows, setRows] = useState<KnowledgeRow[]>([]);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchNodes(); }, []);
+  useEffect(() => { load(); }, []);
 
-  async function fetchNodes() {
-    const { data } = await supabase.from('pix_flow_nodes').select('*').order('sort_order');
-    setNodes(data ?? []);
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase.from('pix_knowledge').select('*');
+    if (data && data.length > 0) {
+      // Merge with defaults to ensure all keys present
+      const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
+      setRows(DEFAULT_KNOWLEDGE.map((d, i) => ({ ...d, id: String(i), value: map[d.key] ?? d.value })));
+    } else {
+      setRows(DEFAULT_KNOWLEDGE.map((d, i) => ({ ...d, id: String(i) })));
+    }
+    setLoading(false);
   }
 
   async function save() {
-    if (!selected) return;
     setSaving(true);
-    await supabase.from('pix_flow_nodes').update({ text: selected.text, chips: selected.chips, updated_at: new Date().toISOString() }).eq('id', selected.id);
-    await fetchNodes();
+    const upserts = rows.map(r => ({ key: r.key, value: r.value }));
+    await supabase.from('pix_knowledge').upsert(upserts, { onConflict: 'key' });
     setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   }
 
-  function updateChip(i: number, field: string, value: string) {
-    if (!selected) return;
-    const chips = [...selected.chips];
-    chips[i] = { ...chips[i], [field]: value };
-    setSelected({ ...selected, chips });
+  function update(key: string, value: string) {
+    setRows(rs => rs.map(r => r.key === key ? { ...r, value } : r));
   }
+
+  if (loading) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', height: '100%' }}>
-      {/* Node list */}
-      <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)', overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {nodes.map(node => (
-          <button key={node.id} onClick={() => setSelected({ ...node })}
-            style={{ textAlign: 'left', padding: '10px 14px', borderRadius: 10, background: selected?.id === node.id ? 'rgba(255,255,255,0.12)' : 'transparent', color: '#fff', fontSize: 13 }}>
-            <div style={{ fontWeight: 600, marginBottom: 2 }}>{node.id}</div>
-            <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{node.text.slice(0, 50)}</div>
-          </button>
-        ))}
+    <div style={{ padding: 24, maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 28, overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>Knowledge Base</h2>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '4px 0 0' }}>Was die AI über PIX weiß — direkt editierbar</p>
+        </div>
+        <button onClick={save} disabled={saving} style={primaryBtn}>
+          <Save size={15} /> {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
+        </button>
       </div>
 
-      {/* Editor */}
-      {selected ? (
-        <div style={{ padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>{selected.id}</h2>
-            <button onClick={save} disabled={saving} style={primaryBtn}>
-              <Save size={15} /> {saving ? 'Speichert...' : 'Speichern'}
-            </button>
-          </div>
-
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={labelStyle}>Text</span>
-            <textarea value={selected.text} onChange={e => setSelected({ ...selected, text: e.target.value })}
-              style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
-          </label>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span style={labelStyle}>Chips / Antworten</span>
-            {selected.chips.map((chip, i) => (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'center' }}>
-                <input value={chip.label} onChange={e => updateChip(i, 'label', e.target.value)} placeholder="Label" style={inputStyle} />
-                <input value={chip.targetId} onChange={e => updateChip(i, 'targetId', e.target.value)} placeholder="targetId" style={inputStyle} />
-                <button onClick={() => setSelected({ ...selected, chips: selected.chips.filter((_, j) => j !== i) })} style={{ ...iconBtn, color: '#ff6b6b' }}><Trash2 size={15} /></button>
-              </div>
-            ))}
-            <button onClick={() => setSelected({ ...selected, chips: [...selected.chips, { label: '', targetId: '', icon: '' }] })} style={ghostBtn}>
-              <Plus size={15} /> Chip hinzufügen
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
-          Node auswählen
-        </div>
-      )}
+      {rows.map(row => (
+        <label key={row.key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={labelStyle}>{row.label}</span>
+          <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>{row.hint}</span>
+          <textarea
+            value={row.value}
+            onChange={e => update(row.key, e.target.value)}
+            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
+          />
+        </label>
+      ))}
     </div>
   );
 }
 
 // ─────────────────────────────────────────────
-// AI Config
+// Anfrage-Felder Editor
 // ─────────────────────────────────────────────
-function AiTab() {
-  const [config, setConfig] = useState<PixAiConfig | null>(null);
+type InquiryField = { id: string; label: string; question: string; required: boolean };
+
+const DEFAULT_FIELDS: InquiryField[] = [
+  { id: '1', label: 'Art', question: 'Was soll entstehen? (Webseite, Fotoshooting, Video...)', required: true },
+  { id: '2', label: 'Datum', question: 'Für welches Datum oder welchen Zeitraum planst du das?', required: true },
+  { id: '3', label: 'Ort', question: 'Wo soll es stattfinden?', required: false },
+  { id: '4', label: 'Beschreibung', question: 'Kurze Beschreibung des Projekts', required: true },
+  { id: '5', label: 'Name', question: 'Wie heißt du?', required: false },
+  { id: '6', label: 'E-Mail', question: 'Unter welcher E-Mail kann Michael dich erreichen?', required: false },
+];
+
+function InquiryTab() {
+  const [fields, setFields] = useState<InquiryField[]>([]);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    supabase.from('pix_ai_config').select('*').eq('id', 'default').single().then(({ data }) => setConfig(data));
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  async function save() {
-    if (!config) return;
-    setSaving(true);
-    await supabase.from('pix_ai_config').upsert(config);
-    setSaving(false);
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase.from('pix_inquiry_fields').select('*').order('sort_order');
+    setFields(data && data.length > 0 ? data : DEFAULT_FIELDS);
+    setLoading(false);
   }
 
-  if (!config) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
+  async function save() {
+    setSaving(true);
+    await supabase.from('pix_inquiry_fields').delete().neq('id', '');
+    await supabase.from('pix_inquiry_fields').insert(
+      fields.map((f, i) => ({ id: f.id, label: f.label, question: f.question, required: f.required, sort_order: i }))
+    );
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  function update(id: string, patch: Partial<InquiryField>) {
+    setFields(fs => fs.map(f => f.id === id ? { ...f, ...patch } : f));
+  }
+
+  function addField() {
+    setFields(fs => [...fs, { id: Date.now().toString(), label: '', question: '', required: false }]);
+  }
+
+  if (loading) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
 
   return (
-    <div style={{ padding: 24, maxWidth: 720, display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div style={{ padding: 24, maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>AI Konfiguration</h2>
-        <button onClick={save} disabled={saving} style={primaryBtn}>
-          <Save size={15} /> {saving ? 'Speichert...' : 'Speichern'}
-        </button>
+        <div>
+          <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>Anfrage-Felder</h2>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '4px 0 0' }}>Welche Infos soll die AI abfragen bevor sie eine Anfrage abschickt?</p>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={addField} style={ghostBtn}><Plus size={15} /> Feld</button>
+          <button onClick={save} disabled={saving} style={primaryBtn}>
+            <Save size={15} /> {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
+          </button>
+        </div>
       </div>
 
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <span style={labelStyle}>Basis-Prompt</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Wer ist der Assistent, wie verhält er sich?</span>
-        <textarea value={config.base_prompt} onChange={e => setConfig({ ...config, base_prompt: e.target.value })}
-          style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
-      </label>
+      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>
+        Die AI stellt diese Fragen nacheinander im Chat. "Label" erscheint später in der E-Mail die du bekommst.
+      </p>
 
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <span style={labelStyle}>Über PIX</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Informationen über die Agentur — der AI als Kontext gegeben</span>
-        <textarea value={config.about_pix} onChange={e => setConfig({ ...config, about_pix: e.target.value })}
-          style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} />
-      </label>
-
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <span style={labelStyle}>Ton / Persona</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Wie soll der Assistent klingen?</span>
-        <textarea value={config.persona_tone} onChange={e => setConfig({ ...config, persona_tone: e.target.value })}
-          style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} />
-      </label>
+      {fields.map((field, i) => (
+        <div key={field.id} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Feld {i + 1}</span>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                <input type="checkbox" checked={field.required} onChange={e => update(field.id, { required: e.target.checked })} />
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Pflichtfeld</span>
+              </label>
+              <button onClick={() => setFields(fs => fs.filter(f => f.id !== field.id))} style={{ ...iconBtn, width: 28, height: 28, color: '#ff6b6b', background: 'rgba(255,80,80,0.1)' }}><X size={13} /></button>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 10 }}>
+            <div>
+              <div style={{ ...labelStyle, marginBottom: 6 }}>Label (in der Mail)</div>
+              <input value={field.label} onChange={e => update(field.id, { label: e.target.value })} placeholder="z.B. Datum" style={inputStyle} />
+            </div>
+            <div>
+              <div style={{ ...labelStyle, marginBottom: 6 }}>Frage die die AI stellt</div>
+              <input value={field.question} onChange={e => update(field.id, { question: e.target.value })} placeholder="z.B. Für welches Datum planst du das?" style={inputStyle} />
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -328,7 +333,7 @@ function AiTab() {
 // ─────────────────────────────────────────────
 export function AdminPanel() {
   const [session, setSession] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<Tab>('media');
+  const [tab, setTab] = useState<Tab>('knowledge');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(!!data.session));
@@ -339,33 +344,31 @@ export function AdminPanel() {
   if (!session) return <LoginScreen onLogin={() => setSession(true)} />;
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: 'knowledge', label: 'Knowledge Base', icon: <Bot size={18} /> },
+    { id: 'inquiry', label: 'Anfrage-Felder', icon: <Mail size={18} /> },
     { id: 'media', label: 'Mediathek', icon: <Image size={18} /> },
-    { id: 'flow', label: 'Chat Flow', icon: <MessageSquare size={18} /> },
-    { id: 'ai', label: 'AI Config', icon: <Bot size={18} /> },
   ];
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', height: '100vh', background: '#050505', color: '#fff', fontFamily: 'inherit' }}>
-      {/* Sidebar */}
       <aside style={{ borderRight: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', padding: 20, gap: 6 }}>
         <img src="/pix-logo.svg" alt="PIX" style={{ width: 64, marginBottom: 24, filter: 'invert(1)' }} />
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: tab === t.id ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === t.id ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 14, fontWeight: tab === t.id ? 600 : 400, textAlign: 'left' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: tab === t.id ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === t.id ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 14, fontWeight: tab === t.id ? 600 : 400, textAlign: 'left', border: 'none', cursor: 'pointer', width: '100%' }}>
             {t.icon} {t.label}
           </button>
         ))}
         <button onClick={() => supabase.auth.signOut()}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'transparent', color: 'rgba(255,255,255,0.3)', fontSize: 14, marginTop: 'auto' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'transparent', color: 'rgba(255,255,255,0.3)', fontSize: 14, marginTop: 'auto', border: 'none', cursor: 'pointer', width: '100%' }}>
           <LogOut size={16} /> Abmelden
         </button>
       </aside>
 
-      {/* Content */}
       <main style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {tab === 'knowledge' && <KnowledgeTab />}
+        {tab === 'inquiry' && <InquiryTab />}
         {tab === 'media' && <MediaTab />}
-        {tab === 'flow' && <FlowTab />}
-        {tab === 'ai' && <AiTab />}
       </main>
     </div>
   );
@@ -400,6 +403,7 @@ const primaryBtn: React.CSSProperties = {
   cursor: 'pointer',
   border: 'none',
   fontFamily: 'inherit',
+  flexShrink: 0,
 };
 
 const iconBtn: React.CSSProperties = {

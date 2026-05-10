@@ -554,7 +554,21 @@ export function App() {
         <div className="chat-stack">
           <AnimatePresence initial={false}>
             {messages.map((message, index) => {
-              if (message.type === 'user') return null;
+              // User bubble — right aligned
+              if (message.type === 'user') {
+                return (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10, x: 20 }}
+                    animate={{ opacity: 1, y: 0, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="user-row"
+                  >
+                    <div className="user-bubble">{message.text}</div>
+                  </motion.div>
+                );
+              }
 
               // Typing indicator
               if (message.type === 'typing') {
@@ -621,9 +635,6 @@ export function App() {
               }
 
               const node = flow[message.nodeId];
-              // Previous user message → shown at TOP of this section
-              const prevMsg = messages[index - 1];
-              const prevUserMsg = prevMsg?.type === 'user' ? prevMsg : null;
               const isFirst = message.id === 'system-start';
               // Which chip was selected from this message?
               const nextMsg = messages[index + 1];
@@ -639,18 +650,6 @@ export function App() {
                   transition={{ type: 'spring', stiffness: 320, damping: 32 }}
                   className="system-row"
                 >
-                  {/* Previous answer visible at top of this section */}
-                  {prevUserMsg && (
-                    <motion.div
-                      key={prevUserMsg.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="user-row"
-                    >
-                      <div className="user-bubble">{prevUserMsg.text}</div>
-                    </motion.div>
-                  )}
-
                   {/* Spacer or logo pushes question to bottom */}
                   {isFirst ? (
                     <motion.div

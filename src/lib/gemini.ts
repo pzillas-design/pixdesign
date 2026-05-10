@@ -1,13 +1,12 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { knowledgeBase } from '../config/knowledgeBase';
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
 
 export type Chip = {
   label: string;
-  reply?: string;   // sends as user message and continues chat
-  href?: string;    // opens link (tel:, mailto:, https://)
-  submit?: Record<string, string>; // collected fields → send email
+  reply?: string;
+  href?: string;
+  submit?: Record<string, string>;
 };
 
 export type AIResponse = {
@@ -19,25 +18,19 @@ const toolDeclarations = [
   {
     name: 'show_chips',
     description:
-      'Zeigt klickbare Chips unter deiner Antwort. Nutze reply-Chips um das Gespräch zu lenken (z.B. Themen, Kategorien). Nutze href-Chips für direkte Links (tel:, mailto:). Nutze einen submit-Chip wenn du alle nötigen Infos gesammelt hast um eine Anfrage per Mail zu schicken.',
+      'Zeigt klickbare Chips unter deiner Antwort. Nutze reply-Chips um das Gespräch zu lenken. Nutze href-Chips für direkte Links (tel:, mailto:). Nutze einen submit-Chip wenn du alle nötigen Infos für eine Anfrage gesammelt hast.',
     parameters: {
       type: Type.OBJECT,
       properties: {
         chips: {
           type: Type.ARRAY,
-          description: 'Liste von Chips',
           items: {
             type: Type.OBJECT,
             properties: {
-              label: { type: Type.STRING, description: 'Beschriftung des Chips' },
-              reply: { type: Type.STRING, description: 'Text der als User-Nachricht gesendet wird' },
-              href: { type: Type.STRING, description: 'URL (tel:, mailto:, https://)' },
-              submit: {
-                type: Type.OBJECT,
-                description: 'Gesammelte Anfragedaten als Key-Value-Paare die per Mail gesendet werden',
-                properties: {},
-                additionalProperties: { type: Type.STRING },
-              },
+              label: { type: Type.STRING },
+              reply: { type: Type.STRING },
+              href: { type: Type.STRING },
+              submit_json: { type: Type.STRING, description: 'JSON-String mit gesammelten Feldern z.B. {"Art":"Fotoshooting","Datum":"15. Juni"}' },
             },
             required: ['label'],
           },
@@ -49,23 +42,29 @@ const toolDeclarations = [
 ];
 
 let chatSession: ReturnType<typeof ai.chats.create> | null = null;
+let currentSystemInstruction = '';
+
+export function resetSession() {
+  chatSession = null;
+}
+
+export function initSession(systemInstruction: string) {
+  currentSystemInstruction = systemInstruction;
+  chatSession = null; // force recreate with new instruction
+}
 
 function getOrCreateSession() {
   if (!chatSession) {
     chatSession = ai.chats.create({
       model: 'gemini-2.0-flash-lite',
       config: {
-        systemInstruction: knowledgeBase,
+        systemInstruction: currentSystemInstruction || getDefaultKnowledgeBase(),
         temperature: 0.7,
         tools: [{ functionDeclarations: toolDeclarations }],
       },
     });
   }
   return chatSession;
-}
-
-export function resetSession() {
-  chatSession = null;
 }
 
 export async function sendMessage(message: string): Promise<AIResponse> {
@@ -75,14 +74,20 @@ export async function sendMessage(message: string): Promise<AIResponse> {
 
     const fnCall = response.functionCalls?.()?.[0];
     if (fnCall && fnCall.name === 'show_chips') {
-      const args = fnCall.args as { chips: Chip[] };
-      // Keep session in sync
+      const args = fnCall.args as { chips: Array<{ label: string; reply?: string; href?: string; submit_json?: string }> };
+      // Map submit_json → submit object
+      const chips: Chip[] = args.chips.map((c) => ({
+        label: c.label,
+        reply: c.reply,
+        href: c.href,
+        submit: c.submit_json ? JSON.parse(c.submit_json) : undefined,
+      }));
       await session.sendMessage({
         message: '',
         // @ts-ignore
         functionResponses: [{ name: 'show_chips', response: { output: 'shown' } }],
       });
-      return { text: response.text ?? '', chips: args.chips };
+      return { text: response.text ?? '', chips };
     }
 
     return { text: response.text ?? 'Entschuldigung, ich habe das nicht verstanden.' };
@@ -92,24 +97,26 @@ export async function sendMessage(message: string): Promise<AIResponse> {
   }
 }
 
-// Text-to-Speech via Gemini
-import { Modality } from '@google/genai';
-
 export async function generateSpeech(text: string): Promise<string | null> {
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-preview-image-generation',
-      contents: [{ parts: [{ text }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Charon' },
+    // Use REST API directly for TTS as SDK support varies
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-live-001:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } } },
           },
-        },
-      },
-    });
-    return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? null;
+        }),
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? null;
   } catch (error) {
     console.error('TTS error:', error);
     return null;
@@ -133,4 +140,30 @@ export async function sendInquiry(fields: Record<string, string>): Promise<boole
   } catch {
     return false;
   }
+}
+
+function getDefaultKnowledgeBase(): string {
+  return `PERSONA:
+Du bist der persönliche KI-Assistent von PIX, einer Kreativagentur in Frankfurt.
+Du bist die Stimme der Agentur — ruhig, direkt, auf Augenhöhe. Kein Marketing-Speak. Chat-typisch kurz.
+Antworte immer auf Deutsch.
+
+DIENSTLEISTUNGEN:
+1. Webdesign & Apps: Websites, Web-Apps, Tools, Landing Pages. Ab 3.000 EUR.
+2. Fotografie: Business-Portraits, Events, Immobilien, Architektur. Ab 800 EUR (Halbtag).
+3. Videoproduktion: Imagefilme, Eventfilme, Immobilienvideos, Drohne. Ab 1.500 EUR.
+
+WAS WIR NICHT MACHEN: Kein Printdesign, keine Social-Media-Verwaltung.
+
+KONTAKT: pzillas2@gmail.com — Erstkontakt ist unverbindlich.
+
+CHIPS:
+Du hast das Tool "show_chips". Nutze es um dem User Optionen anzubieten.
+- reply-Chips: lenken das Gespräch (Webdesign / Fotografie / Video)
+- href-Chips: z.B. { href: "mailto:pzillas2@gmail.com" }
+- submit-Chips: wenn alle Infos für eine Anfrage da sind, liefere alle gesammelten Felder als submit_json
+
+ANFRAGE-FLOW:
+Wenn jemand konkret anfragen möchte: frage Typ → Datum/Zeitraum → Ort → kurze Beschreibung → optional Name + Kontakt-Mail.
+Maximal 1 Frage pro Nachricht. Dann submit-Chip "Anfrage absenden ✉️".`;
 }
