@@ -94,6 +94,7 @@ type ChatNode = {
   id: NodeId;
   text: string;
   chips?: Array<{ label: string; displayLabel?: string; targetId: NodeId; icon?: IconName }>;
+  action?: { label: string; href: string; icon?: IconName };
   images: string[];
   imageMode?: 'logo' | 'gallery';
 };
@@ -215,13 +216,15 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-call': {
     id: 'contact-call',
-    text: 'Einfach anrufen — 0159 06401995. Am besten werktags zwischen 9 und 18 Uhr.',
+    text: 'Einfach anrufen — am besten werktags zwischen 9 und 18 Uhr.',
+    action: { label: '0159 06401995', href: 'tel:+4915906401995', icon: 'phone' },
     chips: [],
     images: ['/media/detail/portrait.webp'],
   },
   'contact-mail': {
     id: 'contact-mail',
-    text: 'Schreib direkt an pzillas2@gmail.com — kurz Projekt, Zeitraum, Idee. Ich melde mich schnell.',
+    text: 'Kurz Projekt, Zeitraum und Idee schreiben — ich melde mich schnell.',
+    action: { label: 'pzillas2@gmail.com', href: 'mailto:pzillas2@gmail.com', icon: 'mail' },
     chips: [],
     images: ['/media/detail/portrait.webp'],
   },
@@ -655,6 +658,12 @@ export function App() {
                   <div className="system-content">
                     <div className="system-bubble">
                       <div>{node.text}</div>
+                      {node.action && (
+                        <a href={node.action.href} className="bubble-action-btn">
+                          {node.action.icon && <span className="chip-icon">{getIconComponent(node.action.icon)}</span>}
+                          <span>{node.action.label}</span>
+                        </a>
+                      )}
                     </div>
 
                     {node.chips && (
