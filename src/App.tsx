@@ -745,10 +745,7 @@ export function App() {
             {voiceMode === 'idle' ? (
               <AudioLines size={20} strokeWidth={2} />
             ) : (
-              <>
-                <X size={18} strokeWidth={2.5} />
-                <span className="voice-stop-label">Beenden</span>
-              </>
+              <span className="voice-stop-label">Fertig</span>
             )}
           </button>
         )}
