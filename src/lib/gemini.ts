@@ -72,7 +72,10 @@ export async function sendMessage(message: string): Promise<AIResponse> {
     const session = getOrCreateSession();
     const response = await session.sendMessage({ message });
 
-    const fnCall = response.functionCalls?.()?.[0];
+    const calls = typeof response.functionCalls === 'function'
+      ? response.functionCalls()
+      : (response.functionCalls ?? []);
+    const fnCall = calls?.[0];
     if (fnCall && fnCall.name === 'show_chips') {
       const args = fnCall.args as { chips: Array<{ label: string; reply?: string; href?: string; submit_json?: string }> };
       // Map submit_json → submit object
@@ -91,8 +94,8 @@ export async function sendMessage(message: string): Promise<AIResponse> {
     }
 
     return { text: response.text ?? 'Entschuldigung, ich habe das nicht verstanden.' };
-  } catch (error) {
-    console.error('Gemini error:', error);
+  } catch (error: any) {
+    console.error('Gemini error:', error?.message ?? error);
     return { text: 'Es gab einen Verbindungsfehler. Bitte nochmal versuchen.' };
   }
 }
