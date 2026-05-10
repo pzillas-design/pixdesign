@@ -460,10 +460,6 @@ function ImageStrip({ node }: { node: ChatNode }) {
                 )}
               </div>
 
-              {currentMeta?.description && (
-                <p className="image-lightbox__desc">{currentMeta.description}</p>
-              )}
-
               {images.length > 1 && (
                 <div className="image-lightbox__thumbs">
                   {images.map((img, i) => (
