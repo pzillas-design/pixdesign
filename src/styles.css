@@ -544,24 +544,24 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 24px;
+  gap: 4px;
+  height: 20px;
 }
 
 .voice-bar {
   display: inline-block;
-  width: 4px;
+  width: 3px;
   border-radius: 999px;
   background: currentColor;
   opacity: 0.5;
-  height: 5px;
+  height: 4px;
   transition: height 60ms ease, opacity 60ms ease;
   animation: voiceIdle 1.6s ease-in-out infinite;
 }
 
 @keyframes voiceIdle {
-  0%, 100% { height: 5px; opacity: 0.4; }
-  50% { height: 24px; opacity: 0.9; }
+  0%, 100% { height: 4px; opacity: 0.4; }
+  50% { height: 18px; opacity: 0.9; }
 }
 
 .voice-stop-label {
