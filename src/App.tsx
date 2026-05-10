@@ -357,24 +357,15 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   const scrollStartRef = useRef(0);
   const hasDraggedRef = useRef(false);
 
-  const updateRotations = useCallback(() => {
+  const updateCenter = useCallback(() => {
     const strip = stripRef.current;
     if (!strip) return;
-    const halfW = strip.clientWidth / 2;
-    const scrollCenter = strip.scrollLeft + halfW;
+    const scrollCenter = strip.scrollLeft + strip.clientWidth / 2;
     let minDist = Infinity;
     let centerSrc: string | null = null;
     wrapperRefs.current.forEach((wrapper, i) => {
       if (!wrapper) return;
-      const itemCenter = wrapper.offsetLeft + wrapper.offsetWidth / 2;
-      const offset = itemCenter - scrollCenter;
-      const ratio = Math.max(-1, Math.min(1, offset / (halfW * 1.05)));
-      const rotateY = ratio * -46;
-      const scale = 1 - Math.abs(ratio) * 0.08;
-      const opacity = Math.max(0.22, 1 - Math.abs(ratio) * 0.42);
-      wrapper.style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
-      wrapper.style.opacity = String(opacity);
-      const dist = Math.abs(offset);
+      const dist = Math.abs(wrapper.offsetLeft + wrapper.offsetWidth / 2 - scrollCenter);
       if (dist < minDist) { minDist = dist; centerSrc = node.images[i]; }
     });
     if (centerSrc && centerSrc !== lastCenterRef.current) {
@@ -386,16 +377,11 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
-    updateRotations();
-    strip.addEventListener('scroll', updateRotations, { passive: true });
-    window.addEventListener('resize', updateRotations, { passive: true });
-    const timer = setTimeout(updateRotations, 120);
-    return () => {
-      strip.removeEventListener('scroll', updateRotations);
-      window.removeEventListener('resize', updateRotations);
-      clearTimeout(timer);
-    };
-  }, [node.images, updateRotations]);
+    updateCenter();
+    strip.addEventListener('scroll', updateCenter, { passive: true });
+    const t = setTimeout(updateCenter, 100);
+    return () => { strip.removeEventListener('scroll', updateCenter); clearTimeout(t); };
+  }, [node.images, updateCenter]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -409,7 +395,6 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   }, [lightboxIndex, node.images.length]);
 
   if (!node.images?.length) return null;
-
   const images = node.images;
   const meta = node.imageMeta ?? [];
   const currentMeta = lightboxIndex !== null ? (meta[lightboxIndex] ?? null) : null;
@@ -419,7 +404,6 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
       <div
         ref={stripRef}
         className="image-strip"
-        aria-label={`${node.id} Bilder`}
         style={{ cursor: grabbing ? 'grabbing' : 'grab' }}
         onMouseDown={(e) => {
           isDraggingRef.current = true;
@@ -438,39 +422,19 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
         onMouseUp={() => { isDraggingRef.current = false; setGrabbing(false); }}
         onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); }}
       >
-        <motion.div
-          key={node.id}
-          className="image-strip__track"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="image-strip__track">
           {images.map((image, index) => (
             <div
               ref={el => { wrapperRefs.current[index] = el; }}
-              className="image-strip__item-3d"
+              className="image-strip__item"
               key={`${node.id}-${image}`}
+              onClick={() => { if (!hasDraggedRef.current) setLightboxIndex(index); }}
             >
-              <motion.figure
-                className="image-strip__item"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.08, duration: 0.3 }}
-                onClick={() => { if (!hasDraggedRef.current) setLightboxIndex(index); }}
-              >
-                <img
-                  src={image}
-                  alt={meta[index]?.title ?? ''}
-                  onLoad={updateRotations}
-                  draggable={false}
-                />
-                {meta[index]?.tag && (
-                  <span className="image-strip__tag">{meta[index].tag}</span>
-                )}
-              </motion.figure>
+              <img src={image} alt={meta[index]?.title ?? ''} draggable={false} />
+              {meta[index]?.tag && <span className="image-strip__tag">{meta[index].tag}</span>}
             </div>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       <AnimatePresence>
