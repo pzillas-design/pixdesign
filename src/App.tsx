@@ -429,34 +429,29 @@ export function App() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  async function handleChipClick(label: string, targetId: NodeId, fromIndex: number, displayLabel?: string) {
+  // Build a context string from static messages for the AI
+  function buildStaticContext(msgs: Message[]): string {
+    const lines: string[] = [];
+    for (const msg of msgs) {
+      if (msg.type === 'system') {
+        const node = flow[msg.nodeId];
+        if (node) lines.push(`PIX: ${node.text}`);
+      } else if (msg.type === 'user') {
+        lines.push(`Besucher: ${msg.text}`);
+      }
+    }
+    return lines.join('\n');
+  }
+
+  function handleChipClick(label: string, targetId: NodeId, fromIndex: number, displayLabel?: string) {
     const bubbleText = displayLabel || label;
-    // Contact chips → navigate directly to contact node
-    if (targetId.startsWith('contact-')) {
-      const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
-      const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
-      setMessages((current) => [...current, userMessage, systemMessage]);
-      setSliderNodeId(targetId);
-      return;
-    }
-    // Chips on the start node → hand off to AI
-    if (fromIndex === 0) {
-      const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
-      const typingId = createId('typing');
-      setMessages((current) => [...current, userMessage, { id: typingId, type: 'typing' }]);
-      setAiLoading(true);
-      const aiResponse = await sendMessage(label);
-      lastAiTextRef.current = aiResponse.text;
-      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text };
-      setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
-      setAiLoading(false);
-      return;
-    }
-    // Other chips → static flow
     const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
     const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
+    // Always branch: slice at fromIndex, replace everything after
     setMessages((current) => [...current.slice(0, fromIndex + 1), userMessage, systemMessage]);
     setSliderNodeId(targetId);
+    // Reset AI session so next composer message starts fresh with new context
+    resetSession();
   }
 
   function dropHeaderMessage(label: string, targetId: NodeId) {
@@ -476,7 +471,18 @@ export function App() {
     setMessages((current) => [...current, userMessage, typingMessage]);
     setComposerText('');
     setAiLoading(true);
-    const aiResponse = await sendMessage(text);
+
+    // On first AI message, prepend static chat context
+    const hasAiHistory = messages.some(m => m.type === 'ai');
+    let messageToSend = text;
+    if (!hasAiHistory) {
+      const context = buildStaticContext(messages);
+      if (context) {
+        messageToSend = `[Bisheriger Gesprächsverlauf:\n${context}\n]\n\nNachricht des Besuchers: ${text}`;
+      }
+    }
+
+    const aiResponse = await sendMessage(messageToSend);
     lastAiTextRef.current = aiResponse.text;
 
     if (aiResponse.gallery) {
