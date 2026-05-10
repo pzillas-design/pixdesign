@@ -30,6 +30,12 @@ import { AdminPanel } from './AdminPanel';
 import { sendMessage, generateSpeech, resetSession, sendInquiry, type GalleryCategory } from './lib/gemini';
 import { supabase } from './lib/supabase';
 
+const bubbleAnim = {
+  initial: { opacity: 0, y: 28 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+};
+
 function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
   const indexRef = useRef(0);
@@ -561,35 +567,23 @@ export function App() {
               // User bubble — right aligned
               if (message.type === 'user') {
                 return (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 28, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
-                    className="user-row"
-                  >
-                    <div className="user-bubble">{message.text}</div>
-                  </motion.div>
+                  <div key={message.id} className="user-row">
+                    <motion.div className="user-bubble" {...bubbleAnim}>
+                      {message.text}
+                    </motion.div>
+                  </div>
                 );
               }
 
               // Sent confirmation chip
               if (message.type === 'sent') {
                 return (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-                    className="sent-badge-row"
-                  >
-                    <div className="sent-badge">
+                  <div key={message.id} className="sent-badge-row">
+                    <motion.div className="sent-badge" {...bubbleAnim}>
                       <ArrowUp size={13} strokeWidth={2.5} style={{ transform: 'rotate(45deg)' }} />
                       Anfrage versendet
-                    </div>
-                  </motion.div>
+                    </motion.div>
+                  </div>
                 );
               }
 
@@ -599,13 +593,7 @@ export function App() {
                   <div key={message.id} className="system-row">
                     <div className="system-row__spacer" />
                     <div className="system-content">
-                      <motion.div
-                        className="system-bubble typing-bubble"
-                        initial={{ opacity: 0, y: 22, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.92 }}
-                        transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
-                      >
+                      <motion.div className="system-bubble typing-bubble" {...bubbleAnim}>
                         <span className="typing-dot" />
                         <span className="typing-dot" />
                         <span className="typing-dot" />
@@ -649,12 +637,7 @@ export function App() {
                   <div key={message.id} className="system-row">
                     <div className="system-row__spacer" />
                     <div className="system-content">
-                      <motion.div
-                        className="system-bubble"
-                        initial={{ opacity: 0, y: 22, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
-                      >
+                      <motion.div className="system-bubble" {...bubbleAnim}>
                         {message.text}
                       </motion.div>
                     </div>
