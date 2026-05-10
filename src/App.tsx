@@ -348,6 +348,41 @@ function getIconComponent(iconName?: IconName) {
 
 function ImageStrip({ node }: { node: ChatNode }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const wrapperRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const updateRotations = useCallback(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const halfW = strip.clientWidth / 2;
+    const scrollCenter = strip.scrollLeft + halfW;
+    wrapperRefs.current.forEach((wrapper) => {
+      if (!wrapper) return;
+      const itemCenter = wrapper.offsetLeft + wrapper.offsetWidth / 2;
+      const offset = itemCenter - scrollCenter;
+      const ratio = Math.max(-1, Math.min(1, offset / (halfW * 1.05)));
+      const rotateY = ratio * -46;
+      const scale = 1 - Math.abs(ratio) * 0.08;
+      const opacity = Math.max(0.22, 1 - Math.abs(ratio) * 0.42);
+      wrapper.style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
+      wrapper.style.opacity = String(opacity);
+    });
+  }, []);
+
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    updateRotations();
+    strip.addEventListener('scroll', updateRotations, { passive: true });
+    window.addEventListener('resize', updateRotations, { passive: true });
+    // Also update after images load
+    const timer = setTimeout(updateRotations, 120);
+    return () => {
+      strip.removeEventListener('scroll', updateRotations);
+      window.removeEventListener('resize', updateRotations);
+      clearTimeout(timer);
+    };
+  }, [node.images, updateRotations]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -368,7 +403,7 @@ function ImageStrip({ node }: { node: ChatNode }) {
 
   return (
     <>
-      <div className="image-strip" aria-label={`${node.id} Bilder`}>
+      <div ref={stripRef} className="image-strip" aria-label={`${node.id} Bilder`}>
         <motion.div
           key={node.id}
           className="image-strip__track"
@@ -377,19 +412,28 @@ function ImageStrip({ node }: { node: ChatNode }) {
           transition={{ duration: 0.2 }}
         >
           {images.map((image, index) => (
-            <motion.figure
-              className="image-strip__item"
+            <div
+              ref={el => { wrapperRefs.current[index] = el; }}
+              className="image-strip__item-3d"
               key={`${node.id}-${image}`}
-              initial={{ opacity: 0, x: 40, scale: 0.97 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              transition={{ delay: index * 0.07, type: 'spring', stiffness: 200, damping: 26 }}
-              onClick={() => setLightboxIndex(index)}
             >
-              <img src={image} alt={meta[index]?.title ?? ''} />
-              {meta[index]?.tag && (
-                <span className="image-strip__tag">{meta[index].tag}</span>
-              )}
-            </motion.figure>
+              <motion.figure
+                className="image-strip__item"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.08, duration: 0.3 }}
+                onClick={() => setLightboxIndex(index)}
+              >
+                <img
+                  src={image}
+                  alt={meta[index]?.title ?? ''}
+                  onLoad={updateRotations}
+                />
+                {meta[index]?.tag && (
+                  <span className="image-strip__tag">{meta[index].tag}</span>
+                )}
+              </motion.figure>
+            </div>
           ))}
         </motion.div>
       </div>
