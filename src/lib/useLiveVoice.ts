@@ -1,15 +1,37 @@
 import { useCallback, useRef, useState } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality, Type } from '@google/genai';
+import { sendInquiry } from './gemini';
 
 export type LiveVoiceState = 'idle' | 'connecting' | 'listening' | 'speaking';
 
 const SYSTEM_PROMPT = `Du bist der KI-Assistent von PIX — Kreativagentur von Michael Pzillas in Frankfurt.
 Ton: direkt, knapp, ein bisschen Würze. Kein Smalltalk. Strikt max. 2 Sätze pro Antwort. Immer auf Deutsch.
-Michael macht Webdesign (ab 500 €), Fotografie (Immobilien, Events, Business) und Video (Imagefilme, Events, Drohne).
+Leistungen: Webdesign (ab 500 €), Fotografie (Immobilien, Events, Business), Video (Imagefilme, Events, Drohne).
+Preise: Video-Dreh bis 4 Std. 400 €, Immobilienfotos Shooting 80 €.
 Ziel: schnell verstehen was der Besucher braucht, dann einen Lead generieren.
-Kontakt: 0159 06401995 · pzillas2@gmail.com`;
+Kontakt: 0159 06401995 · pzillas2@gmail.com
 
-export function useLiveVoice() {
+Wenn du alle nötigen Infos hast (Thema, Datum/Zeitraum), ruf send_email auf.
+Immobilienfotos: Ort + Datum reicht. Web: Thema + Umfang. Video: Ort + Datum + Art.`;
+
+const toolDeclarations = [
+  {
+    name: 'send_email',
+    description: 'Schickt eine Anfrage-Mail an Michael wenn der User konkret anfragen möchte und alle nötigen Infos gesammelt wurden.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        fields_json: {
+          type: Type.STRING,
+          description: 'JSON-String mit allen gesammelten Feldern, z.B. {"Art":"Fotoshooting","Datum":"15. Juni","Ort":"Frankfurt"}',
+        },
+      },
+      required: ['fields_json'],
+    },
+  },
+];
+
+export function useLiveVoice(onEmailSent?: () => void) {
   const [state, setState] = useState<LiveVoiceState>('idle');
   const sessionRef = useRef<any>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -30,9 +52,8 @@ export function useLiveVoice() {
     const view = new DataView(chunk);
     const samples = chunk.byteLength / 2;
     const floats = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      floats[i] = view.getInt16(i * 2, true) / 32768;
-    }
+    for (let i = 0; i < samples; i++) floats[i] = view.getInt16(i * 2, true) / 32768;
+
     const buffer = ctx.createBuffer(1, floats.length, 24000);
     buffer.copyToChannel(floats, 0);
     const source = ctx.createBufferSource();
@@ -40,11 +61,8 @@ export function useLiveVoice() {
     source.connect(ctx.destination);
     source.onended = () => {
       isPlayingRef.current = false;
-      if (audioQueueRef.current.length > 0) {
-        playNextChunk();
-      } else if (activeRef.current) {
-        setState('listening');
-      }
+      if (audioQueueRef.current.length > 0) playNextChunk();
+      else if (activeRef.current) setState('listening');
     };
     source.start();
   }, []);
@@ -72,15 +90,11 @@ export function useLiveVoice() {
     activeRef.current = true;
 
     try {
-      // Mic stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStreamRef.current = stream;
 
-      // Input AudioContext 16kHz
       const micCtx = new AudioContext({ sampleRate: 16000 });
       audioCtxInRef.current = micCtx;
-
-      // Output AudioContext 24kHz
       playCtxRef.current = new AudioContext({ sampleRate: 24000 });
 
       const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
@@ -90,13 +104,13 @@ export function useLiveVoice() {
         config: {
           responseModalities: [Modality.AUDIO],
           systemInstruction: SYSTEM_PROMPT,
+          tools: [{ functionDeclarations: toolDeclarations }],
         },
         callbacks: {
           onopen: () => {
             if (!activeRef.current) return;
             setState('listening');
 
-            // Start streaming mic audio
             const micSource = micCtx.createMediaStreamSource(stream);
             const processor = micCtx.createScriptProcessor(4096, 1, 1);
             processorRef.current = processor;
@@ -111,10 +125,9 @@ export function useLiveVoice() {
               const bytes = new Uint8Array(int16.buffer);
               let binary = '';
               for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-              const b64 = btoa(binary);
               try {
                 sessionRef.current.sendRealtimeInput({
-                  audio: { data: b64, mimeType: 'audio/pcm;rate=16000' },
+                  audio: { data: btoa(binary), mimeType: 'audio/pcm;rate=16000' },
                 });
               } catch {}
             };
@@ -123,13 +136,35 @@ export function useLiveVoice() {
             processor.connect(micCtx.destination);
           },
 
-          onmessage: (msg: any) => {
+          onmessage: async (msg: any) => {
             if (!activeRef.current) return;
+
+            // Handle tool calls (send_email)
+            const toolCall = msg?.toolCall;
+            if (toolCall?.functionCalls?.length) {
+              for (const fn of toolCall.functionCalls) {
+                if (fn.name === 'send_email') {
+                  try {
+                    const fields = JSON.parse(fn.args?.fields_json ?? '{}');
+                    await sendInquiry(fields);
+                    onEmailSent?.();
+                  } catch {}
+                  // Send tool response back so model continues
+                  try {
+                    sessionRef.current?.sendToolResponse({
+                      functionResponses: [{ id: fn.id, name: fn.name, response: { output: 'sent' } }],
+                    });
+                  } catch {}
+                }
+              }
+              return;
+            }
+
+            // Handle audio response
             const parts = msg?.serverContent?.modelTurn?.parts ?? [];
             for (const part of parts) {
               if (part?.inlineData?.data) {
-                const b64 = part.inlineData.data as string;
-                const binary = atob(b64);
+                const binary = atob(part.inlineData.data as string);
                 const buf = new ArrayBuffer(binary.length);
                 const view = new Uint8Array(buf);
                 for (let i = 0; i < binary.length; i++) view[i] = binary.charCodeAt(i);
@@ -139,24 +174,17 @@ export function useLiveVoice() {
             }
           },
 
-          onerror: (e: any) => {
-            console.error('Live voice error:', e);
-            stop();
-          },
-
-          onclose: () => {
-            if (activeRef.current) stop();
-          },
+          onerror: (e: any) => { console.error('Live voice error:', e); stop(); },
+          onclose: () => { if (activeRef.current) stop(); },
         },
       });
 
       sessionRef.current = session;
-
     } catch (err) {
       console.error('Live voice start error:', err);
       stop();
     }
-  }, [state, stop, playNextChunk]);
+  }, [state, stop, playNextChunk, onEmailSent]);
 
   return { state, start, stop };
 }

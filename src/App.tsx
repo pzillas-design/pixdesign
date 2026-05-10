@@ -413,7 +413,15 @@ export function App() {
   const lastAiTextRef = useRef<string>('');
   const waveformRef = useRef<HTMLDivElement | null>(null);
 
-  const { state: voiceMode, start: startLiveVoice, stop: stopLiveVoice } = useLiveVoice();
+  const { state: voiceMode, start: startLiveVoice, stop: stopLiveVoice } = useLiveVoice(
+    useCallback(() => {
+      setMessages(current => [
+        ...current,
+        { id: createId('sent'), type: 'sent' as const },
+        { id: createId('ai'), type: 'ai' as const, text: 'Michael meldet sich in Kürze bei dir.' },
+      ]);
+    }, [])
+  );
 
   const activeNode = flow[sliderNodeId];
 
