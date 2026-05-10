@@ -222,7 +222,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-mail': {
     id: 'contact-mail',
-    text: 'Kurz Projekt, Zeitraum und Idee schreiben — ich melde mich schnell.',
+    text: 'Erzähl mir was du brauchst und ich meld mich in Kürze bei dir.',
     action: { label: 'pzillas2@gmail.com', href: 'mailto:pzillas2@gmail.com', icon: 'mail' },
     chips: [],
     images: ['/media/detail/portrait.webp'],
