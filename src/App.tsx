@@ -20,7 +20,6 @@ import {
   Volume2,
   VolumeX,
   AudioLines,
-  CircleQuestionMark,
   MicOff,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -275,7 +274,12 @@ function getIconComponent(iconName?: IconName) {
     case 'mail':
       return <Mail {...iconProps} />;
     case 'circlehelp':
-      return <CircleQuestionMark {...iconProps} />;
+      return (
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7.005 6.66994C7.40827 5.44557 8.20424 4.41315 9.25192 3.75552C10.2996 3.09789 11.5314 2.8575 12.7291 3.07692C13.9269 3.29634 15.0133 3.96142 15.7959 4.95435C16.5785 5.94728 17.0068 7.20399 17.005 8.5019C17.005 12.1658 11.8592 13.9978 11.8592 13.9978" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 20H12.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
     default:
       return null;
   }
