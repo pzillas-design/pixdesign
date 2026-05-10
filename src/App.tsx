@@ -760,14 +760,21 @@ export function App() {
       </section>
 
       <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
-        <input
-          type="text"
-          value={composerText}
-          onChange={(event) => setComposerText(event.target.value)}
-          placeholder="Schreibe etwas..."
-          aria-label="Nachricht"
-          disabled={voiceMode !== 'idle'}
-        />
+        {voiceMode !== 'idle' ? (
+          <div ref={waveformRef} className="voice-waveform-pill" aria-hidden="true">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <span key={i} className="voice-bar" style={{ animationDelay: `${(i * 60) % 500}ms` }} />
+            ))}
+          </div>
+        ) : (
+          <input
+            type="text"
+            value={composerText}
+            onChange={(event) => setComposerText(event.target.value)}
+            placeholder="Schreibe etwas..."
+            aria-label="Nachricht"
+          />
+        )}
         {composerText.trim() && voiceMode === 'idle' ? (
           <button type="submit" className="is-active" aria-label="Senden">
             <ArrowUp size={22} strokeWidth={2.2} />
@@ -779,11 +786,6 @@ export function App() {
             aria-label="Fertig"
             onClick={handleVoiceDialog}
           >
-            <div ref={waveformRef} className="voice-waveform-pill" aria-hidden="true">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} className="voice-bar" style={{ animationDelay: `${(i * 60) % 500}ms` }} />
-              ))}
-            </div>
             <span className="voice-stop-label">Fertig</span>
           </button>
         ) : (

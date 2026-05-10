@@ -545,10 +545,12 @@ img {
 }
 
 .voice-waveform-pill {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 2.5px;
+  gap: 4px;
   height: 20px;
+  padding: 0 10px 0 18px;
 }
 
 .voice-bar {
