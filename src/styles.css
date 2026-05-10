@@ -388,6 +388,37 @@ img {
   background: rgba(255, 255, 255, 0.98);
 }
 
+.chat-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 18vw, 220px), 1fr));
+  gap: clamp(8px, 1vw, 14px);
+  width: 100%;
+  margin-top: clamp(8px, 1vw, 14px);
+}
+
+.chat-gallery__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+}
+
+.chat-gallery__item img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-gallery__label {
+  font-size: 12px;
+  opacity: 0.55;
+  padding: 0 10px 10px;
+  margin: 0;
+}
+
 .user-row {
   display: flex;
   justify-content: flex-end;

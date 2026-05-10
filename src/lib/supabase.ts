@@ -11,6 +11,8 @@ export type PixMedia = {
   url: string;
   filename: string;
   alt: string;
+  description: string;
+  category: 'web' | 'photo' | 'video' | '';
   tags: string[];
   theme: string;
   width: number | null;

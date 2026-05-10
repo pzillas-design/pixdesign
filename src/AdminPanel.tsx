@@ -83,7 +83,7 @@ function MediaTab() {
 
   async function saveSelected() {
     if (!selected) return;
-    await supabase.from('pix_media').update({ alt: selected.alt, tags: selected.tags, theme: selected.theme }).eq('id', selected.id);
+    await supabase.from('pix_media').update({ alt: selected.alt, description: selected.description, category: selected.category, tags: selected.tags }).eq('id', selected.id);
     fetchMedia();
   }
 
@@ -125,8 +125,25 @@ function MediaTab() {
           </div>
           <img src={selected.url} alt="" style={{ width: '100%', borderRadius: 10, objectFit: 'cover' }} />
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={labelStyle}>Alt-Text</span>
-            <input value={selected.alt} onChange={e => setSelected({ ...selected, alt: e.target.value })} style={inputStyle} />
+            <span style={labelStyle}>Projektname</span>
+            <input value={selected.alt} onChange={e => setSelected({ ...selected, alt: e.target.value })} placeholder="z.B. Leasehub Dashboard" style={inputStyle} />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={labelStyle}>Kategorie</span>
+            <select value={selected.category} onChange={e => setSelected({ ...selected, category: e.target.value as any })}
+              style={{ ...inputStyle, appearance: 'auto' }}>
+              <option value="">— wählen —</option>
+              <option value="web">Web</option>
+              <option value="photo">Foto</option>
+              <option value="video">Video</option>
+            </select>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={labelStyle}>Projektbeschreibung</span>
+            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>Die AI nutzt diesen Text um über das Projekt zu sprechen</span>
+            <textarea value={selected.description} onChange={e => setSelected({ ...selected, description: e.target.value })}
+              placeholder="Kurze Beschreibung: was war das Ziel, was ist entstanden, besonderheiten..."
+              style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} />
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={labelStyle}>Tags</span>
