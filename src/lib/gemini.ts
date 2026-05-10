@@ -50,30 +50,27 @@ export function resetSession() {
   chatSession = null;
 }
 
+const DEFAULT_SYSTEM_PROMPT = `Du bist der KI-Assistent von PIX — Kreativagentur von Michael Pzillas in Frankfurt.
+Direkt, knapp, mit ein bisschen Würze. Kein Smalltalk. Ziel: Lead generieren.
+Frag Thema, Datum, kurze Beschreibung — dann Mail senden. Max. 1–2 Sätze pro Antwort.`;
+
 async function buildSystemInstruction(): Promise<string> {
-  // Load projects from Mediathek
+  // Load system prompt from Supabase
+  const { data: kbRow } = await supabase
+    .from('pix_knowledge')
+    .select('value')
+    .eq('key', 'system_prompt')
+    .single();
+
+  const basePrompt = kbRow?.value ?? DEFAULT_SYSTEM_PROMPT;
+
+  // Append project knowledge from Mediathek
   const { data: media } = await supabase
     .from('pix_media')
     .select('filename, alt, category, description')
     .neq('description', '')
     .order('created_at', { ascending: false });
 
-  // Load knowledge base
-  const { data: knowledge } = await supabase
-    .from('pix_knowledge')
-    .select('key, value');
-
-  const kb = Object.fromEntries((knowledge ?? []).map((r: any) => [r.key, r.value]));
-
-  const persona = kb.persona || 'Du bist der KI-Assistent von PIX, einer Kreativagentur in Frankfurt. Ruhig, direkt, auf Augenhöhe. Kein Marketing-Speak. Kurze Chat-Nachrichten. Immer auf Deutsch.';
-  const servicesWeb = kb.services_web || 'Websites, Web-Apps, Tools, Landing Pages. Ab 3.000 EUR.';
-  const servicesPhoto = kb.services_photo || 'Business-Portraits, Events, Immobilien, Architektur. Ab 800 EUR.';
-  const servicesVideo = kb.services_video || 'Imagefilme, Eventfilme, Immobilienvideos, Drohne. Ab 1.500 EUR.';
-  const notOffered = kb.not_offered || 'Kein Printdesign, keine Social-Media-Verwaltung.';
-  const contact = kb.contact || 'E-Mail: pzillas2@gmail.com';
-  const location = kb.location || 'Frankfurt am Main.';
-
-  // Build project knowledge
   const projectsByCategory: Record<string, string[]> = { web: [], photo: [], video: [] };
   for (const item of media ?? []) {
     const cat = item.category as GalleryCategory;
@@ -87,26 +84,17 @@ async function buildSystemInstruction(): Promise<string> {
     .map(([cat, items]) => `${cat.toUpperCase()}:\n${items.join('\n')}`)
     .join('\n\n');
 
-  return `PERSONA: ${persona}
+  const toolInstructions = `
 
-DIENSTLEISTUNGEN:
-Web: ${servicesWeb}
-Foto: ${servicesPhoto}
-Video: ${servicesVideo}
-Nicht angeboten: ${notOffered}
+TOOLS (immer verfügbar):
+1. show_gallery(category) — zeige Referenzbilder wenn der User Arbeiten sehen will. category = "web", "photo" oder "video".
+2. send_email(fields_json) — wenn alle Infos da sind: Thema, Datum/Zeitraum, kurze Beschreibung (Name + Kontakt optional). Dann Mail senden.`;
 
-STANDORT: ${location}
-KONTAKT: ${contact}
+  const projectSection = projectsText
+    ? `\n\nPROJEKTE IN DER MEDIATHEK:\n${projectsText}`
+    : '';
 
-PROJEKTE UND REFERENZEN:
-${projectsText || '(Noch keine Projekte in der Mediathek)'}
-
-TOOLS:
-Du hast zwei Tools:
-1. show_gallery(category) — zeige Bilder wenn der User Arbeiten sehen will oder wenn es das Gespräch bereichert. category = "web", "photo" oder "video".
-2. send_email(fields_json) — wenn der User konkret anfragen möchte: sammle Art, Datum, Ort, Beschreibung, optional Name und E-Mail, dann sende die Mail.
-
-WICHTIG: Stelle maximal eine Frage pro Nachricht. Halte Antworten kurz.`;
+  return basePrompt + projectSection + toolInstructions;
 }
 
 async function getOrCreateSession() {

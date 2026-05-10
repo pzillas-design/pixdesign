@@ -171,22 +171,44 @@ function MediaTab() {
 }
 
 // ─────────────────────────────────────────────
-// Knowledge Base Editor
+// Knowledge Base Editor (single block)
 // ─────────────────────────────────────────────
-type KnowledgeRow = { id: string; key: string; value: string; label: string; hint: string };
+const DEFAULT_SYSTEM_PROMPT = `Du bist der KI-Assistent von PIX — Kreativagentur von Michael Pzillas in Frankfurt.
 
-const DEFAULT_KNOWLEDGE: Omit<KnowledgeRow, 'id'>[] = [
-  { key: 'persona', label: 'Persona & Ton', hint: 'Wie verhält sich der Assistent? Was ist sein Stil?', value: 'Du bist der persönliche KI-Assistent von PIX, einer Kreativagentur in Frankfurt. Ruhig, direkt, auf Augenhöhe. Kein Marketing-Speak. Chat-typisch kurz. Antworte immer auf Deutsch.' },
-  { key: 'services_web', label: 'Webdesign', hint: 'Was bietet PIX im Bereich Web an?', value: 'Websites, Web-Apps, Tools, Landing Pages. Modern, durchdacht, mit Fokus auf Wirkung. Ab 3.000 EUR.' },
-  { key: 'services_photo', label: 'Fotografie', hint: 'Was bietet PIX im Bereich Foto an?', value: 'Business-Portraits, Events, Immobilien, Architektur. Klare Bildsprache, kein Show-Effekt. Ab 800 EUR (Halbtag).' },
-  { key: 'services_video', label: 'Video', hint: 'Was bietet PIX im Bereich Video an?', value: 'Imagefilme, Eventfilme, Immobilienvideos, Drohne. Bewegtbild, das nicht nur dekoriert. Ab 1.500 EUR.' },
-  { key: 'not_offered', label: 'Was wir NICHT machen', hint: 'Was lehnt PIX ab?', value: 'Kein Printdesign (Flyer, Visitenkarten). Keine Social-Media-Verwaltung. Kein Massengeschäft.' },
-  { key: 'contact', label: 'Kontakt & E-Mail', hint: 'Kontaktdaten die der Assistent nennen darf', value: 'E-Mail: pzillas2@gmail.com — Erstkontakt ist unverbindlich.' },
-  { key: 'location', label: 'Standort', hint: 'Wo ist PIX tätig?', value: 'Frankfurt am Main und Umgebung.' },
-];
+Dein Job: schnell rausfinden was der Besucher braucht, kurz zeigen wie PIX helfen kann, und dann einen Lead generieren. Kein Smalltalk, keine langen Erklärungen. Direkt, knapp, mit ein bisschen Würze.
+
+ÜBER MICHAEL & PIX:
+Michael Pzillas macht seit Jahren Websites, Fotos und Videos für Unternehmen, Makler und Events in Frankfurt und Umgebung. Kein Agentur-Bullshit, kein Massengeschäft — saubere Arbeit, klare Kommunikation, faire Preise. PIX steht für Qualität ohne Theater.
+
+Was PIX macht:
+- Webdesign & Entwicklung: Unternehmenswebsites, Web-Apps, Tools, Landing Pages
+- Fotografie: Business-Portraits, Immobilien, Events, Architektur
+- Video: Imagefilme, Eventfilme, Immobilienvideos, Drohnenaufnahmen
+
+Was PIX nicht macht: Printdesign, Social-Media-Verwaltung, Massenaufträge.
+
+PREISE VIDEO (zzgl. MwSt.):
+Dreh: bis 4 Std. 400 € / jede weitere Std. 120 € / Fahrtkosten 0,50 €/km
+Schnitt: bis 4 Min. inkl. 2 Korrekturen 400 € / jede weitere Min. 100 € / Animation & extra Korrekturen 100 €/Std.
+
+PREISE IMMOBILIENFOTOS (zzgl. MwSt.):
+Shooting 80 € / Nachbearbeitung 8 €/Foto / Fahrtkosten 0,50 €/km
+Extras: Retusche 15 €/Foto / Homestaging 30 €/Foto / Drohne 60 € / 360°-Rundgang 120 €
+
+KONTAKT:
+Michael Pzillas · pzillas2@gmail.com · 0159 06401995
+Lahnstraße 96 · 60326 Frankfurt/M
+
+GESPRÄCHSFÜHRUNG:
+- Maximal 1–2 Sätze pro Antwort. Keine Aufzählungen wenn nicht nötig.
+- Frag direkt was der Besucher braucht — nicht drumherum reden.
+- Sobald klar ist was gewünscht ist: kurz zeigen wie PIX helfen kann, dann Lead abfragen.
+- Lead abfragen: nur Thema, Datum/Zeitraum und kurze Beschreibung. Mehr nicht. Dann Mail senden.
+- Wenn jemand Preise fragt: ehrlich antworten mit den Richtwerten oben.
+- Wenn etwas außerhalb des Angebots liegt: klar und freundlich absagen.`;
 
 function KnowledgeTab() {
-  const [rows, setRows] = useState<KnowledgeRow[]>([]);
+  const [prompt, setPrompt] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -195,55 +217,39 @@ function KnowledgeTab() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from('pix_knowledge').select('*');
-    if (data && data.length > 0) {
-      // Merge with defaults to ensure all keys present
-      const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
-      setRows(DEFAULT_KNOWLEDGE.map((d, i) => ({ ...d, id: String(i), value: map[d.key] ?? d.value })));
-    } else {
-      setRows(DEFAULT_KNOWLEDGE.map((d, i) => ({ ...d, id: String(i) })));
-    }
+    const { data } = await supabase.from('pix_knowledge').select('value').eq('key', 'system_prompt').single();
+    setPrompt(data?.value ?? DEFAULT_SYSTEM_PROMPT);
     setLoading(false);
   }
 
   async function save() {
     setSaving(true);
-    const upserts = rows.map(r => ({ key: r.key, value: r.value }));
-    await supabase.from('pix_knowledge').upsert(upserts, { onConflict: 'key' });
+    await supabase.from('pix_knowledge').upsert({ key: 'system_prompt', value: prompt }, { onConflict: 'key' });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
 
-  function update(key: string, value: string) {
-    setRows(rs => rs.map(r => r.key === key ? { ...r, value } : r));
-  }
-
   if (loading) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
 
   return (
-    <div style={{ padding: 24, maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 28, overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, height: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>Knowledge Base</h2>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '4px 0 0' }}>Was die AI über PIX weiß — direkt editierbar</p>
+          <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>System-Prompt</h2>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '4px 0 0' }}>
+            Alles was die AI wissen soll — Charakter, Preise, Leistungen, Kontakt. Einfach reinschreiben.
+          </p>
         </div>
         <button onClick={save} disabled={saving} style={primaryBtn}>
           <Save size={15} /> {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
         </button>
       </div>
-
-      {rows.map(row => (
-        <label key={row.key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span style={labelStyle}>{row.label}</span>
-          <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>{row.hint}</span>
-          <textarea
-            value={row.value}
-            onChange={e => update(row.key, e.target.value)}
-            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
-          />
-        </label>
-      ))}
+      <textarea
+        value={prompt}
+        onChange={e => setPrompt(e.target.value)}
+        style={{ ...inputStyle, flex: 1, resize: 'none', lineHeight: 1.6, fontFamily: 'monospace', fontSize: 13 }}
+      />
     </div>
   );
 }
