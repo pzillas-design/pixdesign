@@ -132,7 +132,7 @@ img {
 }
 
 .chat-header__logo {
-  width: clamp(72px, 9vw, 120px);
+  width: clamp(120px, 14vw, 200px);
   display: block;
 }
 

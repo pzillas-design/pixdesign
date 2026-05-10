@@ -2,7 +2,7 @@ import {
   X,
   Phone,
   Mail,
-  Ellipsis,
+  CircleHelp,
   Globe,
   Camera,
   Film,
@@ -88,7 +88,7 @@ type IconName =
   | 'rotateccw'
   | 'phone'
   | 'mail'
-  | 'ellipsis';
+  | 'circlehelp';
 
 type ChatNode = {
   id: NodeId;
@@ -112,10 +112,10 @@ const flow: Record<NodeId, ChatNode> = {
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
-      { label: 'Videos', targetId: 'video', icon: 'film' },
+      { label: 'Video', targetId: 'video', icon: 'film' },
       { label: '', targetId: 'contact-call', icon: 'phone' },
       { label: '', targetId: 'contact-mail', icon: 'mail' },
-      { label: '', targetId: 'contact-more', icon: 'ellipsis' },
+      { label: '', targetId: 'contact-more', icon: 'circlehelp' },
     ],
     images: ['/media/detail/slider-start.png'],
     imageMode: 'gallery',
@@ -219,7 +219,7 @@ const flow: Record<NodeId, ChatNode> = {
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
-      { label: 'Videos', targetId: 'video', icon: 'film' },
+      { label: 'Video', targetId: 'video', icon: 'film' },
     ],
     images: ['/media/detail/portrait.webp', '/media/detail/konferenz-foto.webp'],
   },
@@ -239,7 +239,7 @@ const flow: Record<NodeId, ChatNode> = {
     chips: [
       { label: 'Website', targetId: 'web', icon: 'globe' },
       { label: 'Fotos', targetId: 'photo', icon: 'camera' },
-      { label: 'Videos', targetId: 'video', icon: 'film' },
+      { label: 'Video', targetId: 'video', icon: 'film' },
     ],
     images: ['/media/detail/slider-start.png', '/media/detail/system.webp'],
   },
@@ -279,8 +279,8 @@ function getIconComponent(iconName?: IconName) {
       return <Phone {...iconProps} />;
     case 'mail':
       return <Mail {...iconProps} />;
-    case 'ellipsis':
-      return <Ellipsis {...iconProps} />;
+    case 'circlehelp':
+      return <CircleHelp {...iconProps} />;
     default:
       return null;
   }
