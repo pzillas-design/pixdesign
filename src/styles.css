@@ -112,7 +112,7 @@ img {
 .portfolio-chat {
   position: relative;
   display: grid;
-  grid-template-columns: clamp(560px, 48vw, 900px) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   height: 100%;
   overflow: hidden;
   background: #000;
@@ -123,7 +123,7 @@ img {
   position: absolute;
   top: 0;
   left: 0;
-  width: clamp(560px, 48vw, 900px);
+  right: 0;
   z-index: 10;
   display: flex;
   align-items: center;
@@ -250,6 +250,9 @@ img {
   flex-direction: column;
   gap: 0;
   width: 100%;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
   padding: clamp(80px, 10vh, 120px) 0 clamp(100px, 12vh, 140px);
   flex: 1;
 }
@@ -261,8 +264,10 @@ img {
 .chat-composer {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: clamp(560px, 48vw, 900px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 760px;
   z-index: 10;
   flex-shrink: 0;
 }
@@ -296,7 +301,6 @@ img {
 
 .system-content {
   width: 100%;
-  padding-right: clamp(18px, 2.6vw, 42px);
 }
 
 .bubble-action-btn {
@@ -615,41 +619,62 @@ img {
 .image-strip {
   position: relative;
   z-index: 1;
-  height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  background: #050505;
+  width: 100%;
+  height: clamp(200px, 28vh, 320px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: transparent;
+  margin-bottom: 12px;
   -webkit-overflow-scrolling: touch;
-}
-
-.image-strip--inline {
-  display: none;
 }
 
 .image-strip__track {
   display: flex;
-  min-height: 100%;
-  flex-direction: column;
-  gap: 0;
+  flex-direction: row;
+  height: 100%;
+  gap: 8px;
   padding: 0;
+  width: max-content;
+  min-width: 100%;
 }
 
 .image-strip__item {
   position: relative;
   flex: 0 0 auto;
-  width: 100%;
-  margin: 0;
+  height: 100%;
+  border-radius: 14px;
   overflow: hidden;
-  border-radius: 0;
   background: #111;
   cursor: zoom-in;
 }
 
+.image-strip__item:first-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 .image-strip__item img {
-  width: 100%;
-  height: auto;
+  height: 100%;
+  width: auto;
+  max-width: none;
   display: block;
-  object-fit: unset;
+}
+
+.image-strip__tag {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.52);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  line-height: 1;
 }
 
 .image-lightbox {
@@ -659,32 +684,121 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.9);
-  padding: clamp(16px, 4vw, 52px);
+  background: rgba(0, 0, 0, 0.92);
+  padding: clamp(16px, 4vw, 40px);
   cursor: zoom-out;
 }
 
-.image-lightbox img {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: 100%;
-  object-fit: contain;
+.image-lightbox__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: min(960px, 100%);
+  width: 100%;
   cursor: default;
 }
 
 .image-lightbox__close {
-  position: fixed;
-  top: clamp(14px, 3vw, 28px);
-  right: clamp(14px, 3vw, 28px);
-  z-index: 81;
-  display: grid;
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  transition: background 150ms ease;
+}
+
+.image-lightbox__close:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.image-lightbox__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+.image-lightbox__stage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.image-lightbox__main-img {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 64vh;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+}
+
+.image-lightbox__nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
-  place-items: center;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #050505;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transition: background 150ms ease;
+}
+
+.image-lightbox__nav:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.image-lightbox__desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.52);
+  text-align: center;
+  margin: 0;
+}
+
+.image-lightbox__thumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px;
+  max-width: 100%;
+}
+
+.image-lightbox__thumb {
+  flex: 0 0 auto;
+  width: 66px;
+  height: 46px;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0.4;
+  border: 2px solid transparent;
+  transition: opacity 150ms ease, border-color 150ms ease;
+}
+
+.image-lightbox__thumb.is-active {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+.image-lightbox__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .image-stage {
@@ -873,55 +987,8 @@ img {
     --leading-chat: 1.12;
   }
 
-  .portfolio-chat {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr);
-  }
-
-  .portfolio-chat > .image-strip--side {
-    display: none;
-  }
-
-  .image-strip--inline {
-    display: block;
-    width: 100%;
-    height: 30vh;
-    min-height: 180px;
-    max-height: 280px;
-    margin-left: 0;
-    margin-bottom: 12px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    background: transparent !important;
-  }
-
-  .image-strip--inline .image-strip__track {
-    width: max-content;
-    min-width: 100%;
-    height: 100%;
-    flex-direction: row;
-    gap: 8px;
-    padding: 0 0 0 0;
-  }
-
-  .image-strip--inline .image-strip__item {
-    width: auto;
-    height: 100%;
-    min-height: 0;
-    border-radius: 14px;
-    background: transparent;
-  }
-
-  .image-strip--inline .image-strip__item:first-child {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  .image-strip--inline .image-strip__item img {
-    width: auto;
-    max-width: none;
-    height: 100%;
-    object-fit: contain;
+  .image-strip {
+    height: clamp(160px, 28vh, 240px);
   }
 
   .chat-scroll {
@@ -1002,7 +1069,9 @@ img {
   }
 
   .chat-composer {
-    width: 100%;
+    max-width: 100%;
+    left: 0;
+    transform: none;
     margin: 4px 0 0;
     border-radius: 0;
     padding: 18px 14px 18px 32px;

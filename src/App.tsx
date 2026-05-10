@@ -16,6 +16,8 @@ import {
   RotateCcw,
   ArrowUp,
   AudioLines,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
@@ -87,12 +89,15 @@ type IconName =
   | 'mail'
   | 'circlehelp';
 
+type ImageMeta = { tag?: string; title?: string; description?: string };
+
 type ChatNode = {
   id: NodeId;
   text: string;
   chips?: Array<{ label: string; displayLabel?: string; targetId: NodeId; icon?: IconName }>;
   action?: { label: string; href: string; icon?: IconName };
   images: string[];
+  imageMeta?: ImageMeta[];
   imageMode?: 'logo' | 'gallery';
 };
 
@@ -131,6 +136,11 @@ const flow: Record<NodeId, ChatNode> = {
       '/media/web-projects/crewting/cover.webp',
       '/media/web-projects/jakobs/cover.webp',
     ],
+    imageMeta: [
+      { tag: 'LeaseHub', title: 'LeaseHub', description: 'SaaS-Plattform für Fahrzeug-Leasingverwaltung' },
+      { tag: 'Crewting', title: 'Crewting', description: 'Matching-App für Kreativteams und Freelancer' },
+      { tag: 'Jakobs', title: 'Jakobs Consulting', description: 'Unternehmensauftritt für eine Unternehmensberatung' },
+    ],
   },
   photo: {
     id: 'photo',
@@ -146,6 +156,12 @@ const flow: Record<NodeId, ChatNode> = {
       '/media/foto-hd/2_immobilien.webp',
       '/media/foto-hd/30_architektur.jpg',
     ],
+    imageMeta: [
+      { tag: '600 Kids', title: '600 Kids Festival', description: 'Eventfotografie für ein Jugendfestival in Frankfurt' },
+      { tag: 'Business', title: 'Business-Portrait', description: 'Portrait-Session für Führungskräfte und Teams' },
+      { tag: 'Exposé', title: 'Immobilien Exposé', description: 'Exposé-Fotografie für eine Wohnimmobilie in Frankfurt' },
+      { tag: 'Architektur', title: 'Architekturfotografie', description: 'Architekturfotografie im Rhein-Main-Gebiet' },
+    ],
   },
   video: {
     id: 'video',
@@ -156,60 +172,107 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Immobilien', targetId: 'video-realestate', icon: 'home' },
     ],
     images: ['/media/detail/video-brand.webp', '/media/detail/video-event.webp', '/media/detail/video-drone.webp'],
+    imageMeta: [
+      { tag: 'Imagefilm', title: 'Imagefilm' },
+      { tag: 'Event', title: 'Eventfilm' },
+      { tag: 'Drohne', title: 'Drohnenaufnahmen' },
+    ],
   },
   'web-business': {
     id: 'web-business',
     text: 'Dann wuerde ich zuerst klaeren, was Menschen in den ersten zehn Sekunden verstehen muessen.',
     chips: [{ label: 'Zurueck', targetId: 'web', icon: 'rotateccw' }],
     images: ['/media/web-projects/pms/cover.webp', '/media/web-projects/leasehub/02-dahsboard.webp'],
+    imageMeta: [
+      { tag: 'PMS', title: 'PMS Verwaltung', description: 'Verwaltungsplattform für Property Management' },
+      { tag: 'LeaseHub', title: 'LeaseHub Dashboard', description: 'Dashboard-Ansicht der LeaseHub-Plattform' },
+    ],
   },
   'web-tools': {
     id: 'web-tools',
     text: 'Wenn heute noch viel in Tabellen, Mails oder Bauchgefuehl steckt, kann ein kleines Tool sehr viel Ruhe reinbringen.',
     chips: [{ label: 'Zurueck', targetId: 'web', icon: 'rotateccw' }],
     images: ['/media/web-projects/leasehub/02-dahsboard.webp', '/media/web-projects/tososto/05-karte.webp'],
+    imageMeta: [
+      { tag: 'LeaseHub', title: 'LeaseHub', description: 'SaaS-Tool für Leasingverwaltung' },
+      { tag: 'Tososto', title: 'Tososto', description: 'Kartenbasiertes Tool zur Standortsuche' },
+    ],
   },
   'web-landing': {
     id: 'web-landing',
     text: 'Landing Pages sollten nicht viel erklaeren, sondern schnell die richtige Entscheidung leichter machen.',
     chips: [{ label: 'Zurueck', targetId: 'web', icon: 'rotateccw' }],
     images: ['/media/web-projects/600kids/cover.webp', '/media/web-projects/crewting/cover.webp'],
+    imageMeta: [
+      { tag: '600 Kids', title: '600 Kids Festival', description: 'Event-Landing-Page für ein Jugendfestival' },
+      { tag: 'Crewting', title: 'Crewting', description: 'Landing Page für eine Kreativ-Matching-App' },
+    ],
   },
   'photo-business': {
     id: 'photo-business',
     text: 'Bei Business-Fotos geht es meistens um Vertrauen. Nicht zu steif, nicht zu inszeniert.',
     chips: [{ label: 'Zurueck', targetId: 'photo', icon: 'rotateccw' }],
     images: ['/media/foto-hd/1_business.webp', '/media/foto-hd/17_business.webp', '/media/foto-hd/28_business.jpg'],
+    imageMeta: [
+      { tag: 'Business', title: 'Business-Portrait' },
+      { tag: 'Team', title: 'Team-Fotografie' },
+      { tag: 'Portrait', title: 'Portrait-Shooting' },
+    ],
   },
   'photo-events': {
     id: 'photo-events',
     text: 'Events brauchen Bilder, die sich spaeter noch nach dem Abend anfuehlen.',
     chips: [{ label: 'Zurueck', targetId: 'photo', icon: 'rotateccw' }],
     images: ['/media/foto-hd/12_event.jpg', '/media/foto-hd/15_event.webp', '/media/foto-hd/29_event.jpg'],
+    imageMeta: [
+      { tag: '600 Kids', title: '600 Kids Festival', description: 'Eventfotografie für ein Jugendfestival in Frankfurt' },
+      { tag: 'Konferenz', title: 'Konferenzfotografie' },
+      { tag: 'Event', title: 'Eventfotografie' },
+    ],
   },
   'photo-realestate': {
     id: 'photo-realestate',
     text: 'Bei Immobilien wuerde ich ruhig bleiben. Klare Perspektiven, gutes Licht, kein Show-Effekt.',
     chips: [{ label: 'Zurueck', targetId: 'photo', icon: 'rotateccw' }],
     images: ['/media/foto-hd/2_immobilien.webp', '/media/foto-hd/7_immobilien.jpg', '/media/foto-hd/30_architektur.jpg'],
+    imageMeta: [
+      { tag: 'Exposé', title: 'Immobilien Exposé', description: 'Exposé-Fotografie für eine Wohnimmobilie' },
+      { tag: 'Wohnung', title: 'Wohnungsfotografie' },
+      { tag: 'Architektur', title: 'Architekturfotografie' },
+    ],
   },
   'video-brand': {
     id: 'video-brand',
     text: 'Ein Imagefilm sollte ein Gefuehl setzen und schnell zeigen, warum es euch gibt.',
     chips: [{ label: 'Zurueck', targetId: 'video', icon: 'rotateccw' }],
     images: ['/media/detail/video-brand.webp', '/media/detail/video-story.webp', '/media/detail/video-motion.webp'],
+    imageMeta: [
+      { tag: 'Imagefilm', title: 'Imagefilm' },
+      { tag: 'Story', title: 'Storytelling' },
+      { tag: 'Motion', title: 'Motion Design' },
+    ],
   },
   'video-event': {
     id: 'video-event',
     text: 'Ein Eventfilm braucht Tempo, Stimmen und die kleinen Momente zwischen den Programmpunkten.',
     chips: [{ label: 'Zurueck', targetId: 'video', icon: 'rotateccw' }],
     images: ['/media/detail/video-event.webp', '/media/detail/video-konferenz.webp', '/media/foto-hd/12_event.jpg'],
+    imageMeta: [
+      { tag: 'Event', title: 'Eventfilm' },
+      { tag: 'Konferenz', title: 'Konferenzfilm' },
+      { tag: '600 Kids', title: '600 Kids Festival' },
+    ],
   },
   'video-realestate': {
     id: 'video-realestate',
     text: 'Immobilienfilm darf ruhig sein. Ein guter Rundgang zeigt Orientierung und laesst Raeume wirken.',
     chips: [{ label: 'Zurueck', targetId: 'video', icon: 'rotateccw' }],
     images: ['/media/detail/video-drone.webp', '/media/foto-hd/2_immobilien.webp', '/media/foto-hd/7_immobilien.jpg'],
+    imageMeta: [
+      { tag: 'Drohne', title: 'Drohnenfilm', description: 'Luftaufnahmen für Immobilienpräsentationen' },
+      { tag: 'Exposé', title: 'Immobilienfilm' },
+      { tag: 'Rundgang', title: 'Virtueller Rundgang' },
+    ],
   },
   'contact-call': {
     id: 'contact-call',
@@ -283,26 +346,29 @@ function getIconComponent(iconName?: IconName) {
   }
 }
 
-function ImageStrip({ node, variant = 'side' }: { node: ChatNode; variant?: 'side' | 'inline' }) {
-  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 900px)').matches);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+function ImageStrip({ node }: { node: ChatNode }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    const query = window.matchMedia('(max-width: 900px)');
-    const update = () => setIsMobile(query.matches);
-    update();
-    query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
-  }, []);
+    function onKey(e: KeyboardEvent) {
+      if (lightboxIndex === null) return;
+      if (e.key === 'Escape') setLightboxIndex(null);
+      if (e.key === 'ArrowLeft') setLightboxIndex(i => i !== null ? (i - 1 + node.images.length) % node.images.length : null);
+      if (e.key === 'ArrowRight') setLightboxIndex(i => i !== null ? (i + 1) % node.images.length : null);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxIndex, node.images.length]);
 
-  function closeLightbox(event?: MouseEvent) {
-    event?.stopPropagation();
-    setLightboxImage(null);
-  }
+  if (!node.images?.length) return null;
+
+  const images = node.images;
+  const meta = node.imageMeta ?? [];
+  const currentMeta = lightboxIndex !== null ? (meta[lightboxIndex] ?? null) : null;
 
   return (
     <>
-      <aside className={`image-strip image-strip--${variant}`} aria-label={`${node.id} Bilder`}>
+      <div className="image-strip" aria-label={`${node.id} Bilder`}>
         <motion.div
           key={node.id}
           className="image-strip__track"
@@ -310,67 +376,109 @@ function ImageStrip({ node, variant = 'side' }: { node: ChatNode; variant?: 'sid
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
         >
-          {node.images.map((image, index) => (
+          {images.map((image, index) => (
             <motion.figure
               className="image-strip__item"
               key={`${node.id}-${image}`}
-              initial={{
-                opacity: 0,
-                y: isMobile || variant === 'inline' ? 0 : 42,
-                x: isMobile || variant === 'inline' ? 72 : 0,
-                scale: 0.985,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                x: 0,
-                scale: 1,
-              }}
-              transition={{
-                delay: index * 0.08,
-                type: 'spring',
-                stiffness: 185,
-                damping: 25,
-              }}
-              onClick={() => setLightboxImage(image)}
+              initial={{ opacity: 0, x: 40, scale: 0.97 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ delay: index * 0.07, type: 'spring', stiffness: 200, damping: 26 }}
+              onClick={() => setLightboxIndex(index)}
             >
-              <img src={image} alt="" />
+              <img src={image} alt={meta[index]?.title ?? ''} />
+              {meta[index]?.tag && (
+                <span className="image-strip__tag">{meta[index].tag}</span>
+              )}
             </motion.figure>
           ))}
         </motion.div>
-      </aside>
+      </div>
 
       <AnimatePresence>
-        {lightboxImage && (
+        {lightboxIndex !== null && (
           <motion.div
             className="image-lightbox"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            onClick={closeLightbox}
+            transition={{ duration: 0.2 }}
+            onClick={() => setLightboxIndex(null)}
           >
-            <motion.button
-              type="button"
-              className="image-lightbox__close"
-              aria-label="Schliessen"
-              onClick={closeLightbox}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-            >
-              <X size={22} strokeWidth={2.4} />
-            </motion.button>
-            <motion.img
-              src={lightboxImage}
-              alt=""
-              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+            <motion.div
+              className="image-lightbox__inner"
+              initial={{ opacity: 0, y: 14, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 180, damping: 24 }}
-              onClick={(event) => event.stopPropagation()}
-            />
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="image-lightbox__close"
+                aria-label="Schliessen"
+                onClick={() => setLightboxIndex(null)}
+              >
+                <X size={18} strokeWidth={2.4} />
+              </button>
+
+              {currentMeta?.title && (
+                <p className="image-lightbox__title">{currentMeta.title}</p>
+              )}
+
+              <div className="image-lightbox__stage">
+                {images.length > 1 && (
+                  <button
+                    type="button"
+                    className="image-lightbox__nav"
+                    aria-label="Vorheriges Bild"
+                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : 0); }}
+                  >
+                    <ChevronLeft size={22} strokeWidth={2} />
+                  </button>
+                )}
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={lightboxIndex}
+                    src={images[lightboxIndex]}
+                    alt={currentMeta?.title ?? ''}
+                    className="image-lightbox__main-img"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                    transition={{ duration: 0.16 }}
+                  />
+                </AnimatePresence>
+                {images.length > 1 && (
+                  <button
+                    type="button"
+                    className="image-lightbox__nav"
+                    aria-label="Naechstes Bild"
+                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i + 1) % images.length : 0); }}
+                  >
+                    <ChevronRight size={22} strokeWidth={2} />
+                  </button>
+                )}
+              </div>
+
+              {currentMeta?.description && (
+                <p className="image-lightbox__desc">{currentMeta.description}</p>
+              )}
+
+              {images.length > 1 && (
+                <div className="image-lightbox__thumbs">
+                  {images.map((img, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`image-lightbox__thumb${i === lightboxIndex ? ' is-active' : ''}`}
+                      onClick={() => setLightboxIndex(i)}
+                    >
+                      <img src={img} alt={meta[i]?.title ?? ''} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -603,7 +711,7 @@ export function App() {
                 >
                   <div className="system-row__spacer" />
 
-                  {!isFirst && <ImageStrip node={node} variant="inline" />}
+                  {!isFirst && <ImageStrip node={node} />}
 
                   <div className="system-content">
                     <div className="system-bubble">
@@ -682,9 +790,6 @@ export function App() {
         )}
       </form>
 
-      <ImageStrip
-        node={aiGalleryImages ? { ...activeNode, images: aiGalleryImages } : activeNode}
-      />
     </main>
   );
 }
