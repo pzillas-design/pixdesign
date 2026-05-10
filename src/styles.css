@@ -208,6 +208,19 @@ img {
   background: #d8d1c5;
 }
 
+.chat-bg-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(90px) saturate(1.6);
+  opacity: 0.05;
+  pointer-events: none;
+  transform: scale(1.1);
+}
+
 .reset-button {
   position: fixed;
   z-index: 40;
@@ -656,7 +669,6 @@ img {
   border-radius: 16px;
   overflow: hidden;
   background: #111;
-  cursor: zoom-in;
 }
 
 .image-strip__item-3d:first-child .image-strip__item {

@@ -346,17 +346,25 @@ function getIconComponent(iconName?: IconName) {
   }
 }
 
-function ImageStrip({ node }: { node: ChatNode }) {
+function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?: (src: string) => void }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [grabbing, setGrabbing] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const wrapperRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const lastCenterRef = useRef<string | null>(null);
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const scrollStartRef = useRef(0);
+  const hasDraggedRef = useRef(false);
 
   const updateRotations = useCallback(() => {
     const strip = stripRef.current;
     if (!strip) return;
     const halfW = strip.clientWidth / 2;
     const scrollCenter = strip.scrollLeft + halfW;
-    wrapperRefs.current.forEach((wrapper) => {
+    let minDist = Infinity;
+    let centerSrc: string | null = null;
+    wrapperRefs.current.forEach((wrapper, i) => {
       if (!wrapper) return;
       const itemCenter = wrapper.offsetLeft + wrapper.offsetWidth / 2;
       const offset = itemCenter - scrollCenter;
@@ -366,8 +374,14 @@ function ImageStrip({ node }: { node: ChatNode }) {
       const opacity = Math.max(0.22, 1 - Math.abs(ratio) * 0.42);
       wrapper.style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
       wrapper.style.opacity = String(opacity);
+      const dist = Math.abs(offset);
+      if (dist < minDist) { minDist = dist; centerSrc = node.images[i]; }
     });
-  }, []);
+    if (centerSrc && centerSrc !== lastCenterRef.current) {
+      lastCenterRef.current = centerSrc;
+      onCenterChange?.(centerSrc);
+    }
+  }, [node.images, onCenterChange]);
 
   useEffect(() => {
     const strip = stripRef.current;
@@ -375,7 +389,6 @@ function ImageStrip({ node }: { node: ChatNode }) {
     updateRotations();
     strip.addEventListener('scroll', updateRotations, { passive: true });
     window.addEventListener('resize', updateRotations, { passive: true });
-    // Also update after images load
     const timer = setTimeout(updateRotations, 120);
     return () => {
       strip.removeEventListener('scroll', updateRotations);
@@ -403,7 +416,28 @@ function ImageStrip({ node }: { node: ChatNode }) {
 
   return (
     <>
-      <div ref={stripRef} className="image-strip" aria-label={`${node.id} Bilder`}>
+      <div
+        ref={stripRef}
+        className="image-strip"
+        aria-label={`${node.id} Bilder`}
+        style={{ cursor: grabbing ? 'grabbing' : 'grab' }}
+        onMouseDown={(e) => {
+          isDraggingRef.current = true;
+          hasDraggedRef.current = false;
+          dragStartXRef.current = e.clientX;
+          scrollStartRef.current = stripRef.current?.scrollLeft ?? 0;
+          setGrabbing(true);
+          e.preventDefault();
+        }}
+        onMouseMove={(e) => {
+          if (!isDraggingRef.current || !stripRef.current) return;
+          const dx = e.clientX - dragStartXRef.current;
+          if (Math.abs(dx) > 4) hasDraggedRef.current = true;
+          stripRef.current.scrollLeft = scrollStartRef.current - dx;
+        }}
+        onMouseUp={() => { isDraggingRef.current = false; setGrabbing(false); }}
+        onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); }}
+      >
         <motion.div
           key={node.id}
           className="image-strip__track"
@@ -422,12 +456,13 @@ function ImageStrip({ node }: { node: ChatNode }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.08, duration: 0.3 }}
-                onClick={() => setLightboxIndex(index)}
+                onClick={() => { if (!hasDraggedRef.current) setLightboxIndex(index); }}
               >
                 <img
                   src={image}
                   alt={meta[index]?.title ?? ''}
                   onLoad={updateRotations}
+                  draggable={false}
                 />
                 {meta[index]?.tag && (
                   <span className="image-strip__tag">{meta[index].tag}</span>
@@ -559,6 +594,7 @@ export function App() {
   const [aiGalleryImages, setAiGalleryImages] = useState<string[] | null>(null);
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [bgImage, setBgImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastAiTextRef = useRef<string>('');
   const waveformRef = useRef<HTMLDivElement | null>(null);
@@ -671,6 +707,21 @@ export function App() {
 
   return (
     <main className={`portfolio-chat theme-${timeTheme}`}>
+      {/* Ambient background glow from center image */}
+      <AnimatePresence>
+        {bgImage && (
+          <motion.div
+            key={bgImage}
+            className="chat-bg-glow"
+            style={{ backgroundImage: `url(${bgImage})` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: 'easeInOut' }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sticky header */}
       <header className="chat-header">
         <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
@@ -751,7 +802,7 @@ export function App() {
                 >
                   <div className="system-row__spacer" />
 
-                  {!isFirst && <ImageStrip node={node} />}
+                  {!isFirst && <ImageStrip node={node} onCenterChange={setBgImage} />}
 
                   <div className="system-content">
                     <div className="system-bubble">
