@@ -411,10 +411,23 @@ export function App() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  function handleChipClick(label: string, targetId: NodeId, fromIndex: number) {
+  async function handleChipClick(label: string, targetId: NodeId, fromIndex: number) {
+    // Chips on the start node → hand off to AI
+    if (fromIndex === 0) {
+      const userMessage: Message = { id: createId('user'), type: 'user', text: label };
+      const typingId = createId('typing');
+      setMessages((current) => [...current, userMessage, { id: typingId, type: 'typing' }]);
+      setAiLoading(true);
+      const aiResponse = await sendMessage(label);
+      lastAiTextRef.current = aiResponse.text;
+      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text };
+      setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
+      setAiLoading(false);
+      return;
+    }
+    // Other chips → static flow (unused after start)
     const userMessage: Message = { id: createId('user'), type: 'user', text: label };
     const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
-
     setMessages((current) => [...current.slice(0, fromIndex + 1), userMessage, systemMessage]);
     setSliderNodeId(targetId);
   }
