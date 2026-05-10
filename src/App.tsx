@@ -786,7 +786,7 @@ export function App() {
             aria-label="Fertig"
             onClick={handleVoiceDialog}
           >
-            <span className="voice-stop-label">Fertig</span>
+            <X size={18} strokeWidth={2.5} />
           </button>
         ) : (
           <button type="button" aria-label="Sprachdialog starten" onClick={handleVoiceDialog}>
