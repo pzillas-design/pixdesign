@@ -31,6 +31,8 @@ const bubbleAnim = {
   transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
 };
 
+const rowExit = { opacity: 0, y: -10, transition: { duration: 0.18, ease: 'easeIn' } };
+
 function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
   const indexRef = useRef(0);
@@ -447,11 +449,14 @@ export function App() {
     const bubbleText = displayLabel || label;
     const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
     const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
-    // Always branch: slice at fromIndex, replace everything after
-    setMessages((current) => [...current.slice(0, fromIndex + 1), userMessage, systemMessage]);
-    setSliderNodeId(targetId);
-    // Reset AI session so next composer message starts fresh with new context
+    // Step 1: fade out everything after fromIndex
+    setMessages((current) => current.slice(0, fromIndex + 1));
     resetSession();
+    // Step 2: after exit animation, add new branch
+    setTimeout(() => {
+      setMessages((current) => [...current, userMessage, systemMessage]);
+      setSliderNodeId(targetId);
+    }, 320);
   }
 
   function dropHeaderMessage(label: string, targetId: NodeId) {
@@ -530,30 +535,30 @@ export function App() {
               // User bubble — right aligned
               if (message.type === 'user') {
                 return (
-                  <div key={message.id} className="user-row">
+                  <motion.div key={message.id} className="user-row" exit={rowExit}>
                     <motion.div className="user-bubble" {...bubbleAnim}>
                       {message.text}
                     </motion.div>
-                  </div>
+                  </motion.div>
                 );
               }
 
               // Sent confirmation chip
               if (message.type === 'sent') {
                 return (
-                  <div key={message.id} className="sent-badge-row">
+                  <motion.div key={message.id} className="sent-badge-row" exit={rowExit}>
                     <motion.div className="sent-badge" {...bubbleAnim}>
                       <ArrowUp size={13} strokeWidth={2.5} style={{ transform: 'rotate(45deg)' }} />
                       Anfrage versendet
                     </motion.div>
-                  </div>
+                  </motion.div>
                 );
               }
 
               // Typing indicator
               if (message.type === 'typing') {
                 return (
-                  <div key={message.id} className="system-row">
+                  <motion.div key={message.id} className="system-row" exit={rowExit}>
                     <div className="system-row__spacer" />
                     <div className="system-content">
                       <motion.div className="system-bubble typing-bubble" {...bubbleAnim}>
@@ -562,21 +567,21 @@ export function App() {
                         <span className="typing-dot" />
                       </motion.div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               }
 
               // AI message
               if (message.type === 'ai') {
                 return (
-                  <div key={message.id} className="system-row">
+                  <motion.div key={message.id} className="system-row" exit={rowExit}>
                     <div className="system-row__spacer" />
                     <div className="system-content">
                       <motion.div className="system-bubble" {...bubbleAnim}>
                         {message.text}
                       </motion.div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               }
 
