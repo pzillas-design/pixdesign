@@ -56,7 +56,7 @@ export function initSession(systemInstruction: string) {
 function getOrCreateSession() {
   if (!chatSession) {
     chatSession = ai.chats.create({
-      model: 'gemini-2.0-flash-lite',
+      model: 'gemini-3.1-flash-lite',
       config: {
         systemInstruction: currentSystemInstruction || getDefaultKnowledgeBase(),
         temperature: 0.7,
