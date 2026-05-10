@@ -14,19 +14,15 @@ import {
   Play,
   Clapperboard,
   RotateCcw,
-  AudioWaveform,
   ArrowUp,
-  Loader,
-  Volume2,
-  VolumeX,
   AudioLines,
-  MicOff,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
-import { sendMessage, generateSpeech, resetSession, sendInquiry, type GalleryCategory } from './lib/gemini';
+import { sendMessage, resetSession, sendInquiry, type GalleryCategory } from './lib/gemini';
+import { useLiveVoice } from './lib/useLiveVoice';
 import { supabase } from './lib/supabase';
 
 const bubbleAnim = {
@@ -413,18 +409,11 @@ export function App() {
   const [aiGalleryImages, setAiGalleryImages] = useState<string[] | null>(null);
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [voiceMode, setVoiceMode] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const lastAiTextRef = useRef<string>('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const voiceLoopActiveRef = useRef(false);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const micStreamRef = useRef<MediaStream | null>(null);
-  const animFrameRef = useRef<number | null>(null);
   const waveformRef = useRef<HTMLDivElement | null>(null);
+
+  const { state: voiceMode, start: startLiveVoice, stop: stopLiveVoice } = useLiveVoice();
 
   const activeNode = flow[sliderNodeId];
 
@@ -508,130 +497,9 @@ export function App() {
     setAiLoading(false);
   }
 
-  async function speakText(text: string): Promise<void> {
-    return new Promise(async (resolve) => {
-      setVoiceMode('speaking');
-      setIsPlaying(true);
-      const base64 = await generateSpeech(text);
-      if (!base64) { setIsPlaying(false); setVoiceMode('idle'); resolve(); return; }
-      try {
-        if (!audioContextRef.current) {
-          audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-        }
-        const ctx = audioContextRef.current;
-        if (ctx.state === 'suspended') await ctx.resume();
-        const binary = atob(base64);
-        const view = new DataView(new ArrayBuffer(binary.length));
-        for (let i = 0; i < binary.length; i++) view.setUint8(i, binary.charCodeAt(i));
-        const floatData = new Float32Array(binary.length / 2);
-        for (let i = 0; i < floatData.length; i++) floatData[i] = view.getInt16(i * 2, true) / 32768;
-        const audioBuffer = ctx.createBuffer(1, floatData.length, 24000);
-        audioBuffer.copyToChannel(floatData, 0);
-        const source = ctx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(ctx.destination);
-        source.onended = () => { setIsPlaying(false); setVoiceMode('idle'); resolve(); };
-        sourceNodeRef.current = source;
-        source.start();
-      } catch { setIsPlaying(false); setVoiceMode('idle'); resolve(); }
-    });
-  }
-
-  async function startMicAnalysis() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micStreamRef.current = stream;
-      const ctx = new AudioContext();
-      const source = ctx.createMediaStreamSource(stream);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 64;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-      const data = new Uint8Array(analyser.frequencyBinCount);
-
-      function tick() {
-        if (!analyserRef.current || !waveformRef.current) return;
-        analyserRef.current.getByteFrequencyData(data);
-        const bars = waveformRef.current.children;
-        const count = bars.length;
-        for (let i = 0; i < count; i++) {
-          const binIndex = Math.floor((i / count) * data.length);
-          const val = data[binIndex] / 255;
-          const height = Math.max(3, val * 28);
-          (bars[i] as HTMLElement).style.height = `${height}px`;
-          (bars[i] as HTMLElement).style.opacity = `${0.4 + val * 0.6}`;
-        }
-        animFrameRef.current = requestAnimationFrame(tick);
-      }
-      tick();
-    } catch { /* mic denied — bars stay CSS */ }
-  }
-
-  function stopMicAnalysis() {
-    if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = null; }
-    micStreamRef.current?.getTracks().forEach(t => t.stop());
-    micStreamRef.current = null;
-    analyserRef.current = null;
-  }
-
-  function stopVoice() {
-    voiceLoopActiveRef.current = false;
-    stopMicAnalysis();
-    sourceNodeRef.current?.stop();
-    sourceNodeRef.current = null;
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
-    setIsPlaying(false);
-    setVoiceMode('idle');
-  }
-
-  function startListening() {
-    if (!voiceLoopActiveRef.current) return;
-    const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-
-    setVoiceMode('listening');
-    startMicAnalysis();
-    const recognition: SpeechRecognition = new SR();
-    recognitionRef.current = recognition;
-    recognition.lang = 'de-DE';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = async (event) => {
-      if (!voiceLoopActiveRef.current) return;
-      stopMicAnalysis();
-      const spokenText = event.results[0][0].transcript;
-      const userMessage: Message = { id: createId('user'), type: 'user', text: spokenText };
-      const typingId = createId('typing');
-      setMessages((current) => [...current, userMessage, { id: typingId, type: 'typing' }]);
-      setVoiceMode('thinking');
-
-      const aiResponse = await sendMessage(spokenText);
-      if (!voiceLoopActiveRef.current) return;
-      lastAiTextRef.current = aiResponse.text;
-      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text };
-      setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
-
-      await speakText(aiResponse.text);
-
-      // Loop: listen again after speaking
-      if (voiceLoopActiveRef.current) startListening();
-    };
-
-    recognition.onerror = () => { if (voiceLoopActiveRef.current) setVoiceMode('listening'); };
-    recognition.onend = () => { /* handled by onresult or stopVoice */ };
-    recognition.start();
-  }
-
-  async function handleVoiceDialog() {
-    if (voiceMode !== 'idle') { stopVoice(); return; }
-
-    const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { alert('Dein Browser unterstützt keine Spracheingabe.'); return; }
-
-    voiceLoopActiveRef.current = true;
-    startListening();
+  function handleVoiceDialog() {
+    if (voiceMode !== 'idle') { stopLiveVoice(); return; }
+    startLiveVoice();
   }
 
   return (
