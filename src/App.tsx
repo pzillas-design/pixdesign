@@ -20,7 +20,7 @@ import {
   Loader,
   Volume2,
   VolumeX,
-  Mic,
+  AudioLines,
   MicOff,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -111,7 +111,7 @@ const flow: Record<NodeId, ChatNode> = {
     text: 'Willkommen bei PIX ✌️\nIch baue tolle Webseiten und mache Fotos und Videos in Frankfurt und Umgebung. Womit kann ich helfen?',
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
-      { label: 'Fotografie', targetId: 'photo', icon: 'camera' },
+      { label: 'Foto', targetId: 'photo', icon: 'camera' },
       { label: 'Videos', targetId: 'video', icon: 'film' },
       { label: '', targetId: 'contact-call', icon: 'phone' },
       { label: '', targetId: 'contact-mail', icon: 'mail' },
@@ -218,7 +218,7 @@ const flow: Record<NodeId, ChatNode> = {
     text: 'Klar. Am schnellsten ist ein kurzer Call. Erzaehl in zwei Saetzen, worum es geht, dann schauen wir gemeinsam, ob und wie PIX helfen kann.',
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
-      { label: 'Fotografie', targetId: 'photo', icon: 'camera' },
+      { label: 'Foto', targetId: 'photo', icon: 'camera' },
       { label: 'Videos', targetId: 'video', icon: 'film' },
     ],
     images: ['/media/detail/portrait.webp', '/media/detail/konferenz-foto.webp'],
@@ -705,7 +705,7 @@ export function App() {
             aria-label={voiceMode === 'idle' ? 'Sprachdialog starten' : 'Stoppen'}
             onClick={handleVoiceDialog}
           >
-            {voiceMode === 'idle' && <Mic size={20} strokeWidth={2} />}
+            {voiceMode === 'idle' && <AudioLines size={20} strokeWidth={2} />}
             {voiceMode === 'listening' && <AudioWaveform size={20} strokeWidth={2} style={{ animation: 'pulse 1s ease-in-out infinite' }} />}
             {voiceMode === 'thinking' && <Loader size={20} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />}
             {voiceMode === 'speaking' && <Volume2 size={20} strokeWidth={2} />}
