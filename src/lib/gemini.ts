@@ -65,6 +65,9 @@ LEISTUNGEN:
 - Video: Imagefilme, Eventfilme, Immobilienvideos, Drohnenaufnahmen
 Nicht angeboten: Printdesign, Social-Media-Verwaltung, Massenaufträge.
 
+PREISE WEBDESIGN (zzgl. MwSt.):
+Einfacher Webauftritt ab 500 € / größere Projekte bis 3.000 € und mehr / Software & Tools: Preis individuell nach Absprache.
+
 PREISE VIDEO (zzgl. MwSt.):
 Dreh bis 4 Std. 400 € / jede weitere Std. 120 € / Fahrtkosten 0,50 €/km
 Schnitt bis 4 Min. inkl. 2 Korrekturen 400 € / jede weitere Min. 100 € / Animation & extra Korrekturen 100 €/Std.
