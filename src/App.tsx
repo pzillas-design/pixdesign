@@ -421,6 +421,10 @@ export function App() {
   const lastAiTextRef = useRef<string>('');
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceLoopActiveRef = useRef(false);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const waveformRef = useRef<HTMLDivElement | null>(null);
 
   const activeNode = flow[sliderNodeId];
 
@@ -533,8 +537,46 @@ export function App() {
     });
   }
 
+  async function startMicAnalysis() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
+      const ctx = new AudioContext();
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+
+      function tick() {
+        if (!analyserRef.current || !waveformRef.current) return;
+        analyserRef.current.getByteFrequencyData(data);
+        const bars = waveformRef.current.children;
+        const count = bars.length;
+        for (let i = 0; i < count; i++) {
+          const binIndex = Math.floor((i / count) * data.length);
+          const val = data[binIndex] / 255;
+          const height = Math.max(3, val * 28);
+          (bars[i] as HTMLElement).style.height = `${height}px`;
+          (bars[i] as HTMLElement).style.opacity = `${0.4 + val * 0.6}`;
+        }
+        animFrameRef.current = requestAnimationFrame(tick);
+      }
+      tick();
+    } catch { /* mic denied — bars stay CSS */ }
+  }
+
+  function stopMicAnalysis() {
+    if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = null; }
+    micStreamRef.current?.getTracks().forEach(t => t.stop());
+    micStreamRef.current = null;
+    analyserRef.current = null;
+  }
+
   function stopVoice() {
     voiceLoopActiveRef.current = false;
+    stopMicAnalysis();
     sourceNodeRef.current?.stop();
     sourceNodeRef.current = null;
     recognitionRef.current?.abort();
@@ -549,6 +591,7 @@ export function App() {
     if (!SR) return;
 
     setVoiceMode('listening');
+    startMicAnalysis();
     const recognition: SpeechRecognition = new SR();
     recognitionRef.current = recognition;
     recognition.lang = 'de-DE';
@@ -557,6 +600,7 @@ export function App() {
 
     recognition.onresult = async (event) => {
       if (!voiceLoopActiveRef.current) return;
+      stopMicAnalysis();
       const spokenText = event.results[0][0].transcript;
       const userMessage: Message = { id: createId('user'), type: 'user', text: spokenText };
       const typingId = createId('typing');
@@ -716,37 +760,35 @@ export function App() {
       </section>
 
       <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
-        {voiceMode !== 'idle' ? (
-          <div className={`voice-waveform voice-waveform--${voiceMode}`} aria-hidden="true">
-            {Array.from({ length: 28 }).map((_, i) => (
-              <span key={i} className="voice-bar" style={{ animationDelay: `${(i * 37) % 400}ms` }} />
-            ))}
-          </div>
-        ) : (
-          <input
-            type="text"
-            value={composerText}
-            onChange={(event) => setComposerText(event.target.value)}
-            placeholder="Schreibe etwas..."
-            aria-label="Nachricht"
-          />
-        )}
+        <input
+          type="text"
+          value={composerText}
+          onChange={(event) => setComposerText(event.target.value)}
+          placeholder="Schreibe etwas..."
+          aria-label="Nachricht"
+          disabled={voiceMode !== 'idle'}
+        />
         {composerText.trim() && voiceMode === 'idle' ? (
           <button type="submit" className="is-active" aria-label="Senden">
             <ArrowUp size={22} strokeWidth={2.2} />
           </button>
-        ) : (
+        ) : voiceMode !== 'idle' ? (
           <button
             type="button"
-            className={voiceMode !== 'idle' ? 'is-active voice-stop-btn' : ''}
-            aria-label={voiceMode === 'idle' ? 'Sprachdialog starten' : 'Beenden'}
+            className="is-active voice-stop-btn"
+            aria-label="Fertig"
             onClick={handleVoiceDialog}
           >
-            {voiceMode === 'idle' ? (
-              <AudioLines size={20} strokeWidth={2} />
-            ) : (
-              <span className="voice-stop-label">Fertig</span>
-            )}
+            <div ref={waveformRef} className="voice-waveform-pill" aria-hidden="true">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <span key={i} className="voice-bar" style={{ animationDelay: `${(i * 60) % 500}ms` }} />
+              ))}
+            </div>
+            <span className="voice-stop-label">Fertig</span>
+          </button>
+        ) : (
+          <button type="button" aria-label="Sprachdialog starten" onClick={handleVoiceDialog}>
+            <AudioLines size={20} strokeWidth={2} />
           </button>
         )}
       </form>
