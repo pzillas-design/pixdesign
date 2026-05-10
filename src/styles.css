@@ -535,6 +535,77 @@ img {
   -webkit-backdrop-filter: blur(90px) saturate(1.35);
 }
 
+.voice-waveform {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+  padding: 0 10px 0 18px;
+  overflow: hidden;
+}
+
+.voice-bar {
+  display: inline-block;
+  width: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.5;
+  height: 4px;
+  animation: voiceIdle 1.4s ease-in-out infinite;
+}
+
+.voice-waveform--listening .voice-bar {
+  opacity: 0.7;
+  animation: voiceListen 0.9s ease-in-out infinite;
+}
+
+.voice-waveform--thinking .voice-bar {
+  animation: voiceThink 1.2s ease-in-out infinite;
+}
+
+.voice-waveform--speaking .voice-bar {
+  opacity: 1;
+  animation: voiceSpeak 0.6s ease-in-out infinite;
+}
+
+@keyframes voiceIdle {
+  0%, 100% { height: 4px; }
+  50% { height: 8px; }
+}
+
+@keyframes voiceListen {
+  0%, 100% { height: 4px; opacity: 0.5; }
+  50% { height: 20px; opacity: 1; }
+}
+
+@keyframes voiceThink {
+  0%, 100% { height: 4px; }
+  50% { height: 10px; }
+}
+
+@keyframes voiceSpeak {
+  0%, 100% { height: 6px; }
+  50% { height: 24px; }
+}
+
+.voice-stop-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  font-size: var(--type-chip);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.voice-stop-label {
+  font-size: var(--type-chip);
+  font-weight: 600;
+  line-height: 1;
+}
+
 .chat-composer input {
   min-width: 0;
   flex: 1;

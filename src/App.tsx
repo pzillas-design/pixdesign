@@ -420,6 +420,7 @@ export function App() {
   const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const lastAiTextRef = useRef<string>('');
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const voiceLoopActiveRef = useRef(false);
 
   const activeNode = flow[sliderNodeId];
 
@@ -533,19 +534,19 @@ export function App() {
   }
 
   function stopVoice() {
+    voiceLoopActiveRef.current = false;
     sourceNodeRef.current?.stop();
     sourceNodeRef.current = null;
-    recognitionRef.current?.stop();
+    recognitionRef.current?.abort();
     recognitionRef.current = null;
     setIsPlaying(false);
     setVoiceMode('idle');
   }
 
-  async function handleVoiceDialog() {
-    if (voiceMode !== 'idle') { stopVoice(); return; }
-
+  function startListening() {
+    if (!voiceLoopActiveRef.current) return;
     const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { alert('Dein Browser unterstützt keine Spracheingabe.'); return; }
+    if (!SR) return;
 
     setVoiceMode('listening');
     const recognition: SpeechRecognition = new SR();
@@ -555,24 +556,38 @@ export function App() {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = async (event) => {
+      if (!voiceLoopActiveRef.current) return;
       const spokenText = event.results[0][0].transcript;
       const userMessage: Message = { id: createId('user'), type: 'user', text: spokenText };
       const typingId = createId('typing');
-      const typingMessage: Message = { id: typingId, type: 'typing' };
-      setMessages((current) => [...current, userMessage, typingMessage]);
+      setMessages((current) => [...current, userMessage, { id: typingId, type: 'typing' }]);
       setVoiceMode('thinking');
 
       const aiResponse = await sendMessage(spokenText);
+      if (!voiceLoopActiveRef.current) return;
       lastAiTextRef.current = aiResponse.text;
       const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text };
       setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
 
       await speakText(aiResponse.text);
+
+      // Loop: listen again after speaking
+      if (voiceLoopActiveRef.current) startListening();
     };
 
-    recognition.onerror = () => setVoiceMode('idle');
-    recognition.onend = () => { if (voiceMode === 'listening') setVoiceMode('idle'); };
+    recognition.onerror = () => { if (voiceLoopActiveRef.current) setVoiceMode('listening'); };
+    recognition.onend = () => { /* handled by onresult or stopVoice */ };
     recognition.start();
+  }
+
+  async function handleVoiceDialog() {
+    if (voiceMode !== 'idle') { stopVoice(); return; }
+
+    const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert('Dein Browser unterstützt keine Spracheingabe.'); return; }
+
+    voiceLoopActiveRef.current = true;
+    startListening();
   }
 
   return (
@@ -701,28 +716,40 @@ export function App() {
       </section>
 
       <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
-        <input
-          type="text"
-          value={composerText}
-          onChange={(event) => setComposerText(event.target.value)}
-          placeholder="Schreibe etwas..."
-          aria-label="Nachricht"
-        />
-        {composerText.trim() ? (
+        {voiceMode !== 'idle' ? (
+          <div className={`voice-waveform voice-waveform--${voiceMode}`} aria-hidden="true">
+            {Array.from({ length: 28 }).map((_, i) => (
+              <span key={i} className="voice-bar" style={{ animationDelay: `${(i * 37) % 400}ms` }} />
+            ))}
+          </div>
+        ) : (
+          <input
+            type="text"
+            value={composerText}
+            onChange={(event) => setComposerText(event.target.value)}
+            placeholder="Schreibe etwas..."
+            aria-label="Nachricht"
+          />
+        )}
+        {composerText.trim() && voiceMode === 'idle' ? (
           <button type="submit" className="is-active" aria-label="Senden">
             <ArrowUp size={22} strokeWidth={2.2} />
           </button>
         ) : (
           <button
             type="button"
-            className={voiceMode !== 'idle' ? 'is-active' : ''}
-            aria-label={voiceMode === 'idle' ? 'Sprachdialog starten' : 'Stoppen'}
+            className={voiceMode !== 'idle' ? 'is-active voice-stop-btn' : ''}
+            aria-label={voiceMode === 'idle' ? 'Sprachdialog starten' : 'Beenden'}
             onClick={handleVoiceDialog}
           >
-            {voiceMode === 'idle' && <AudioLines size={20} strokeWidth={2} />}
-            {voiceMode === 'listening' && <AudioWaveform size={20} strokeWidth={2} style={{ animation: 'pulse 1s ease-in-out infinite' }} />}
-            {voiceMode === 'thinking' && <Loader size={20} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />}
-            {voiceMode === 'speaking' && <Volume2 size={20} strokeWidth={2} />}
+            {voiceMode === 'idle' ? (
+              <AudioLines size={20} strokeWidth={2} />
+            ) : (
+              <>
+                <X size={18} strokeWidth={2.5} />
+                <span className="voice-stop-label">Beenden</span>
+              </>
+            )}
           </button>
         )}
       </form>
