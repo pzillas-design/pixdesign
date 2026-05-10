@@ -96,6 +96,7 @@ type Message =
   | { id: string; type: 'user'; text: string }
   | { id: string; type: 'ai'; text: string }
   | { id: string; type: 'gallery'; category: GalleryCategory; images: MediaItem[] }
+  | { id: string; type: 'sent' }
   | { id: string; type: 'typing' };
 
 const flow: Record<NodeId, ChatNode> = {
@@ -465,10 +466,11 @@ export function App() {
     } else if (aiResponse.sendEmail) {
       const ok = await sendInquiry(aiResponse.sendEmail);
       const confirmText = ok
-        ? 'Deine Anfrage ist raus — Michael meldet sich bald! 🎉'
-        : 'Leider gab es einen Fehler. Schreib direkt an pzillas2@gmail.com.';
+        ? 'Michael meldet sich in Kürze bei dir.'
+        : 'Beim Senden gab es leider einen Fehler. Schreib direkt an pzillas2@gmail.com.';
       const msgs: Message[] = [];
       if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
+      if (ok) msgs.push({ id: createId('sent'), type: 'sent' });
       msgs.push({ id: createId('ai'), type: 'ai', text: confirmText });
       setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
     } else {
@@ -568,6 +570,25 @@ export function App() {
                     className="user-row"
                   >
                     <div className="user-bubble">{message.text}</div>
+                  </motion.div>
+                );
+              }
+
+              // Sent confirmation chip
+              if (message.type === 'sent') {
+                return (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+                    className="sent-badge-row"
+                  >
+                    <div className="sent-badge">
+                      <ArrowUp size={13} strokeWidth={2.5} style={{ transform: 'rotate(45deg)' }} />
+                      Anfrage versendet
+                    </div>
                   </motion.div>
                 );
               }
