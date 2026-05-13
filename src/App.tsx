@@ -25,7 +25,7 @@ import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
 import { sendMessage, resetSession, sendInquiry, type GalleryCategory } from './lib/gemini';
 import { useLiveVoice } from './lib/useLiveVoice';
-import { supabase } from './lib/supabase';
+import { supabase, PixMedia } from './lib/supabase';
 
 const bubbleAnim = {
   initial: { opacity: 0, y: 20 },
@@ -558,6 +558,7 @@ export function App() {
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [bgImage, setBgImage] = useState<string | null>(null);
+  const [startGallery, setStartGallery] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastAiTextRef = useRef<string>('');
   const waveformRef = useRef<HTMLDivElement | null>(null);
@@ -577,6 +578,28 @@ export function App() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
+
+  // Load start gallery from Supabase
+  useEffect(() => {
+    async function loadStartGallery() {
+      const { data: galleryData } = await supabase
+        .from('pix_galleries')
+        .select('media_ids')
+        .eq('id', 'start')
+        .single();
+      if (!galleryData?.media_ids?.length) return;
+      const { data: mediaData } = await supabase
+        .from('pix_media')
+        .select('url')
+        .in('id', galleryData.media_ids);
+      if (mediaData?.length) {
+        // Preserve order from media_ids
+        const urlMap = new Map((mediaData as PixMedia[]).map(m => [m.id, m.url]));
+        setStartGallery(galleryData.media_ids.map((id: string) => urlMap.get(id)).filter(Boolean) as string[]);
+      }
+    }
+    loadStartGallery();
+  }, []);
 
   // Build a context string from static messages for the AI
   function buildStaticContext(msgs: Message[]): string {
@@ -692,6 +715,12 @@ export function App() {
 
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
         <div className="chat-stack">
+          {startGallery.length > 0 && (
+            <ImageStrip
+              node={{ id: 'start' as NodeId, text: '', images: startGallery }}
+              onCenterChange={setBgImage}
+            />
+          )}
           <AnimatePresence initial={false}>
             {messages.map((message, index) => {
               // User bubble — right aligned

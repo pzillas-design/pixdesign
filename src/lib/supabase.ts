@@ -31,6 +31,14 @@ export type PixFlowNode = {
   updated_at: string;
 };
 
+export type PixGallery = {
+  id: string;
+  label: string;
+  media_ids: string[];
+  sort_order: number;
+  updated_at: string;
+};
+
 export type PixAiConfig = {
   id: string;
   base_prompt: string;

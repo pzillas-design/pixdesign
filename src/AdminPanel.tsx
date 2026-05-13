@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { supabase, PixMedia } from './lib/supabase';
-import { Upload, Trash2, Save, LogOut, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic } from 'lucide-react';
+import { supabase, PixMedia, PixGallery } from './lib/supabase';
+import { Upload, Trash2, Save, LogOut, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic, LayoutGrid, Check } from 'lucide-react';
 
-type Tab = 'media' | 'knowledge' | 'inquiry';
+type Tab = 'media' | 'knowledge' | 'inquiry' | 'galleries';
 
 // ─────────────────────────────────────────────
 // Auth Gate
@@ -352,6 +352,97 @@ function InquiryTab() {
 }
 
 // ─────────────────────────────────────────────
+// Galerien Tab
+// ─────────────────────────────────────────────
+function GalleryTab() {
+  const [galleries, setGalleries] = useState<PixGallery[]>([]);
+  const [media, setMedia] = useState<PixMedia[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    const [{ data: g }, { data: m }] = await Promise.all([
+      supabase.from('pix_galleries').select('*').order('sort_order'),
+      supabase.from('pix_media').select('*').order('created_at', { ascending: false }),
+    ]);
+    setGalleries(g ?? []);
+    setMedia(m ?? []);
+    if (g?.length) setSelected(g[0].id);
+    setLoading(false);
+  }
+
+  const currentGallery = galleries.find(g => g.id === selected);
+
+  function toggleMedia(mediaId: string) {
+    if (!selected) return;
+    setGalleries(gs => gs.map(g => {
+      if (g.id !== selected) return g;
+      const ids = g.media_ids ?? [];
+      return { ...g, media_ids: ids.includes(mediaId) ? ids.filter(i => i !== mediaId) : [...ids, mediaId] };
+    }));
+  }
+
+  async function save() {
+    if (!currentGallery) return;
+    setSaving(true);
+    await supabase.from('pix_galleries').update({ media_ids: currentGallery.media_ids, updated_at: new Date().toISOString() }).eq('id', currentGallery.id);
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  if (loading) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', height: '100%', overflow: 'hidden' }}>
+      {/* Gallery slot list */}
+      <div style={{ borderRight: '1px solid rgba(255,255,255,0.08)', padding: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Galerien</div>
+        {galleries.map(g => (
+          <button key={g.id} onClick={() => setSelected(g.id)} style={{ textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: selected === g.id ? 'rgba(255,255,255,0.12)' : 'transparent', color: selected === g.id ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 13 }}>
+            {g.label}
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{g.media_ids?.length ?? 0} Bilder</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Media picker */}
+      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ color: '#fff', fontWeight: 600 }}>{currentGallery?.label}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>Bilder aus dem Medien-Pool auswählen</div>
+          </div>
+          <button onClick={save} disabled={saving} style={primaryBtn}>
+            <Save size={14} /> {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
+          </button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8, alignContent: 'start' }}>
+          {media.map(m => {
+            const isSelected = currentGallery?.media_ids?.includes(m.id) ?? false;
+            return (
+              <div key={m.id} onClick={() => toggleMedia(m.id)} style={{ position: 'relative', aspectRatio: '4/3', borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: isSelected ? '2px solid #fff' : '2px solid transparent', transition: 'border 0.15s' }}>
+                <img src={m.url} alt={m.filename} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelected ? 1 : 0.5, transition: 'opacity 0.15s' }} />
+                {isSelected && (
+                  <div style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Check size={12} color="#000" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // Shell
 // ─────────────────────────────────────────────
 export function AdminPanel() {
@@ -368,6 +459,7 @@ export function AdminPanel() {
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'knowledge', label: 'Knowledge Base', icon: <Bot size={18} /> },
+    { id: 'galleries', label: 'Galerien', icon: <LayoutGrid size={18} /> },
     { id: 'inquiry', label: 'Anfrage-Felder', icon: <Mail size={18} /> },
     { id: 'media', label: 'Mediathek', icon: <Image size={18} /> },
   ];
@@ -390,6 +482,7 @@ export function AdminPanel() {
 
       <main style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {tab === 'knowledge' && <KnowledgeTab />}
+        {tab === 'galleries' && <GalleryTab />}
         {tab === 'inquiry' && <InquiryTab />}
         {tab === 'media' && <MediaTab />}
       </main>

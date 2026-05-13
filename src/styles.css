@@ -519,7 +519,9 @@ img {
   background: rgba(255, 255, 255, 0.08);
   padding: 12px 18px;
   color: #fff;
-  font-size: clamp(13px, calc(10px + 0.7vw), 16px);
+  font-size: var(--type-chip);
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
   backdrop-filter: blur(90px) saturate(1.35);
   -webkit-backdrop-filter: blur(90px) saturate(1.35);
 }
