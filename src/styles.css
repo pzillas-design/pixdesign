@@ -214,10 +214,10 @@ img {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(200px) saturate(2.2);
+  filter: blur(220px) saturate(2.2);
   opacity: 0.45;
   pointer-events: none;
-  transform: scale(1.2);
+  transform: scale(1.5);
 }
 
 .reset-button {
