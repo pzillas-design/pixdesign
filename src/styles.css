@@ -356,7 +356,7 @@ img {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: clamp(28px, 4vw, 48px);
+  margin-top: clamp(20px, 2.8vw, 36px);
   margin-left: 0;
   padding-left: 0;
 }
@@ -620,7 +620,7 @@ img {
 
 .strip-shutter-frame {
   width: 100%;
-  height: clamp(360px, 58vh, 680px);
+  height: clamp(300px, 50vh, 580px);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -702,7 +702,7 @@ img {
 
 .image-lightbox {
   position: fixed;
-  z-index: 80;
+  z-index: 500;
   inset: 0;
   display: flex;
   align-items: center;
@@ -1018,7 +1018,7 @@ img {
   }
 
   .strip-shutter-frame {
-    height: clamp(260px, 44vh, 420px);
+    height: clamp(220px, 38vh, 360px);
   }
 
   .chat-scroll {
