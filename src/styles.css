@@ -617,11 +617,25 @@ img {
   color: #090909;
 }
 
+.strip-shutter-host {
+  position: relative;
+  width: 100%;
+  height: clamp(360px, 58vh, 680px);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.strip-shutter-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
 .image-strip {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: clamp(360px, 58vh, 680px);
+  height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   background: transparent;
@@ -999,7 +1013,7 @@ img {
     --leading-chat: 1.12;
   }
 
-  .image-strip {
+  .strip-shutter-host {
     height: clamp(260px, 44vh, 420px);
   }
 

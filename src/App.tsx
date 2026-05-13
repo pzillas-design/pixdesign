@@ -596,11 +596,10 @@ export function App() {
 
   const [messages, setMessages] = useState<Message[]>([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
   const [sliderNodeId, setSliderNodeId] = useState<NodeId>('start');
-  const [aiGalleryImages, setAiGalleryImages] = useState<string[] | null>(null);
+  const [activeStrip, setActiveStrip] = useState<{ key: string; images: string[]; meta?: ImageMeta[] } | null>(null);
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [bgImage, setBgImage] = useState<string | null>(null);
-  const [startGallery, setStartGallery] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastAiTextRef = useRef<string>('');
   const waveformRef = useRef<HTMLDivElement | null>(null);
@@ -639,7 +638,7 @@ export function App() {
   ];
 
   useEffect(() => {
-    setStartGallery(startGalleryImages);
+    setActiveStrip({ key: 'start-gallery', images: startGalleryImages });
   }, []);
 
   // Build a context string from static messages for the AI
@@ -667,6 +666,10 @@ export function App() {
     setTimeout(() => {
       setMessages((current) => [...current, userMessage, systemMessage]);
       setSliderNodeId(targetId);
+      const targetNode = flow[targetId];
+      if (targetNode.images?.length) {
+        setActiveStrip({ key: targetId, images: targetNode.images, meta: targetNode.imageMeta });
+      }
     }, 320);
   }
 
@@ -676,6 +679,10 @@ export function App() {
 
     setMessages((current) => [...current, userMessage, systemMessage]);
     setSliderNodeId(targetId);
+    const targetNode = flow[targetId];
+    if (targetNode.images?.length) {
+      setActiveStrip({ key: targetId, images: targetNode.images, meta: targetNode.imageMeta });
+    }
   }
 
   async function handleComposerSubmit() {
@@ -707,7 +714,7 @@ export function App() {
         .select('url')
         .eq('category', aiResponse.gallery);
       const urls = (data ?? []).map((r: any) => r.url);
-      setAiGalleryImages(urls);
+      setActiveStrip({ key: `ai-${aiResponse.gallery}`, images: urls });
       const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text || '' };
       setMessages((current) => current.map((m) => m.id === typingId ? aiMessage : m));
     } else if (aiResponse.sendEmail) {
@@ -755,12 +762,26 @@ export function App() {
       </header>
 
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
-        {startGallery.length > 0 && (
-          <ImageStrip
-            node={{ id: 'start' as NodeId, text: '', images: startGallery }}
-            onCenterChange={setBgImage}
-          />
-        )}
+        {/* Full-bleed animated strip */}
+        <div className="strip-shutter-host">
+          <AnimatePresence mode="sync">
+            {activeStrip && (
+              <motion.div
+                key={activeStrip.key}
+                className="strip-shutter-frame"
+                initial={{ clipPath: 'inset(50% 0 50%)' }}
+                animate={{ clipPath: 'inset(0% 0 0%)' }}
+                exit={{ clipPath: 'inset(50% 0 50%)' }}
+                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <ImageStrip
+                  node={{ id: 'start' as NodeId, text: '', images: activeStrip.images, imageMeta: activeStrip.meta }}
+                  onCenterChange={setBgImage}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         <div className="chat-stack">
           <AnimatePresence initial={false}>
             {messages.map((message, index) => {
@@ -834,8 +855,6 @@ export function App() {
                   className="system-row"
                 >
                   <div className="system-row__spacer" />
-
-                  {!isFirst && <ImageStrip node={node} onCenterChange={setBgImage} />}
 
                   <div className="system-content">
                     <div className="system-bubble">
