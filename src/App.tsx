@@ -431,7 +431,6 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
               onClick={() => { if (!hasDraggedRef.current) setLightboxIndex(index); }}
             >
               <img src={image} alt={meta[index]?.title ?? ''} draggable={false} />
-              {meta[index]?.tag && <span className="image-strip__tag">{meta[index].tag}</span>}
             </div>
           ))}
         </div>

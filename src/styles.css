@@ -20,7 +20,7 @@
 
 :root[data-theme="light"] {
   color: #090909;
-  background: #f3f0ea;
+  background: #edf1f5;
 }
 
 * {
@@ -39,7 +39,7 @@ body,
 
 :root[data-theme="light"] body,
 :root[data-theme="light"] #root {
-  background: #f3f0ea;
+  background: #edf1f5;
 }
 
 button {
@@ -141,12 +141,12 @@ img {
 }
 
 .portfolio-chat.theme-light {
-  background: #f3f0ea;
+  background: #edf1f5;
   color: #090909;
 }
 
 .theme-light .chat-scroll {
-  background: #f3f0ea;
+  background: #edf1f5;
 }
 
 .theme-light .system-bubble {
@@ -154,7 +154,7 @@ img {
 }
 
 .theme-light .user-bubble {
-  background: rgba(12, 12, 12, 0.1);
+  background: #fff;
   color: #090909;
 }
 
@@ -197,13 +197,6 @@ img {
   filter: invert(1);
 }
 
-.theme-light .image-strip {
-  background: #e7e2d8;
-}
-
-.theme-light .image-strip__item {
-  background: #d8d1c5;
-}
 
 .chat-bg-glow {
   position: absolute;
@@ -521,13 +514,14 @@ img {
 
 .user-bubble {
   margin-left: auto;
-  max-width: min(560px, 62vw);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 16px 24px;
+  max-width: min(520px, 60vw);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 18px;
   color: #fff;
-  backdrop-filter: blur(40px) saturate(1.4);
-  -webkit-backdrop-filter: blur(40px) saturate(1.4);
+  font-size: clamp(13px, calc(10px + 0.7vw), 16px);
+  backdrop-filter: blur(90px) saturate(1.35);
+  -webkit-backdrop-filter: blur(90px) saturate(1.35);
 }
 
 .chat-composer {
@@ -626,7 +620,7 @@ img {
   z-index: 1;
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  height: clamp(220px, 30vh, 360px);
+  height: clamp(264px, 36vh, 432px);
   overflow-x: auto;
   overflow-y: hidden;
   background: transparent;
@@ -1005,7 +999,7 @@ img {
   }
 
   .image-strip {
-    height: clamp(160px, 26vh, 220px);
+    height: clamp(192px, 31vh, 264px);
     margin-left: 0;
     width: 100%;
   }
@@ -1020,6 +1014,8 @@ img {
   .chat-stack {
     gap: 12px;
     padding-bottom: 0;
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
   .system-row {
@@ -1073,8 +1069,8 @@ img {
 
   .user-bubble {
     margin-left: auto;
-    max-width: 86vw;
-    padding: 18px 28px;
+    max-width: 78vw;
+    padding: 10px 16px;
   }
 
   .chip-button {
