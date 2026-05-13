@@ -218,6 +218,8 @@ img {
   opacity: 0.45;
   pointer-events: none;
   transform: scale(1.5);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 75%);
 }
 
 .reset-button {
