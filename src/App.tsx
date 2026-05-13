@@ -636,7 +636,6 @@ export function App() {
     '/media/screens/wassertechnik.png',
     '/media/foto-hd/26_business.jpg',
     '/media/foto-hd/17_business.webp',
-    '/media/foto-hd/30_architektur.jpg',
   ];
 
   useEffect(() => {
