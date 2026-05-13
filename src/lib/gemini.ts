@@ -239,17 +239,25 @@ export async function generateSpeech(text: string): Promise<string | null> {
 
 export async function sendInquiry(fields: Record<string, string>): Promise<boolean> {
   try {
-    const res = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-inquiry`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ fields }),
-      }
-    );
+    const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+    const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
+    if (!token || !chatId) return false;
+
+    const lines = ['📋 *Neue Anfrage via PIX Website*', ''];
+    for (const [key, val] of Object.entries(fields)) {
+      if (val) lines.push(`*${key}:* ${val}`);
+    }
+    lines.push('', `🕐 ${new Date().toLocaleString('de-DE')}`);
+
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: lines.join('\n'),
+        parse_mode: 'Markdown',
+      }),
+    });
     return res.ok;
   } catch {
     return false;
