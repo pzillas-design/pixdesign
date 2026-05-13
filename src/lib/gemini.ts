@@ -83,8 +83,7 @@ Wenn jemand konkret anfragen will, frag nacheinander:
 1. Was genau? (Art des Projekts / Shootings)
 2. Wann? (Datum oder Zeitraum)
 3. Wo? (nur bei Foto & Video — Ort/Adresse)
-4. Name?
-5. E-Mail?
+4. Wie kann ich dich erreichen? (E-Mail, Telefon — der User entscheidet selbst)
 Dann sofort senden — ohne weitere Rückfragen.
 
 Web-Projekte: Thema + grober Umfang, dann Name + Mail, senden.
