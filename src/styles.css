@@ -845,7 +845,7 @@ img {
 
 .chat-logo img {
   flex: 0 0 auto;
-  width: clamp(100px, 13vw, 180px);
+  width: clamp(140px, 18vw, 280px);
   object-fit: contain;
   object-position: left center;
 }
@@ -1041,7 +1041,7 @@ img {
   }
 
   .chat-logo img {
-    width: clamp(80px, 18vw, 120px);
+    width: clamp(110px, 24vw, 160px);
   }
 
   .chat-logo__actions {
