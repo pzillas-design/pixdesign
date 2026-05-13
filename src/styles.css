@@ -122,13 +122,20 @@ img {
 .chat-header {
   display: flex;
   align-items: center;
-  padding: clamp(18px, 2.2vw, 32px) clamp(28px, 3vw, 48px);
+  width: 100%;
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: clamp(18px, 2.2vw, 32px) 0 clamp(14px, 2vh, 24px);
   flex-shrink: 0;
   position: relative;
   z-index: 10;
-  /* Pull strip up behind logo so logo visually overlays it */
-  margin-bottom: calc(-6vh - clamp(36px, 4.4vw, 64px));
   pointer-events: none;
+}
+
+/* When strip is active: pull strip behind logo (no gap between logo and strip) */
+.chat-header--over-strip {
+  margin-bottom: calc(-6vh - clamp(18px, 2.2vw, 32px) - clamp(14px, 2vh, 24px));
 }
 
 .chat-header__logo {
@@ -1018,6 +1025,11 @@ img {
   }
 
   .chat-segment {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .chat-header {
     padding-left: 18px;
     padding-right: 18px;
   }

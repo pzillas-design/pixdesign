@@ -805,7 +805,7 @@ export function App() {
               // Logo before everything — only for start message, always visible
               if (isFirst) {
                 chatElements.push(
-                  <header key="pix-logo" className="chat-header">
+                  <header key="pix-logo" className={`chat-header${activeStripId === 'system-start' ? ' chat-header--over-strip' : ''}`}>
                     <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
                   </header>
                 );
