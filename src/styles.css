@@ -657,12 +657,12 @@ img {
   max-width: none;
   display: block;
   pointer-events: none;
-  opacity: 1;
-  transition: opacity 0.4s ease;
+  transform: scale(1);
+  transition: transform 0.4s ease;
 }
 
 .image-strip__item:hover img {
-  opacity: 0.7;
+  transform: scale(1.04);
 }
 
 .image-strip__tag {
