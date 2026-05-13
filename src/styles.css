@@ -622,7 +622,7 @@ img {
   z-index: 1;
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  height: clamp(264px, 36vh, 432px);
+  height: clamp(300px, 42vh, 500px);
   overflow-x: auto;
   overflow-y: hidden;
   background: transparent;
@@ -1001,7 +1001,7 @@ img {
   }
 
   .image-strip {
-    height: clamp(192px, 31vh, 264px);
+    height: clamp(220px, 35vh, 300px);
     margin-left: 0;
     width: 100%;
   }
