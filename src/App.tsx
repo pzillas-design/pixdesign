@@ -752,23 +752,6 @@ export function App() {
           {(() => {
             const chatElements: React.ReactNode[] = [];
 
-            // Always first: start gallery strip
-            chatElements.push(
-              <motion.div
-                key="start-gallery-strip"
-                className="strip-shutter-frame"
-                initial={{ clipPath: 'inset(50% 0 50%)' }}
-                animate={{ clipPath: 'inset(0% 0 0%)' }}
-                exit={{ clipPath: 'inset(50% 0 50%)' }}
-                transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <ImageStrip
-                  node={{ id: 'start' as NodeId, text: '', images: startGalleryImages }}
-                  onCenterChange={setBgImage}
-                />
-              </motion.div>
-            );
-
             messages.forEach((message, index) => {
               if (message.type === 'user') {
                 chatElements.push(
@@ -817,13 +800,14 @@ export function App() {
               }
 
               // System message (node)
-              const node = flow[message.nodeId];
               const isFirst = message.id === 'system-start';
+              const nodeImages = isFirst ? startGalleryImages : flow[message.nodeId].images;
+              const node = { ...flow[message.nodeId], images: nodeImages };
               const nextMsg = messages[index + 1];
               const selectedChip = nextMsg?.type === 'user' ? nextMsg.text : null;
 
-              // Strip above this message (skip for start — start gallery already rendered above)
-              if (!isFirst && node.images?.length) {
+              // Strip above every message (including start)
+              if (nodeImages?.length) {
                 chatElements.push(
                   <motion.div
                     key={`strip-${message.id}`}
