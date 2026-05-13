@@ -802,24 +802,27 @@ export function App() {
               const nextMsg = messages[index + 1];
               const selectedChip = nextMsg?.type === 'user' ? nextMsg.text : null;
 
+              // Logo before everything — only for start message, always visible
+              if (isFirst) {
+                chatElements.push(
+                  <header key="pix-logo" className="chat-header">
+                    <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
+                  </header>
+                );
+              }
+
               // Strip above this message — only if it's the active strip
               if (nodeImages?.length && message.id === activeStripId) {
                 chatElements.push(
                   <motion.div
                     key={`strip-${message.id}`}
                     className="strip-shutter-frame"
-                    style={{ position: 'relative' }}
                     initial={{ clipPath: 'inset(50% 0 50%)' }}
                     animate={{ clipPath: 'inset(0% 0 0%)' }}
                     exit={{ clipPath: 'inset(50% 0 50%)' }}
                     transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <ImageStrip node={node} onCenterChange={setBgImage} />
-                    {isFirst && (
-                      <header className="chat-header chat-header--overlay">
-                        <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
-                      </header>
-                    )}
                   </motion.div>
                 );
               }

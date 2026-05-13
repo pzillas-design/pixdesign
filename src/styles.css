@@ -124,14 +124,10 @@ img {
   align-items: center;
   padding: clamp(18px, 2.2vw, 32px) clamp(28px, 3vw, 48px);
   flex-shrink: 0;
-}
-
-.chat-header--overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   z-index: 10;
+  /* Pull strip up behind logo so logo visually overlays it */
+  margin-bottom: calc(-7vh - clamp(36px, 4.4vw, 64px));
   pointer-events: none;
 }
 
@@ -139,6 +135,7 @@ img {
   height: 7vh;
   width: auto;
   display: block;
+  pointer-events: auto;
 }
 
 .theme-light .chat-header__logo {
