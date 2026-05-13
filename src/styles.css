@@ -256,7 +256,7 @@ img {
   max-width: 980px;
   margin-left: auto;
   margin-right: auto;
-  padding: clamp(80px, 10vh, 120px) 0 clamp(100px, 12vh, 140px);
+  padding: clamp(20px, 3vh, 40px) 0 clamp(100px, 12vh, 140px);
   flex: 1;
 }
 
@@ -621,7 +621,7 @@ img {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: clamp(300px, 42vh, 500px);
+  height: clamp(360px, 58vh, 680px);
   overflow-x: auto;
   overflow-y: hidden;
   background: transparent;
@@ -1000,7 +1000,7 @@ img {
   }
 
   .image-strip {
-    height: clamp(220px, 35vh, 300px);
+    height: clamp(260px, 44vh, 420px);
   }
 
   .chat-scroll {
