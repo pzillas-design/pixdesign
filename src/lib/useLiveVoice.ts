@@ -1,18 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 import { GoogleGenAI, Modality, Type } from '@google/genai';
 import { sendInquiry } from './gemini';
+import { SYSTEM_PROMPT } from './systemPrompt';
 
 export type LiveVoiceState = 'idle' | 'connecting' | 'listening' | 'speaking';
-
-const SYSTEM_PROMPT = `Du bist der KI-Assistent von PIX — Kreativagentur von Michael Pzillas in Frankfurt.
-Ton: direkt, knapp, ein bisschen Würze. Kein Smalltalk. Strikt max. 2 Sätze pro Antwort. Immer auf Deutsch.
-Leistungen: Webdesign (ab 500 €), Fotografie (Immobilien, Events, Business), Video (Imagefilme, Events, Drohne).
-Preise: Video-Dreh bis 4 Std. 400 €, Immobilienfotos Shooting 80 €.
-Ziel: schnell verstehen was der Besucher braucht, dann einen Lead generieren.
-Kontakt: 0159 06401995 · pzillas2@gmail.com
-
-Wenn du alle nötigen Infos hast (Thema, Datum/Zeitraum), ruf send_email auf.
-Immobilienfotos: Ort + Datum reicht. Web: Thema + Umfang. Video: Ort + Datum + Art.`;
 
 const toolDeclarations = [
   {

@@ -91,7 +91,8 @@ type IconName =
   | 'phone'
   | 'mail'
   | 'whatsapp'
-  | 'circlehelp';
+  | 'circlehelp'
+  | 'users';
 
 type ImageMeta = { tag?: string; title?: string; description?: string };
 
@@ -373,6 +374,8 @@ function getIconComponent(iconName?: IconName) {
           <path d="M12 20H12.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       );
+    case 'users':
+      return <Users {...iconProps} />;
     default:
       return null;
   }
