@@ -25,7 +25,7 @@ import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
 import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
 import { useLiveVoice } from './lib/useLiveVoice';
-import { supabase, PixMedia } from './lib/supabase';
+import { supabase } from './lib/supabase';
 
 const bubbleAnim = {
   initial: { opacity: 0, y: 20 },
@@ -596,26 +596,16 @@ export function App() {
     setRuntimeContext({ activeBranch: activeNode?.text ? activeNode.text.slice(0, 60) : sliderNodeId });
   }, [sliderNodeId, activeNode]);
 
-  // Load start gallery from Supabase
+  // Start gallery — hardcoded, served from /public via Vercel
+  const startGalleryImages = [
+    '/media/foto-hd/6_immobilien.jpg',
+    '/media/foto-hd/10_architektur.jpg',
+    '/media/foto-hd/21_menschen.jpg',
+    '/media/foto-hd/26_business.jpg',
+  ];
+
   useEffect(() => {
-    async function loadStartGallery() {
-      const { data: galleryData } = await supabase
-        .from('pix_galleries')
-        .select('media_ids')
-        .eq('id', 'start')
-        .single();
-      if (!galleryData?.media_ids?.length) return;
-      const { data: mediaData } = await supabase
-        .from('pix_media')
-        .select('url')
-        .in('id', galleryData.media_ids);
-      if (mediaData?.length) {
-        // Preserve order from media_ids
-        const urlMap = new Map((mediaData as PixMedia[]).map(m => [m.id, m.url]));
-        setStartGallery(galleryData.media_ids.map((id: string) => urlMap.get(id)).filter(Boolean) as string[]);
-      }
-    }
-    loadStartGallery();
+    setStartGallery(startGalleryImages);
   }, []);
 
   // Build a context string from static messages for the AI
