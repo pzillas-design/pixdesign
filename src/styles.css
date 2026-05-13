@@ -120,19 +120,15 @@ img {
 }
 
 .chat-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
   display: flex;
   align-items: center;
   padding: clamp(18px, 2.2vw, 32px) clamp(28px, 3vw, 48px);
-  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .chat-header__logo {
-  width: clamp(120px, 14vw, 200px);
+  height: 8vh;
+  width: auto;
   display: block;
 }
 

@@ -742,12 +742,10 @@ export function App() {
         )}
       </AnimatePresence>
 
-      {/* Sticky header */}
-      <header className="chat-header">
-        <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
-      </header>
-
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
+        <header className="chat-header">
+          <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
+        </header>
         <AnimatePresence initial={false}>
           {(() => {
             const chatElements: React.ReactNode[] = [];
