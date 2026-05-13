@@ -620,13 +620,12 @@ img {
 .image-strip {
   position: relative;
   z-index: 1;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
   height: clamp(300px, 42vh, 500px);
   overflow-x: auto;
   overflow-y: hidden;
   background: transparent;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   scrollbar-width: none;
 }
 
@@ -1002,8 +1001,6 @@ img {
 
   .image-strip {
     height: clamp(220px, 35vh, 300px);
-    margin-left: 0;
-    width: 100%;
   }
 
   .chat-scroll {

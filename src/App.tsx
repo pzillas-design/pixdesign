@@ -756,13 +756,13 @@ export function App() {
       </header>
 
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
+        {startGallery.length > 0 && (
+          <ImageStrip
+            node={{ id: 'start' as NodeId, text: '', images: startGallery }}
+            onCenterChange={setBgImage}
+          />
+        )}
         <div className="chat-stack">
-          {startGallery.length > 0 && (
-            <ImageStrip
-              node={{ id: 'start' as NodeId, text: '', images: startGallery }}
-              onCenterChange={setBgImage}
-            />
-          )}
           <AnimatePresence initial={false}>
             {messages.map((message, index) => {
               // User bubble — right aligned
