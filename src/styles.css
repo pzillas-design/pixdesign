@@ -248,17 +248,6 @@ img {
   flex-direction: column;
 }
 
-.chat-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  width: 100%;
-  max-width: 980px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: clamp(20px, 3vh, 40px) 0 clamp(100px, 12vh, 140px);
-  flex: 1;
-}
 
 .chat-stack__spacer {
   flex: 1;
@@ -617,18 +606,20 @@ img {
   color: #090909;
 }
 
-.strip-shutter-host {
-  position: relative;
+.strip-shutter-frame {
   width: 100%;
   height: clamp(360px, 58vh, 680px);
   overflow: hidden;
   flex-shrink: 0;
 }
 
-.strip-shutter-frame {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
+.chat-segment {
+  width: 100%;
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .image-strip {
@@ -1013,7 +1004,7 @@ img {
     --leading-chat: 1.12;
   }
 
-  .strip-shutter-host {
+  .strip-shutter-frame {
     height: clamp(260px, 44vh, 420px);
   }
 
@@ -1024,14 +1015,7 @@ img {
     padding: 28px 0 0;
   }
 
-  .chat-stack {
-    gap: 12px;
-    padding-bottom: 0;
-    padding-left: 18px;
-    padding-right: 18px;
-  }
-
-  .system-row {
+.system-row {
     min-height: auto;
   }
 

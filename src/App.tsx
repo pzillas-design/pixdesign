@@ -20,7 +20,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
+import React, { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
 import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
@@ -596,7 +596,6 @@ export function App() {
 
   const [messages, setMessages] = useState<Message[]>([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
   const [sliderNodeId, setSliderNodeId] = useState<NodeId>('start');
-  const [activeStrip, setActiveStrip] = useState<{ key: string; images: string[]; meta?: ImageMeta[] } | null>(null);
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [bgImage, setBgImage] = useState<string | null>(null);
@@ -636,9 +635,6 @@ export function App() {
     '/media/foto-hd/26_business.jpg',
   ];
 
-  useEffect(() => {
-    setActiveStrip({ key: 'start-gallery', images: startGalleryImages });
-  }, []);
 
   // Build a context string from static messages for the AI
   function buildStaticContext(msgs: Message[]): string {
@@ -665,11 +661,7 @@ export function App() {
     setTimeout(() => {
       setMessages((current) => [...current, userMessage, systemMessage]);
       setSliderNodeId(targetId);
-      const targetNode = flow[targetId];
-      if (targetNode.images?.length) {
-        setActiveStrip({ key: targetId, images: targetNode.images, meta: targetNode.imageMeta });
-      }
-    }, 320);
+      }, 320);
   }
 
   function dropHeaderMessage(label: string, targetId: NodeId) {
@@ -678,10 +670,6 @@ export function App() {
 
     setMessages((current) => [...current, userMessage, systemMessage]);
     setSliderNodeId(targetId);
-    const targetNode = flow[targetId];
-    if (targetNode.images?.length) {
-      setActiveStrip({ key: targetId, images: targetNode.images, meta: targetNode.imageMeta });
-    }
   }
 
   async function handleComposerSubmit() {
@@ -712,8 +700,7 @@ export function App() {
         .from('pix_media')
         .select('url')
         .eq('category', aiResponse.gallery);
-      const urls = (data ?? []).map((r: any) => r.url);
-      setActiveStrip({ key: `ai-${aiResponse.gallery}`, images: urls });
+      const _urls = (data ?? []).map((r: any) => r.url);
       const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text || '' };
       setMessages((current) => current.map((m) => m.id === typingId ? aiMessage : m));
     } else if (aiResponse.sendEmail) {
@@ -761,12 +748,14 @@ export function App() {
       </header>
 
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
-        {/* Full-bleed animated strip */}
-        <div className="strip-shutter-host">
-          <AnimatePresence mode="sync">
-            {activeStrip && (
+        <AnimatePresence initial={false}>
+          {(() => {
+            const chatElements: React.ReactNode[] = [];
+
+            // Always first: start gallery strip
+            chatElements.push(
               <motion.div
-                key={activeStrip.key}
+                key="start-gallery-strip"
                 className="strip-shutter-frame"
                 initial={{ clipPath: 'inset(50% 0 50%)' }}
                 animate={{ clipPath: 'inset(0% 0 0%)' }}
@@ -774,43 +763,35 @@ export function App() {
                 transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
               >
                 <ImageStrip
-                  node={{ id: 'start' as NodeId, text: '', images: activeStrip.images, imageMeta: activeStrip.meta }}
+                  node={{ id: 'start' as NodeId, text: '', images: startGalleryImages }}
                   onCenterChange={setBgImage}
                 />
               </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        <div className="chat-stack">
-          <AnimatePresence initial={false}>
-            {messages.map((message, index) => {
-              // User bubble — right aligned
+            );
+
+            messages.forEach((message, index) => {
               if (message.type === 'user') {
-                return (
-                  <motion.div key={message.id} className="user-row" exit={rowExit}>
-                    <motion.div className="user-bubble" {...bubbleAnim}>
-                      {message.text}
-                    </motion.div>
+                chatElements.push(
+                  <motion.div key={message.id} className="chat-segment user-row" exit={rowExit}>
+                    <motion.div className="user-bubble" {...bubbleAnim}>{message.text}</motion.div>
                   </motion.div>
                 );
+                return;
               }
-
-              // Sent confirmation chip
               if (message.type === 'sent') {
-                return (
-                  <motion.div key={message.id} className="sent-badge-row" exit={rowExit}>
+                chatElements.push(
+                  <motion.div key={message.id} className="chat-segment sent-badge-row" exit={rowExit}>
                     <motion.div className="sent-badge" {...bubbleAnim}>
                       <ArrowUp size={13} strokeWidth={2.5} style={{ transform: 'rotate(45deg)' }} />
                       Anfrage versendet
                     </motion.div>
                   </motion.div>
                 );
+                return;
               }
-
-              // Typing indicator
               if (message.type === 'typing') {
-                return (
-                  <motion.div key={message.id} className="system-row" exit={rowExit}>
+                chatElements.push(
+                  <motion.div key={message.id} className="chat-segment system-row" exit={rowExit}>
                     <div className="system-row__spacer" />
                     <div className="system-content">
                       <motion.div className="system-bubble typing-bubble" {...bubbleAnim}>
@@ -821,40 +802,53 @@ export function App() {
                     </div>
                   </motion.div>
                 );
+                return;
               }
-
-              // AI message
               if (message.type === 'ai') {
-                return (
-                  <motion.div key={message.id} className="system-row" exit={rowExit}>
+                chatElements.push(
+                  <motion.div key={message.id} className="chat-segment system-row" exit={rowExit}>
                     <div className="system-row__spacer" />
                     <div className="system-content">
-                      <motion.div className="system-bubble" {...bubbleAnim}>
-                        {message.text}
-                      </motion.div>
+                      <motion.div className="system-bubble" {...bubbleAnim}>{message.text}</motion.div>
                     </div>
+                  </motion.div>
+                );
+                return;
+              }
+
+              // System message (node)
+              const node = flow[message.nodeId];
+              const isFirst = message.id === 'system-start';
+              const nextMsg = messages[index + 1];
+              const selectedChip = nextMsg?.type === 'user' ? nextMsg.text : null;
+
+              // Strip above this message (skip for start — start gallery already rendered above)
+              if (!isFirst && node.images?.length) {
+                chatElements.push(
+                  <motion.div
+                    key={`strip-${message.id}`}
+                    className="strip-shutter-frame"
+                    initial={{ clipPath: 'inset(50% 0 50%)' }}
+                    animate={{ clipPath: 'inset(0% 0 0%)' }}
+                    exit={{ clipPath: 'inset(50% 0 50%)' }}
+                    transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <ImageStrip node={node} onCenterChange={setBgImage} />
                   </motion.div>
                 );
               }
 
-              const node = flow[message.nodeId];
-              const isFirst = message.id === 'system-start';
-              // Which chip was selected from this message?
-              const nextMsg = messages[index + 1];
-              const selectedChip = nextMsg?.type === 'user' ? nextMsg.text : null;
-
-              return (
+              // Content segment
+              chatElements.push(
                 <motion.article
                   key={message.id}
-                  data-system-id={message.id}
+                  className="chat-segment system-row"
                   initial={{ opacity: 0, y: 18, scale: 0.985 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -12 }}
                   transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-                  className="system-row"
                 >
                   <div className="system-row__spacer" />
-
                   <div className="system-content">
                     <div className="system-bubble">
                       <div>{node.text}</div>
@@ -865,7 +859,6 @@ export function App() {
                         </a>
                       )}
                     </div>
-
                     {node.chips && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -889,11 +882,12 @@ export function App() {
                   </div>
                 </motion.article>
               );
-            })}
-          </AnimatePresence>
+            });
 
-          <div className="chat-stack__spacer" aria-hidden="true" />
-        </div>
+            return chatElements;
+          })()}
+        </AnimatePresence>
+        <div className="chat-stack__spacer" aria-hidden="true" />
       </section>
 
       <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
