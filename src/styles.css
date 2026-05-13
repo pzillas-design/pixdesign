@@ -356,7 +356,7 @@ img {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: clamp(14px, 1.8vw, 24px);
+  margin-top: clamp(28px, 4vw, 48px);
   margin-left: 0;
   padding-left: 0;
 }
