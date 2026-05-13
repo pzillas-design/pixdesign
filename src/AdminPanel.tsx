@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase, PixMedia, PixGallery } from './lib/supabase';
 import { Upload, Trash2, Save, LogOut, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic, LayoutGrid, Check } from 'lucide-react';
 
-type Tab = 'media' | 'knowledge' | 'inquiry' | 'galleries';
+type Tab = 'media' | 'knowledge' | 'galleries';
 
 // ─────────────────────────────────────────────
 // Auth Gate
@@ -460,7 +460,6 @@ export function AdminPanel() {
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'knowledge', label: 'Knowledge Base', icon: <Bot size={18} /> },
     { id: 'galleries', label: 'Galerien', icon: <LayoutGrid size={18} /> },
-    { id: 'inquiry', label: 'Anfrage-Felder', icon: <Mail size={18} /> },
     { id: 'media', label: 'Mediathek', icon: <Image size={18} /> },
   ];
 
@@ -483,7 +482,6 @@ export function AdminPanel() {
       <main style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {tab === 'knowledge' && <KnowledgeTab />}
         {tab === 'galleries' && <GalleryTab />}
-        {tab === 'inquiry' && <InquiryTab />}
         {tab === 'media' && <MediaTab />}
       </main>
     </div>
