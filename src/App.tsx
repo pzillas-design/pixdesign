@@ -436,14 +436,16 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
-    const speed = 0.175; // px per frame (accumulate to handle sub-pixel)
+    const speed = 0.175; // px per frame
+    // Track float position ourselves so sub-pixel moves are smooth
+    scrollAccRef.current = strip.scrollLeft;
     function tick() {
       if (!isHoveredRef.current && !isDraggingRef.current) {
         scrollAccRef.current += speed;
-        if (scrollAccRef.current >= 1) {
-          strip.scrollLeft += Math.floor(scrollAccRef.current);
-          scrollAccRef.current -= Math.floor(scrollAccRef.current);
-        }
+        strip.scrollLeft = scrollAccRef.current;
+      } else {
+        // Re-sync when user drags or hovers (so we resume from correct position)
+        scrollAccRef.current = strip.scrollLeft;
       }
       rafRef.current = requestAnimationFrame(tick);
     }
