@@ -371,6 +371,7 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   const jumpingRef = useRef(false);
   const isHoveredRef = useRef(false);
   const rafRef = useRef<number>(0);
+  const scrollAccRef = useRef(0);
 
   if (!node.images?.length) return null;
   const images = node.images;
@@ -435,10 +436,14 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
-    const speed = 0.175; // px per frame
+    const speed = 0.175; // px per frame (accumulate to handle sub-pixel)
     function tick() {
-      if (strip && !isHoveredRef.current && !isDraggingRef.current) {
-        strip.scrollLeft += speed;
+      if (!isHoveredRef.current && !isDraggingRef.current) {
+        scrollAccRef.current += speed;
+        if (scrollAccRef.current >= 1) {
+          strip.scrollLeft += Math.floor(scrollAccRef.current);
+          scrollAccRef.current -= Math.floor(scrollAccRef.current);
+        }
       }
       rafRef.current = requestAnimationFrame(tick);
     }
