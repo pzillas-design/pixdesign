@@ -512,7 +512,7 @@ img {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  padding: clamp(10px, 2vh, 20px) 0 0 0;
+  padding: clamp(10px, 2vh, 20px) 0 clamp(20px, 4vh, 48px) 0;
 }
 
 .user-bubble {

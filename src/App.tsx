@@ -680,14 +680,20 @@ export function App() {
     const bubbleText = displayLabel || label;
     const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
     const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
+    // t=0: close old strip
     setMessages((current) => current.slice(0, fromIndex + 1));
-    setActiveStripId(''); // immediately hide old strip → exit animation
+    setActiveStripId('');
     resetSession();
+    // t=320ms: user bubble slides in
     setTimeout(() => {
-      setMessages((current) => [...current, userMessage, systemMessage]);
-      setSliderNodeId(targetId);
-      setActiveStripId(systemMessage.id); // new strip enters
+      setMessages((current) => [...current, userMessage]);
     }, 320);
+    // t=560ms: new strip opens + system text fades in simultaneously
+    setTimeout(() => {
+      setMessages((current) => [...current, systemMessage]);
+      setSliderNodeId(targetId);
+      setActiveStripId(systemMessage.id);
+    }, 560);
   }
 
   function dropHeaderMessage(label: string, targetId: NodeId) {
