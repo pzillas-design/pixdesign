@@ -5,6 +5,34 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as stri
 
 export type GalleryCategory = 'web' | 'photo' | 'video';
 
+// ── Runtime context injected by the UI ──────────────────────────────────────
+export type RuntimeContext = {
+  activeBranch?: string;   // z.B. "Foto > Business"
+};
+
+let runtimeContext: RuntimeContext = {};
+
+export function setRuntimeContext(ctx: RuntimeContext) {
+  runtimeContext = ctx;
+}
+
+function buildRuntimeBlock(): string {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const lang = navigator.language ?? 'de';
+  const device = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop';
+
+  const lines = [
+    `Datum: ${dateStr}, ${timeStr} Uhr`,
+    `Gerät: ${device}, Sprache: ${lang}`,
+  ];
+  if (runtimeContext.activeBranch) {
+    lines.push(`Aktiver Chat-Zweig: ${runtimeContext.activeBranch}`);
+  }
+  return `\n\n# Aktueller Kontext\n${lines.join('\n')}`;
+}
+
 export type AIResponse = {
   text: string;
   gallery?: GalleryCategory;
@@ -48,6 +76,7 @@ let systemInstruction = '';
 
 export function resetSession() {
   chatSession = null;
+  systemInstruction = ''; // force rebuild with fresh context on next message
 }
 
 const DEFAULT_SYSTEM_PROMPT = `# Rolle
@@ -127,7 +156,7 @@ TOOLS (immer verfügbar):
     ? `\n\nPROJEKTE IN DER MEDIATHEK:\n${projectsText}`
     : '';
 
-  return basePrompt + projectSection + toolInstructions;
+  return basePrompt + projectSection + toolInstructions + buildRuntimeBlock();
 }
 
 async function getOrCreateSession() {

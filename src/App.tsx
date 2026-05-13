@@ -23,7 +23,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
-import { sendMessage, resetSession, sendInquiry, type GalleryCategory } from './lib/gemini';
+import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
 import { useLiveVoice } from './lib/useLiveVoice';
 import { supabase, PixMedia } from './lib/supabase';
 
@@ -578,6 +578,11 @@ export function App() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
+
+  // Keep AI runtime context in sync
+  useEffect(() => {
+    setRuntimeContext({ activeBranch: activeNode?.text ? activeNode.text.slice(0, 60) : sliderNodeId });
+  }, [sliderNodeId, activeNode]);
 
   // Load start gallery from Supabase
   useEffect(() => {
