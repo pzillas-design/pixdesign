@@ -126,8 +126,17 @@ img {
   flex-shrink: 0;
 }
 
+.chat-header--overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
 .chat-header__logo {
-  height: 8vh;
+  height: 7vh;
   width: auto;
   display: block;
 }
