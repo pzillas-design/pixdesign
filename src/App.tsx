@@ -28,12 +28,12 @@ import { useLiveVoice } from './lib/useLiveVoice';
 import { supabase } from './lib/supabase';
 
 const bubbleAnim = {
-  initial: { opacity: 0, y: 28 },
+  initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.5, ease: 'easeOut' },
 };
 
-const rowExit = { opacity: 0, y: -10, transition: { duration: 0.18, ease: 'easeIn' } };
+const rowExit = { opacity: 0, y: -8, transition: { duration: 0.25, ease: 'easeIn' } };
 
 function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
