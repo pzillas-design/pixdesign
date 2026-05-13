@@ -435,7 +435,7 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
-    const speed = 0.35; // px per frame
+    const speed = 0.175; // px per frame
     function tick() {
       if (strip && !isHoveredRef.current && !isDraggingRef.current) {
         strip.scrollLeft += speed;
