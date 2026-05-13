@@ -362,53 +362,84 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [grabbing, setGrabbing] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
-  const wrapperRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const trackRef = useRef<HTMLDivElement>(null);
   const lastCenterRef = useRef<string | null>(null);
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
   const scrollStartRef = useRef(0);
   const hasDraggedRef = useRef(false);
+  const jumpingRef = useRef(false);
+
+  if (!node.images?.length) return null;
+  const images = node.images;
+  const meta = node.imageMeta ?? [];
+  // Triple for infinite scroll
+  const tripled = [...images, ...images, ...images];
 
   const updateCenter = useCallback(() => {
     const strip = stripRef.current;
-    if (!strip) return;
+    const track = trackRef.current;
+    if (!strip || !track) return;
     const scrollCenter = strip.scrollLeft + strip.clientWidth / 2;
     let minDist = Infinity;
     let centerSrc: string | null = null;
-    wrapperRefs.current.forEach((wrapper, i) => {
-      if (!wrapper) return;
-      const dist = Math.abs(wrapper.offsetLeft + wrapper.offsetWidth / 2 - scrollCenter);
-      if (dist < minDist) { minDist = dist; centerSrc = node.images[i]; }
+    Array.from(track.children).forEach((child, i) => {
+      const el = child as HTMLElement;
+      const dist = Math.abs(el.offsetLeft + el.offsetWidth / 2 - scrollCenter);
+      if (dist < minDist) { minDist = dist; centerSrc = tripled[i]; }
     });
     if (centerSrc && centerSrc !== lastCenterRef.current) {
       lastCenterRef.current = centerSrc;
       onCenterChange?.(centerSrc);
     }
-  }, [node.images, onCenterChange]);
+  }, [tripled, onCenterChange]);
 
+  // Scroll to middle set on mount
   useEffect(() => {
     const strip = stripRef.current;
-    if (!strip) return;
-    updateCenter();
-    strip.addEventListener('scroll', updateCenter, { passive: true });
-    const t = setTimeout(updateCenter, 100);
-    return () => { strip.removeEventListener('scroll', updateCenter); clearTimeout(t); };
-  }, [node.images, updateCenter]);
+    const track = trackRef.current;
+    if (!strip || !track) return;
+    const oneThird = track.scrollWidth / 3;
+    strip.scrollLeft = oneThird;
+    setTimeout(updateCenter, 50);
+  }, [node.id]);
+
+  // Infinite loop + center detection
+  useEffect(() => {
+    const strip = stripRef.current;
+    const track = trackRef.current;
+    if (!strip || !track) return;
+
+    function onScroll() {
+      if (!strip || !track || jumpingRef.current) return;
+      const oneThird = track.scrollWidth / 3;
+      if (strip.scrollLeft < oneThird * 0.25) {
+        jumpingRef.current = true;
+        strip.scrollLeft += oneThird;
+        jumpingRef.current = false;
+      } else if (strip.scrollLeft > oneThird * 1.75) {
+        jumpingRef.current = true;
+        strip.scrollLeft -= oneThird;
+        jumpingRef.current = false;
+      }
+      updateCenter();
+    }
+
+    strip.addEventListener('scroll', onScroll, { passive: true });
+    return () => strip.removeEventListener('scroll', onScroll);
+  }, [node.id, updateCenter]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (lightboxIndex === null) return;
       if (e.key === 'Escape') setLightboxIndex(null);
-      if (e.key === 'ArrowLeft') setLightboxIndex(i => i !== null ? (i - 1 + node.images.length) % node.images.length : null);
-      if (e.key === 'ArrowRight') setLightboxIndex(i => i !== null ? (i + 1) % node.images.length : null);
+      if (e.key === 'ArrowLeft') setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : null);
+      if (e.key === 'ArrowRight') setLightboxIndex(i => i !== null ? (i + 1) % images.length : null);
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [lightboxIndex, node.images.length]);
+  }, [lightboxIndex, images.length]);
 
-  if (!node.images?.length) return null;
-  const images = node.images;
-  const meta = node.imageMeta ?? [];
   const currentMeta = lightboxIndex !== null ? (meta[lightboxIndex] ?? null) : null;
 
   return (
@@ -434,15 +465,14 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
         onMouseUp={() => { isDraggingRef.current = false; setGrabbing(false); }}
         onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); }}
       >
-        <div className="image-strip__track">
-          {images.map((image, index) => (
+        <div ref={trackRef} className="image-strip__track">
+          {tripled.map((image, index) => (
             <div
-              ref={el => { wrapperRefs.current[index] = el; }}
               className="image-strip__item"
-              key={`${node.id}-${image}`}
-              onClick={() => { if (!hasDraggedRef.current) setLightboxIndex(index); }}
+              key={`${node.id}-${index}`}
+              onClick={() => { if (!hasDraggedRef.current) setLightboxIndex(index % images.length); }}
             >
-              <img src={image} alt={meta[index]?.title ?? ''} draggable={false} />
+              <img src={image} alt={meta[index % images.length]?.title ?? ''} draggable={false} />
             </div>
           ))}
         </div>
@@ -599,9 +629,14 @@ export function App() {
   // Start gallery — hardcoded, served from /public via Vercel
   const startGalleryImages = [
     '/media/foto-hd/6_immobilien.jpg',
+    '/media/screens/expose.png',
     '/media/foto-hd/10_architektur.jpg',
+    '/media/screens/tososto.png',
     '/media/foto-hd/21_menschen.jpg',
+    '/media/screens/wassertechnik.png',
     '/media/foto-hd/26_business.jpg',
+    '/media/foto-hd/17_business.webp',
+    '/media/foto-hd/30_architektur.jpg',
   ];
 
   useEffect(() => {
