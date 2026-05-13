@@ -736,7 +736,7 @@ export function App() {
             className="chat-bg-glow"
             style={{ backgroundImage: `url(${bgImage})` }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.3 }}
+            animate={{ opacity: 0.45 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.2, ease: 'easeInOut' }}
           />

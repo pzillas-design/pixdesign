@@ -6,7 +6,7 @@
   --type-chip: clamp(16px, calc(12px + 0.55vw), 20px);
   --type-chip-mobile: clamp(15px, 4.2vw, 19px);
   --type-ui: clamp(14px, 1vw, 16px);
-  --leading-chat: 1.08;
+  --leading-chat: 1.22;
   --tracking-tight: 0;
   font-family:
     "Google Sans Flex", "Plus Jakarta Sans", "Helvetica Neue", Helvetica, Arial,
@@ -214,8 +214,8 @@ img {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(160px) saturate(1.2);
-  opacity: 0.02;
+  filter: blur(200px) saturate(2.2);
+  opacity: 0.45;
   pointer-events: none;
   transform: scale(1.2);
 }
@@ -251,8 +251,11 @@ img {
   z-index: 2;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
 }
@@ -276,19 +279,19 @@ img {
 .system-row {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 36px;
   min-height: auto;
-  padding-bottom: clamp(36px, 6vh, 72px);
+  padding-bottom: clamp(48px, 8vh, 96px);
 }
 
 .system-row:first-child {
-  gap: clamp(36px, 5vh, 64px);
-  padding-bottom: clamp(24px, 4vh, 48px);
+  gap: clamp(40px, 6vh, 72px);
+  padding-bottom: clamp(36px, 6vh, 64px);
 }
 
 .system-row:not(:first-child) {
   min-height: auto;
-  padding-bottom: clamp(32px, 5vh, 64px);
+  padding-bottom: clamp(44px, 7vh, 80px);
 }
 
 .system-row__spacer {
@@ -363,7 +366,7 @@ img {
   align-items: center;
   gap: 12px;
   border-radius: 999px;
-  padding: 16px 28px;
+  padding: 20px 32px;
   color: #000;
   font-size: var(--type-chip);
   font-weight: 600;
@@ -515,7 +518,7 @@ img {
   max-width: min(520px, 60vw);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.08);
-  padding: 12px 18px;
+  padding: 16px 24px;
   color: #fff;
   font-size: var(--type-chat);
   font-weight: 300;
