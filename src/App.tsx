@@ -886,17 +886,31 @@ export function App() {
                         transition={{ delay: 0.12, duration: 0.32 }}
                         className={`chip-row${selectedChip ? ' chip-row--has-selection' : ''}`}
                       >
-                        {node.chips.map((chip, chipIndex) => (
-                          <button
-                            key={chip.targetId}
-                            type="button"
-                            onClick={() => handleChipClick(chip.label, chip.targetId, index, chip.displayLabel)}
-                            className={`chip-button chip-button--${chipIndex % 4}${selectedChip === chip.label ? ' chip-button--active' : ''}`}
-                          >
-                            {chip.icon && <span className="chip-icon">{getIconComponent(chip.icon)}</span>}
-                            {chip.label && <span>{chip.label}</span>}
-                          </button>
-                        ))}
+                        {node.chips.map((chip, chipIndex) => {
+                          const chipText = chip.displayLabel || chip.label;
+                          const isActive = selectedChip === chipText;
+                          return (
+                            <button
+                              key={chip.targetId}
+                              type="button"
+                              onClick={() => {
+                                if (isActive) {
+                                  // Second click → reset to start
+                                  setMessages([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
+                                  setSliderNodeId('start');
+                                  setActiveStripId('system-start');
+                                  resetSession();
+                                } else {
+                                  handleChipClick(chip.label, chip.targetId, index, chip.displayLabel);
+                                }
+                              }}
+                              className={`chip-button chip-button--${chipIndex % 4}${isActive ? ' chip-button--active' : ''}`}
+                            >
+                              {chip.icon && <span className="chip-icon">{getIconComponent(chip.icon)}</span>}
+                              {chip.label && <span>{chip.label}</span>}
+                            </button>
+                          );
+                        })}
                       </motion.div>
                     )}
                   </div>
