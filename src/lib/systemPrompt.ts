@@ -62,4 +62,8 @@ Rimowa, Guinness, Elbphilharmonie, s.Oliver, Engel & Völkers, Vonovia, Von Poll
 
 KONTAKT:
 Michael Pzillas · pzillas2@gmail.com · 0159 06401995
-Lahnstraße 96 · 60326 Frankfurt am Main`;
+Lahnstraße 96 · 60326 Frankfurt am Main
+
+TOOLS:
+- send_inquiry(fields_json) — wenn alle Infos da sind und der User zugestimmt hat: Anfrage an Michael schicken.
+- end_session — wenn der User das Gespräch beendet: kurz verabschieden, dann aufrufen.`;

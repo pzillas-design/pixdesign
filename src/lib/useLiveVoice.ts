@@ -7,8 +7,8 @@ export type LiveVoiceState = 'idle' | 'connecting' | 'listening' | 'speaking';
 
 const toolDeclarations = [
   {
-    name: 'send_email',
-    description: 'Schickt eine Anfrage-Mail an Michael wenn der User konkret anfragen möchte und alle nötigen Infos gesammelt wurden.',
+    name: 'send_inquiry',
+    description: 'Schickt eine Anfrage per Telegram an Michael wenn der User konkret anfragen möchte und alle nötigen Infos gesammelt wurden.',
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -104,6 +104,9 @@ export function useLiveVoice(onEmailSent?: () => void) {
           responseModalities: [Modality.AUDIO],
           systemInstruction: SYSTEM_PROMPT,
           tools: [{ functionDeclarations: toolDeclarations }],
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } },
+          },
         },
         callbacks: {
           onopen: () => {
@@ -142,7 +145,7 @@ export function useLiveVoice(onEmailSent?: () => void) {
             const toolCall = msg?.toolCall;
             if (toolCall?.functionCalls?.length) {
               for (const fn of toolCall.functionCalls) {
-                if (fn.name === 'send_email') {
+                if (fn.name === 'send_inquiry') {
                   try {
                     const fields = JSON.parse(fn.args?.fields_json ?? '{}');
                     await sendInquiry(fields);
