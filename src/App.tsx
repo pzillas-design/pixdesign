@@ -369,6 +369,8 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
   const scrollStartRef = useRef(0);
   const hasDraggedRef = useRef(false);
   const jumpingRef = useRef(false);
+  const isHoveredRef = useRef(false);
+  const rafRef = useRef<number>(0);
 
   if (!node.images?.length) return null;
   const images = node.images;
@@ -429,6 +431,21 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
     return () => strip.removeEventListener('scroll', onScroll);
   }, [node.id, updateCenter]);
 
+  // Auto-scroll slowly, pause on hover/drag
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const speed = 0.35; // px per frame
+    function tick() {
+      if (strip && !isHoveredRef.current && !isDraggingRef.current) {
+        strip.scrollLeft += speed;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    }
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [node.id]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (lightboxIndex === null) return;
@@ -462,8 +479,9 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
           if (Math.abs(dx) > 4) hasDraggedRef.current = true;
           stripRef.current.scrollLeft = scrollStartRef.current - dx;
         }}
+        onMouseEnter={() => { isHoveredRef.current = true; }}
         onMouseUp={() => { isDraggingRef.current = false; setGrabbing(false); }}
-        onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); }}
+        onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); isHoveredRef.current = false; }}
       >
         <div ref={trackRef} className="image-strip__track">
           {tripled.map((image, index) => (
@@ -817,9 +835,9 @@ export function App() {
                   <motion.div
                     key={`strip-${message.id}`}
                     className="strip-shutter-frame"
-                    initial={{ clipPath: 'inset(50% 0 50%)' }}
+                    initial={{ clipPath: 'inset(0% 0 100%)' }}
                     animate={{ clipPath: 'inset(0% 0 0%)' }}
-                    exit={{ clipPath: 'inset(50% 0 50%)' }}
+                    exit={{ clipPath: 'inset(0% 0 100%)' }}
                     transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <ImageStrip node={node} onCenterChange={setBgImage} />
