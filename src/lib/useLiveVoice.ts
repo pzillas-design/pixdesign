@@ -20,6 +20,14 @@ const toolDeclarations = [
       required: ['fields_json'],
     },
   },
+  {
+    name: 'end_session',
+    description: 'Beendet den Voice-Dialog wenn der User das Gespräch abschließt (sagt Danke, Tschüss, auf Wiedersehen o.ä.). Vorher kurz verabschieden.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {},
+    },
+  },
 ];
 
 export function useLiveVoice(onEmailSent?: () => void) {
@@ -140,12 +148,20 @@ export function useLiveVoice(onEmailSent?: () => void) {
                     await sendInquiry(fields);
                     onEmailSent?.();
                   } catch {}
-                  // Send tool response back so model continues
                   try {
                     sessionRef.current?.sendToolResponse({
                       functionResponses: [{ id: fn.id, name: fn.name, response: { output: 'sent' } }],
                     });
                   } catch {}
+                }
+                if (fn.name === 'end_session') {
+                  try {
+                    sessionRef.current?.sendToolResponse({
+                      functionResponses: [{ id: fn.id, name: fn.name, response: { output: 'ok' } }],
+                    });
+                  } catch {}
+                  // Short delay so the farewell audio can finish playing
+                  setTimeout(() => stop(), 1800);
                 }
               }
               return;
