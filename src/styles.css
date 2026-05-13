@@ -623,7 +623,6 @@ img {
 
 .strip-shutter-frame {
   width: 100%;
-  height: clamp(300px, 50vh, 580px);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -1021,7 +1020,7 @@ img {
   }
 
   .strip-shutter-frame {
-    height: clamp(220px, 38vh, 360px);
+    /* height controlled by Framer Motion inline style */
   }
 
   .chat-scroll {

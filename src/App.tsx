@@ -72,7 +72,9 @@ type NodeId =
   | 'contact-call'
   | 'contact-mail'
   | 'contact-whatsapp'
-  | 'contact-more';
+  | 'contact-more'
+  | 'about'
+  | 'impressum';
 
 type IconName =
   | 'globe'
@@ -113,7 +115,7 @@ type Message =
 const flow: Record<NodeId, ChatNode> = {
   start: {
     id: 'start',
-    text: 'Willkommen bei PIX ✌️\nIch baue tolle Webseiten und mache Fotos und Videos in Frankfurt und Umgebung. Womit kann ich helfen?',
+    text: 'PIX macht Webdesign, Fotografie und Video in Frankfurt. Einfach ein Thema tippen oder einen der Chips wählen.',
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
@@ -300,13 +302,31 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-more': {
     id: 'contact-more',
-    text: 'PIX macht Webdesign, Fotografie und Video in Frankfurt. Einfach ein Thema tippen oder einen der Chips wählen.',
+    text: 'Diese Webseite ist ein kleiner Vorgeschmack, wie sich das Internet von morgen anfühlen könnte. KI-Agenten werden einen Großteil des Internets ersetzen. Sie werden Informationen beschaffen, anfragen stellen, einkaufen, planen, Benutzeroberflächen individuell für ihre Nutzer erzeugen.\n\nWas sie nicht können: wollen. Sie haben keinen Drang, etwas zu erschaffen, keine Idee, die sie nachts wach hält. Genau dafür gibt\'s uns und dabei will ich dich unterstützen. Die Werkzeuge der Zukunft zu entwickeln. Für deine Projekte, deine Ideen und deine Vision.',
+    chips: [
+      { label: 'About PIX', targetId: 'about', icon: 'users' },
+      { label: 'Impressum', targetId: 'impressum', icon: 'briefcase' },
+      { label: 'Zurück', targetId: 'start', icon: 'rotateccw' },
+    ],
+    images: ['/media/detail/portrait.webp'],
+  },
+  about: {
+    id: 'about',
+    text: 'PIX ist die Kreativagentur von Michael Pzillas in Frankfurt.\nGelernter Mediengestalter, 10+ Jahre Erfahrung. Referenzen u.a. Engel & Völkers, Guinness, S.Oliver.\n\nAnsatz: direkt, auf Augenhöhe, fair. Kein Overhead, kein Bullshit — nur das, was dein Projekt wirklich braucht.',
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
       { label: 'Video', targetId: 'video', icon: 'film' },
     ],
-    images: ['/media/detail/slider-start.png'],
+    images: ['/media/detail/portrait.webp'],
+  },
+  impressum: {
+    id: 'impressum',
+    text: 'Angaben gemäß § 5 TMG\n\nMichael Pzillas\nLahnstraße 96\n60326 Frankfurt am Main\n\nKontakt:\nTel: 0159 06401995\nMail: pzillas2@gmail.com\n\nUmsatzsteuer-ID gemäß § 27a UStG: wird auf Anfrage mitgeteilt.\n\nVerantwortlich für den Inhalt nach § 55 Abs. 2 RStV: Michael Pzillas',
+    chips: [
+      { label: 'Zurück', targetId: 'start', icon: 'rotateccw' },
+    ],
+    images: [],
   },
 };
 
@@ -848,10 +868,10 @@ export function App() {
                   <motion.div
                     key={`strip-${message.id}`}
                     className="strip-shutter-frame"
-                    initial={{ clipPath: 'inset(0% 0 100%)' }}
-                    animate={{ clipPath: 'inset(0% 0 0%)' }}
-                    exit={{ clipPath: 'inset(0% 0 100%)' }}
-                    transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                    initial={{ height: 0, clipPath: 'inset(0% 0 100%)' }}
+                    animate={{ height: 'clamp(300px, 50vh, 580px)', clipPath: 'inset(0% 0 0%)' }}
+                    exit={{ height: 0, clipPath: 'inset(0% 0 100%)' }}
+                    transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <ImageStrip node={node} onCenterChange={setBgImage} />
                   </motion.div>
