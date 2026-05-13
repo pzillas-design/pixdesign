@@ -127,12 +127,12 @@ img {
   position: relative;
   z-index: 10;
   /* Pull strip up behind logo so logo visually overlays it */
-  margin-bottom: calc(-7vh - clamp(36px, 4.4vw, 64px));
+  margin-bottom: calc(-6vh - clamp(36px, 4.4vw, 64px));
   pointer-events: none;
 }
 
 .chat-header__logo {
-  height: 7vh;
+  height: 6vh;
   width: auto;
   display: block;
   pointer-events: auto;
