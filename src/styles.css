@@ -265,6 +265,7 @@ img {
 
 .chat-stack__spacer {
   flex: 1;
+  min-height: clamp(130px, 18vh, 180px);
 }
 
 .chat-composer {
