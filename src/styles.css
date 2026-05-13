@@ -1012,7 +1012,12 @@ img {
     grid-row: 1;
     height: auto;
     min-height: 0;
-    padding: 28px 0 0;
+    padding: 0;
+  }
+
+  .chat-segment {
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
 .system-row {
