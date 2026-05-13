@@ -634,7 +634,6 @@ export function App() {
     '/media/foto-hd/21_menschen.jpg',
     '/media/screens/wassertechnik.png',
     '/media/foto-hd/26_business.jpg',
-    '/media/foto-hd/17_business.webp',
   ];
 
   useEffect(() => {
