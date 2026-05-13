@@ -201,9 +201,9 @@ export async function sendInquiry(fields: Record<string, string>): Promise<boole
     const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
     if (!token || !chatId) return false;
 
-    const lines = ['📋 *Neue Anfrage via PIX Website*', ''];
+    const lines = ['📋 Neue Anfrage via PIX Website', ''];
     for (const [key, val] of Object.entries(fields)) {
-      if (val) lines.push(`*${key}:* ${val}`);
+      if (val) lines.push(`${key}: ${val}`);
     }
     lines.push('', `🕐 ${new Date().toLocaleString('de-DE')}`);
 
@@ -213,7 +213,6 @@ export async function sendInquiry(fields: Record<string, string>): Promise<boole
       body: JSON.stringify({
         chat_id: chatId,
         text: lines.join('\n'),
-        parse_mode: 'Markdown',
       }),
     });
     return res.ok;

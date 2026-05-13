@@ -519,7 +519,7 @@ img {
 .user-bubble {
   margin-left: auto;
   max-width: min(520px, 60vw);
-  border-radius: 999px 999px 6px 999px;
+  border-radius: 1.6em 1.6em 0.25em 1.6em;
   background: rgba(255, 255, 255, 0.08);
   padding: 16px 24px;
   color: #fff;
