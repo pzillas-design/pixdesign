@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { supabase } from './supabase';
 import { SYSTEM_PROMPT as HARDCODED_SYSTEM_PROMPT } from './systemPrompt';
+import { mediaLibrary } from './mediaLibrary';
 import { logError, logChat } from './logger';
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
@@ -85,18 +85,12 @@ export function resetSession() {
 async function buildSystemInstruction(): Promise<string> {
   const basePrompt = HARDCODED_SYSTEM_PROMPT;
 
-  // Append project knowledge from Mediathek
-  const { data: media } = await supabase
-    .from('pix_media')
-    .select('filename, alt, category, description')
-    .neq('description', '')
-    .order('created_at', { ascending: false });
-
   const projectsByCategory: Record<string, string[]> = { web: [], photo: [], video: [] };
-  for (const item of media ?? []) {
-    const cat = item.category as GalleryCategory;
-    if (projectsByCategory[cat]) {
-      projectsByCategory[cat].push(`- ${item.alt || item.filename}: ${item.description}`);
+  for (const item of mediaLibrary) {
+    if (!item.title && !item.description) continue;
+    const type = item.tags.find(t => ['web', 'photo', 'video'].includes(t));
+    if (type && projectsByCategory[type]) {
+      projectsByCategory[type].push(`- ${item.title || item.file}: ${item.description || ''}`);
     }
   }
 

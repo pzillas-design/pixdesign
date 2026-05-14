@@ -25,7 +25,7 @@ import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
 import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
 import { useLiveVoice } from './lib/useLiveVoice';
-import { supabase } from './lib/supabase';
+import { getMediaByTags } from './lib/mediaLibrary';
 
 const bubbleAnim = {
   initial: { opacity: 0, y: 20 },
@@ -126,7 +126,7 @@ const flow: Record<NodeId, ChatNode> = {
       { label: '', displayLabel: 'E-Mail', targetId: 'contact-mail', icon: 'mail', href: atob('bWFpbHRvOnB6aWxsYXMyQGdtYWlsLmNvbQ==') },
       { label: '', displayLabel: 'Mehr erfahren', targetId: 'contact-more', icon: 'circlehelp' },
     ],
-    images: ['/media/detail/slider-start.png'],
+    images: getMediaByTags(['startscreen']),
     imageMode: 'gallery',
   },
   web: {
