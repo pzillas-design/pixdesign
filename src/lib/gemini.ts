@@ -144,6 +144,9 @@ export async function sendMessage(message: string): Promise<AIResponse> {
       : (response.functionCalls ?? []);
     const fnCall = calls?.[0];
 
+    // Only read response.text when there's no function call to avoid SDK warning
+    const responseText = fnCall ? '' : (response.text ?? 'Entschuldigung, ich habe das nicht verstanden.');
+
     if (fnCall?.name === 'show_gallery') {
       const category = (fnCall.args as any).category as GalleryCategory;
       await session.sendMessage({
@@ -151,7 +154,7 @@ export async function sendMessage(message: string): Promise<AIResponse> {
         // @ts-ignore
         functionResponses: [{ name: 'show_gallery', response: { output: 'shown' } }],
       });
-      return { text: response.text ?? '', gallery: category };
+      return { text: responseText, gallery: category };
     }
 
     if (fnCall?.name === 'send_email') {
@@ -161,10 +164,10 @@ export async function sendMessage(message: string): Promise<AIResponse> {
         // @ts-ignore
         functionResponses: [{ name: 'send_email', response: { output: 'sent' } }],
       });
-      return { text: response.text ?? '', sendEmail: fields };
+      return { text: responseText, sendEmail: fields };
     }
 
-    return { text: response.text ?? 'Entschuldigung, ich habe das nicht verstanden.' };
+    return { text: responseText };
   } catch (error: any) {
     console.error('Gemini error:', error?.message ?? error);
     return { text: 'Es gab einen Verbindungsfehler. Bitte nochmal versuchen.' };
