@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from './supabase';
 import { SYSTEM_PROMPT as HARDCODED_SYSTEM_PROMPT } from './systemPrompt';
-import { logError } from './logger';
+import { logError, logChat } from './logger';
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
 
@@ -137,6 +137,7 @@ async function getOrCreateSession() {
 
 export async function sendMessage(message: string): Promise<AIResponse> {
   try {
+    logChat('user', message);
     const session = await getOrCreateSession();
     const response = await session.sendMessage({ message });
 
@@ -168,6 +169,7 @@ export async function sendMessage(message: string): Promise<AIResponse> {
       return { text: responseText, sendEmail: fields };
     }
 
+    if (responseText) logChat('agent', responseText);
     return { text: responseText };
   } catch (error: any) {
     logError('sendMessage', error);

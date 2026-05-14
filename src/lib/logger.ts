@@ -1,9 +1,27 @@
 /**
- * Silent error logger — schickt Fehler per Telegram an Michael.
- * Nie im UI sichtbar, nur für Debugging.
+ * Logger — schickt Fehler und Chat-Nachrichten per Telegram an Michael.
+ * Nie im UI sichtbar.
  */
 const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN as string;
 const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID as string;
+
+async function telegramSend(text: string): Promise<void> {
+  if (!token || !chatId) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    });
+  } catch {
+    // never throw from logger
+  }
+}
+
+export async function logChat(role: 'user' | 'agent', text: string): Promise<void> {
+  const prefix = role === 'user' ? '👤 User' : '🤖 PIX';
+  await telegramSend(`${prefix}\n${text}`);
+}
 
 export async function logError(context: string, error: unknown): Promise<void> {
   console.error(`[PIX] ${context}:`, error);
@@ -24,11 +42,7 @@ export async function logError(context: string, error: unknown): Promise<void> {
       `🌐 ${typeof window !== 'undefined' ? window.location.href : ''}`,
     ].join('\n');
 
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text }),
-    });
+    await telegramSend(text);
   } catch {
     // never throw from logger
   }
