@@ -384,6 +384,7 @@ function getIconComponent(iconName?: IconName) {
 function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?: (src: string) => void }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [grabbing, setGrabbing] = useState(false);
+  const [ready, setReady] = useState(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const lastCenterRef = useRef<string | null>(null);
@@ -420,14 +421,18 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
     }
   }, [tripled, onCenterChange]);
 
-  // Scroll to middle set on mount
+  // Scroll to middle set on mount — hide until positioned to avoid flash
   useEffect(() => {
     const strip = stripRef.current;
     const track = trackRef.current;
     if (!strip || !track) return;
     const oneThird = track.scrollWidth / 3;
     strip.scrollLeft = oneThird;
-    setTimeout(updateCenter, 50);
+    scrollAccRef.current = oneThird;
+    requestAnimationFrame(() => {
+      setReady(true);
+      updateCenter();
+    });
   }, [node.id]);
 
   // Infinite loop + center detection
@@ -494,7 +499,7 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
       <div
         ref={stripRef}
         className="image-strip"
-        style={{ cursor: grabbing ? 'grabbing' : 'grab' }}
+        style={{ cursor: grabbing ? 'grabbing' : 'grab', opacity: ready ? 1 : 0, transition: 'opacity 0.3s ease' }}
         onMouseDown={(e) => {
           isDraggingRef.current = true;
           hasDraggedRef.current = false;
