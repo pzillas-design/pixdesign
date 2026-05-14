@@ -27,14 +27,20 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: #000;
+}
+
 body,
 #root {
   width: 100%;
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #000;
+  background: transparent;
 }
 
 :root[data-theme="light"] body,
