@@ -223,8 +223,8 @@ img {
   opacity: 0.45;
   pointer-events: none;
   transform: scale(1.5);
-  mask-image: none;
-  -webkit-mask-image: none;
+  mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
+  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
 }
 
 .reset-button {
