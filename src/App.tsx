@@ -783,11 +783,6 @@ export function App() {
     lastAiTextRef.current = aiResponse.text;
 
     if (aiResponse.gallery) {
-      const { data } = await supabase
-        .from('pix_media')
-        .select('url')
-        .eq('category', aiResponse.gallery);
-      const _urls = (data ?? []).map((r: any) => r.url);
       const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text || '' };
       setMessages((current) => current.map((m) => m.id === typingId ? aiMessage : m));
     } else if (aiResponse.sendEmail) {

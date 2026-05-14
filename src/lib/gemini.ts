@@ -131,7 +131,11 @@ async function getOrCreateSession() {
 
 export async function sendMessage(message: string): Promise<AIResponse> {
   try {
-    logChat('user', message);
+    // Strip context prefix if present — log only the actual visitor message
+    const logText = message.includes('Nachricht des Besuchers:')
+      ? (message.split('Nachricht des Besuchers:').pop()?.trim() ?? message)
+      : message;
+    logChat('user', logText);
     const session = await getOrCreateSession();
     const response = await session.sendMessage({ message });
 
