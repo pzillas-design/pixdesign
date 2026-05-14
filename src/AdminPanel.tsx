@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase, PixMedia, PixGallery } from './lib/supabase';
 import { Upload, Trash2, Save, LogOut, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic, LayoutGrid, Check } from 'lucide-react';
 
-type Tab = 'media' | 'knowledge' | 'galleries';
+type Tab = 'media' | 'galleries';
 
 // ─────────────────────────────────────────────
 // Auth Gate
@@ -447,7 +447,7 @@ function GalleryTab() {
 // ─────────────────────────────────────────────
 export function AdminPanel() {
   const [session, setSession] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<Tab>('knowledge');
+  const [tab, setTab] = useState<Tab>('galleries');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(!!data.session));
@@ -458,7 +458,6 @@ export function AdminPanel() {
   if (!session) return <LoginScreen onLogin={() => setSession(true)} />;
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'knowledge', label: 'Knowledge Base', icon: <Bot size={18} /> },
     { id: 'galleries', label: 'Galerien', icon: <LayoutGrid size={18} /> },
     { id: 'media', label: 'Mediathek', icon: <Image size={18} /> },
   ];
@@ -480,7 +479,6 @@ export function AdminPanel() {
       </aside>
 
       <main style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {tab === 'knowledge' && <KnowledgeTab />}
         {tab === 'galleries' && <GalleryTab />}
         {tab === 'media' && <MediaTab />}
       </main>
