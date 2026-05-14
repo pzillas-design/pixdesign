@@ -764,13 +764,13 @@ export function App() {
       const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text || '' };
       setMessages((current) => current.map((m) => m.id === typingId ? aiMessage : m));
     } else if (aiResponse.sendEmail) {
-      const ok = await sendInquiry(aiResponse.sendEmail);
-      const confirmText = ok
+      const result = await sendInquiry(aiResponse.sendEmail);
+      const confirmText = result.ok
         ? 'Michael meldet sich in Kürze bei dir.'
-        : 'Beim Senden gab es leider einen Fehler. Schreib direkt an pzillas2@gmail.com.';
+        : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}. Schreib direkt an pzillas2@gmail.com.`;
       const msgs: Message[] = [];
       if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
-      if (ok) msgs.push({ id: createId('sent'), type: 'sent' });
+      if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
       msgs.push({ id: createId('ai'), type: 'ai', text: confirmText });
       setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
     } else {

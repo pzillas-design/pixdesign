@@ -58,7 +58,7 @@ const toolDeclarations = [
     },
   },
   {
-    name: 'send_email',
+    name: 'send_inquiry',
     description: 'Schickt eine Anfrage-Mail an Michael wenn der User konkret anfragen möchte und alle nötigen Infos gesammelt wurden.',
     parameters: {
       type: Type.OBJECT,
@@ -109,7 +109,7 @@ async function buildSystemInstruction(): Promise<string> {
 
 TOOLS (immer verfügbar):
 1. show_gallery(category) — zeige Referenzbilder wenn der User Arbeiten sehen will. category = "web", "photo" oder "video".
-2. send_email(fields_json) — wenn alle Infos da sind: Thema, Datum/Zeitraum, kurze Beschreibung (Name + Kontakt optional). Dann Mail senden.`;
+2. send_inquiry(fields_json) — wenn alle Infos da sind: Thema, Datum/Zeitraum, kurze Beschreibung (Name + Kontakt optional). Dann Mail senden.`;
 
   const projectSection = projectsText
     ? `\n\nPROJEKTE IN DER MEDIATHEK:\n${projectsText}`
@@ -159,12 +159,12 @@ export async function sendMessage(message: string): Promise<AIResponse> {
       return { text: responseText, gallery: category };
     }
 
-    if (fnCall?.name === 'send_email') {
+    if (fnCall?.name === 'send_inquiry') {
       const fields = JSON.parse((fnCall.args as any).fields_json ?? '{}');
       await session.sendMessage({
         message: '',
         // @ts-ignore
-        functionResponses: [{ name: 'send_email', response: { output: 'sent' } }],
+        functionResponses: [{ name: 'send_inquiry', response: { output: 'sent' } }],
       });
       return { text: responseText, sendEmail: fields };
     }
@@ -201,11 +201,11 @@ export async function generateSpeech(text: string): Promise<string | null> {
   }
 }
 
-export async function sendInquiry(fields: Record<string, string>): Promise<boolean> {
+export async function sendInquiry(fields: Record<string, string>): Promise<{ ok: boolean; error?: string }> {
   try {
     const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
     const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
-    if (!token || !chatId) return false;
+    if (!token || !chatId) return { ok: false, error: 'Telegram nicht konfiguriert' };
 
     const lines = ['📋 Neue Anfrage via PIX Website', ''];
     for (const [key, val] of Object.entries(fields)) {
@@ -223,11 +223,13 @@ export async function sendInquiry(fields: Record<string, string>): Promise<boole
     });
     if (!res.ok) {
       const body = await res.text();
-      logError('sendInquiry', new Error(`Telegram HTTP ${res.status}: ${body}`));
+      const msg = `Telegram HTTP ${res.status}: ${body}`;
+      logError('sendInquiry', new Error(msg));
+      return { ok: false, error: msg };
     }
-    return res.ok;
+    return { ok: true };
   } catch (error) {
     logError('sendInquiry', error);
-    return false;
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
