@@ -1,10 +1,10 @@
 :root {
   color: #fff;
   background: #000;
-  --type-chat: clamp(22px, calc(14px + 1.6vw), 38px);
-  --type-chat-mobile: clamp(20px, 5.8vw, 30px);
-  --type-chip: clamp(16px, calc(12px + 0.55vw), 20px);
-  --type-chip-mobile: clamp(15px, 4.2vw, 19px);
+  --type-chat: clamp(20px, calc(13px + 1.45vw), 34px);
+  --type-chat-mobile: clamp(18px, 5.2vw, 27px);
+  --type-chip: clamp(15px, calc(12px + 0.45vw), 18px);
+  --type-chip-mobile: clamp(15px, 4vw, 18px);
   --type-ui: clamp(14px, 1vw, 16px);
   --leading-chat: 1.38;
   --tracking-tight: 0;
@@ -307,7 +307,7 @@ img {
 
 .chat-stack__spacer {
   flex: 1;
-  min-height: clamp(130px, 18vh, 180px);
+  min-height: clamp(112px, 16vh, 160px);
 }
 
 .chat-composer {
@@ -550,12 +550,12 @@ img {
 .chat-composer {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin: clamp(8px, 2vh, 22px) 0 0;
-  border-radius: 42px 42px 0 0;
+  border-radius: 34px 34px 0 0;
   background: rgba(255, 255, 255, 0.08);
-  padding: clamp(18px, 2vw, 28px) clamp(18px, 2vw, 28px) clamp(18px, 2vw, 28px)
-    clamp(32px, 3.5vw, 52px);
+  padding: clamp(14px, 1.6vw, 22px) clamp(14px, 1.6vw, 22px) clamp(14px, 1.6vw, 22px)
+    clamp(24px, 3vw, 42px);
   color: #fff;
   backdrop-filter: blur(90px) saturate(1.35);
   -webkit-backdrop-filter: blur(90px) saturate(1.35);
@@ -621,8 +621,8 @@ img {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   color: currentColor;
@@ -642,14 +642,8 @@ img {
   width: 100%;
   overflow: hidden;
   flex-shrink: 0;
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
-    linear-gradient(to bottom, black 72%, transparent 100%);
-  mask-image:
-    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
-    linear-gradient(to bottom, black 72%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 28%, black 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 28%, black 55%, transparent 100%);
 }
 
 .chat-segment {
@@ -672,6 +666,9 @@ img {
   margin-bottom: 0;
   scrollbar-width: none;
   will-change: scroll-position;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .image-strip::-webkit-scrollbar {
@@ -765,8 +762,8 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   color: #fff;
@@ -789,22 +786,29 @@ img {
 .image-lightbox__stage {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   width: 100%;
 }
 
+.image-lightbox__image-wrap {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  max-height: 82vh;
+}
+
 .image-lightbox__main-img {
-  flex: 1;
-  min-width: 0;
   max-width: 100%;
   max-height: 82vh;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 0;
   display: block;
 }
 
 .image-lightbox__nav {
-  flex: 0 0 auto;
+  position: absolute;
+  top: 50%;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -814,6 +818,15 @@ img {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
   transition: background 150ms ease;
+  transform: translateY(-50%);
+}
+
+.image-lightbox__nav--prev {
+  left: 14px;
+}
+
+.image-lightbox__nav--next {
+  right: 14px;
 }
 
 .image-lightbox__nav:hover {
@@ -1143,7 +1156,7 @@ img {
     transform: none;
     margin: 4px 0 0;
     border-radius: 0;
-    padding: 18px 14px 18px 32px;
+    padding: 14px 12px 14px 24px;
   }
 
   .chat-composer input {
@@ -1151,8 +1164,54 @@ img {
   }
 
   .chat-composer button {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .image-lightbox {
+    align-items: stretch;
+    padding: 14px 12px max(18px, env(safe-area-inset-bottom));
+  }
+
+  .image-lightbox__inner {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .image-lightbox__close {
+    position: static;
+    order: 5;
+    margin-top: 2px;
+  }
+
+  .image-lightbox__title {
+    order: 1;
+  }
+
+  .image-lightbox__stage {
+    order: 2;
+  }
+
+  .image-lightbox__thumbs {
+    order: 3;
+  }
+
+  .image-lightbox__image-wrap,
+  .image-lightbox__main-img {
+    max-height: 72vh;
+  }
+
+  .image-lightbox__nav {
+    width: 44px;
+    height: 44px;
+  }
+
+  .image-lightbox__nav--prev {
+    left: 10px;
+  }
+
+  .image-lightbox__nav--next {
+    right: 10px;
   }
 
   .slider-shell {
