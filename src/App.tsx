@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import React, { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
 import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
@@ -551,6 +552,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
         </div>
       </div>
 
+      {createPortal(
       <AnimatePresence>
         {lightboxIndex !== null && (
           <motion.div
@@ -635,6 +637,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
           </motion.div>
         )}
       </AnimatePresence>
+      , document.body)}
     </>
   );
 }
