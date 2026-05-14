@@ -219,10 +219,10 @@ img {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(220px) saturate(2.2);
-  opacity: 0.45;
+  filter: blur(320px) saturate(2.2);
+  opacity: 0.38;
   pointer-events: none;
-  transform: scale(1.5);
+  transform: scale(1.8);
   mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
   -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
 }
