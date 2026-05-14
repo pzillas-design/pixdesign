@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Soft Minimal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #fdfcf9;
+    --text: #1a1a1c;
+    --accent: #2d3436;
+    --bubble-bg: #fff;
+    --strip-bg: #f4f1ea;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 30px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 100;
+  }
+  .logo { width: 110px; opacity: 0.8; }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 120px 20px 140px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .chat-container::-webkit-scrollbar { display: none; }
+
+  .message {
+    margin-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.6s forwards;
+  }
+  @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+  
+  .system-bubble {
+    background: var(--bubble-bg);
+    border-radius: 32px;
+    padding: 35px 45px;
+    font-size: 30px;
+    font-weight: 300;
+    line-height: 1.2;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    max-width: 90%;
+    border: 1px solid rgba(0,0,0,0.02);
+  }
+
+  .user-bubble {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 24px;
+    padding: 18px 30px;
+    font-size: 18px;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+
+  /* Image Strip Gallery */
+  .image-strip {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    overflow-x: auto;
+    display: flex;
+    gap: 15px;
+    padding: 20px 40px;
+    margin-bottom: 20px;
+    scrollbar-width: none;
+  }
+  .image-strip::-webkit-scrollbar { display: none; }
+  .image-strip img {
+    height: 240px;
+    width: auto;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    transition: transform 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+  }
+  .image-strip img:hover { transform: scale(1.03); }
+
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    padding-left: 10px;
+  }
+  .chip {
+    background: #fff;
+    color: var(--text);
+    padding: 14px 28px;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 99px;
+    border: 1px solid rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .chip:hover { background: var(--text); color: #fff; border-color: var(--text); }
+
+  .composer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 40px 20px;
+    background: linear-gradient(to top, var(--bg) 60%, transparent);
+    z-index: 100;
+  }
+  .composer-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 40px;
+    padding: 10px 10px 10px 35px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.04);
+  }
+  .composer input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 18px;
+    outline: none;
+    font-family: inherit;
+  }
+  .composer button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <img src="../public/pix-logo.svg" alt="PIX" class="logo">
+  </header>
+
+  <div class="chat-container">
+    <div class="message" style="animation-delay: 0.1s;">
+      <div class="system-bubble">
+        Hallo! Ich bin PIX.<br>
+        Ich entwickle digitale Identitäten, die im Gedächtnis bleiben.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Webdesign</div>
+        <div class="chip">Fotografie</div>
+        <div class="chip">Video</div>
+      </div>
+    </div>
+
+    <div class="message" style="align-items: flex-end; animation-delay: 0.4s;">
+      <div class="user-bubble">
+        Zeig mir mal deine Foto-Arbeiten.
+      </div>
+    </div>
+
+    <div class="message" style="animation-delay: 0.8s;">
+      <div class="image-strip">
+        <img src="../public/media/foto-hd/10_architektur.jpg" alt="Foto 1">
+        <img src="../public/media/foto-hd/12_event.jpg" alt="Foto 2">
+        <img src="../public/media/foto-hd/17_business.webp" alt="Foto 3">
+        <img src="../public/media/foto-hd/2_immobilien.webp" alt="Foto 4">
+      </div>
+      <div class="system-bubble">
+        Gerne. Meine Fotografie konzentriert sich auf Architektur, Business und Events. Hier ist ein Einblick.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Mehr sehen</div>
+        <div class="chip">Kontakt</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="composer-inner">
+      <input type="text" placeholder="Frage mich etwas...">
+      <button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</body>
+</html>

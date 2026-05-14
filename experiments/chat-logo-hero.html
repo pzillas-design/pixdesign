@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Logo Hero</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap');
+
+  :root {
+    --bg: #fff;
+    --text: #000;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Animated Hero Logo */
+  .hero-logo {
+    width: 300px;
+    margin-top: 20vh;
+    transition: all 1s cubic-bezier(0.2, 1, 0.2, 1);
+    animation: shrinkLogo 1.5s 1s forwards;
+  }
+  @keyframes shrinkLogo {
+    to { width: 120px; margin-top: 40px; }
+  }
+
+  .chat-container {
+    flex: 1;
+    width: 100%;
+    max-width: 800px;
+    padding: 60px 20px 140px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    opacity: 0;
+    animation: fadeInChat 1s 1.5s forwards;
+  }
+  @keyframes fadeInChat { to { opacity: 1; } }
+
+  .message {
+    margin-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .system-bubble {
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1.3;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .user-bubble {
+    align-self: center;
+    font-weight: 600;
+    font-size: 18px;
+    text-decoration: underline;
+    text-underline-offset: 8px;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+
+  /* Soft Carousel */
+  .image-strip {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 40px 0;
+    scrollbar-width: none;
+  }
+  .image-strip img {
+    height: 300px;
+    border-radius: 4px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+  }
+
+  .composer {
+    position: fixed;
+    bottom: 40px;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    opacity: 0;
+    animation: fadeInChat 1s 2s forwards;
+  }
+  .composer input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #000;
+    padding: 15px;
+    font-size: 20px;
+    outline: none;
+    text-align: center;
+    background: transparent;
+  }
+</style>
+</head>
+<body>
+  <img src="../public/pix-logo.svg" alt="PIX" class="hero-logo">
+
+  <div class="chat-container">
+    <div class="message">
+      <div class="system-bubble">
+        Wir erschaffen digitale Erlebnisse,<br>
+        die bewegen.
+      </div>
+      <div class="user-bubble">MEHR ERFAHREN</div>
+    </div>
+
+    <div class="message">
+      <div class="image-strip">
+        <img src="../public/media/foto-hd/10_architektur.jpg" alt="H1">
+        <img src="../public/media/foto-hd/30_architektur.jpg" alt="H2">
+        <img src="../public/media/foto-hd/12_event.jpg" alt="H3">
+      </div>
+      <div class="system-bubble" style="font-size: 20px; opacity: 0.5;">
+        Visual Storytelling & High-End Development.
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <input type="text" placeholder="Ihre Vision teilen...">
+  </div>
+</body>
+</html>

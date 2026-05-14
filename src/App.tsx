@@ -138,9 +138,9 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Landing Pages', targetId: 'web-landing', icon: 'zap' },
     ],
     images: [
-      '/media/web-projects/leasehub/cover.webp',
-      '/media/web-projects/crewting/cover.webp',
-      '/media/web-projects/jakobs/cover.webp',
+      '/media/web_leasehub_cover.webp',
+      '/media/web_crewting_cover.webp',
+      '/media/web_jakobs_cover.webp',
     ],
     imageMeta: [
       { tag: 'LeaseHub', title: 'LeaseHub', description: 'SaaS-Plattform für Fahrzeug-Leasingverwaltung' },
@@ -157,10 +157,10 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Immobilien', targetId: 'photo-realestate', icon: 'home' },
     ],
     images: [
-      '/media/foto-hd/12_event.jpg',
-      '/media/foto-hd/1_business.webp',
-      '/media/foto-hd/2_immobilien.webp',
-      '/media/foto-hd/30_architektur.jpg',
+      '/media/hd_12_event.jpg',
+      '/media/hd_1_business.webp',
+      '/media/hd_2_immobilien.webp',
+      '/media/hd_30_architektur.jpg',
     ],
     imageMeta: [
       { tag: '600 Kids', title: '600 Kids Festival', description: 'Eventfotografie für ein Jugendfestival in Frankfurt' },
@@ -177,7 +177,7 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Events', targetId: 'video-event', icon: 'clapperboard' },
       { label: 'Immobilien', targetId: 'video-realestate', icon: 'home' },
     ],
-    images: ['/media/detail/video-brand.webp', '/media/detail/video-event.webp', '/media/detail/video-drone.webp'],
+    images: ['/media/video-brand.webp', '/media/video-event.webp', '/media/video-drone.webp'],
     imageMeta: [
       { tag: 'Imagefilm', title: 'Imagefilm' },
       { tag: 'Event', title: 'Eventfilm' },
@@ -188,7 +188,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'web-business',
     text: 'Dann wuerde ich zuerst klaeren, was Menschen in den ersten zehn Sekunden verstehen muessen.',
     chips: [],
-    images: ['/media/web-projects/pms/cover.webp', '/media/web-projects/leasehub/02-dahsboard.webp'],
+    images: ['/media/web_pms_cover.webp', '/media/web_leasehub_02-dahsboard.webp'],
     imageMeta: [
       { tag: 'PMS', title: 'PMS Verwaltung', description: 'Verwaltungsplattform für Property Management' },
       { tag: 'LeaseHub', title: 'LeaseHub Dashboard', description: 'Dashboard-Ansicht der LeaseHub-Plattform' },
@@ -198,7 +198,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'web-tools',
     text: 'Wenn heute noch viel in Tabellen, Mails oder Bauchgefuehl steckt, kann ein kleines Tool sehr viel Ruhe reinbringen.',
     chips: [],
-    images: ['/media/web-projects/leasehub/02-dahsboard.webp', '/media/web-projects/tososto/05-karte.webp'],
+    images: ['/media/web_leasehub_02-dahsboard.webp', '/media/web_tososto_05-karte.webp'],
     imageMeta: [
       { tag: 'LeaseHub', title: 'LeaseHub', description: 'SaaS-Tool für Leasingverwaltung' },
       { tag: 'Tososto', title: 'Tososto', description: 'Kartenbasiertes Tool zur Standortsuche' },
@@ -208,7 +208,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'web-landing',
     text: 'Landing Pages sollten nicht viel erklaeren, sondern schnell die richtige Entscheidung leichter machen.',
     chips: [],
-    images: ['/media/web-projects/600kids/cover.webp', '/media/web-projects/crewting/cover.webp'],
+    images: ['/media/web_600kids_cover.webp', '/media/web_crewting_cover.webp'],
     imageMeta: [
       { tag: '600 Kids', title: '600 Kids Festival', description: 'Event-Landing-Page für ein Jugendfestival' },
       { tag: 'Crewting', title: 'Crewting', description: 'Landing Page für eine Kreativ-Matching-App' },
@@ -218,7 +218,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'photo-business',
     text: 'Bei Business-Fotos geht es meistens um Vertrauen. Nicht zu steif, nicht zu inszeniert.',
     chips: [],
-    images: ['/media/foto-hd/1_business.webp', '/media/foto-hd/17_business.webp', '/media/foto-hd/28_business.jpg'],
+    images: ['/media/hd_1_business.webp', '/media/hd_17_business.webp', '/media/hd_28_business.jpg'],
     imageMeta: [
       { tag: 'Business', title: 'Business-Portrait' },
       { tag: 'Team', title: 'Team-Fotografie' },
@@ -229,7 +229,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'photo-events',
     text: 'Events brauchen Bilder, die sich spaeter noch nach dem Abend anfuehlen.',
     chips: [],
-    images: ['/media/foto-hd/12_event.jpg', '/media/foto-hd/15_event.webp', '/media/foto-hd/29_event.jpg'],
+    images: ['/media/hd_12_event.jpg', '/media/hd_15_event.webp', '/media/hd_29_event.jpg'],
     imageMeta: [
       { tag: '600 Kids', title: '600 Kids Festival', description: 'Eventfotografie für ein Jugendfestival in Frankfurt' },
       { tag: 'Konferenz', title: 'Konferenzfotografie' },
@@ -240,7 +240,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'photo-realestate',
     text: 'Bei Immobilien wuerde ich ruhig bleiben. Klare Perspektiven, gutes Licht, kein Show-Effekt.',
     chips: [],
-    images: ['/media/foto-hd/2_immobilien.webp', '/media/foto-hd/7_immobilien.jpg', '/media/foto-hd/30_architektur.jpg'],
+    images: ['/media/hd_2_immobilien.webp', '/media/hd_7_immobilien.jpg', '/media/hd_30_architektur.jpg'],
     imageMeta: [
       { tag: 'Exposé', title: 'Immobilien Exposé', description: 'Exposé-Fotografie für eine Wohnimmobilie' },
       { tag: 'Wohnung', title: 'Wohnungsfotografie' },
@@ -251,7 +251,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'video-brand',
     text: 'Ein Imagefilm sollte ein Gefuehl setzen und schnell zeigen, warum es euch gibt.',
     chips: [],
-    images: ['/media/detail/video-brand.webp', '/media/detail/video-story.webp', '/media/detail/video-motion.webp'],
+    images: ['/media/video-brand.webp', '/media/video-story.webp', '/media/video-motion.webp'],
     imageMeta: [
       { tag: 'Imagefilm', title: 'Imagefilm' },
       { tag: 'Story', title: 'Storytelling' },
@@ -262,7 +262,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'video-event',
     text: 'Ein Eventfilm braucht Tempo, Stimmen und die kleinen Momente zwischen den Programmpunkten.',
     chips: [],
-    images: ['/media/detail/video-event.webp', '/media/detail/video-konferenz.webp', '/media/foto-hd/12_event.jpg'],
+    images: ['/media/video-event.webp', '/media/video-konferenz.webp', '/media/hd_12_event.jpg'],
     imageMeta: [
       { tag: 'Event', title: 'Eventfilm' },
       { tag: 'Konferenz', title: 'Konferenzfilm' },
@@ -273,7 +273,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'video-realestate',
     text: 'Immobilienfilm darf ruhig sein. Ein guter Rundgang zeigt Orientierung und laesst Raeume wirken.',
     chips: [],
-    images: ['/media/detail/video-drone.webp', '/media/foto-hd/2_immobilien.webp', '/media/foto-hd/7_immobilien.jpg'],
+    images: ['/media/video-drone.webp', '/media/hd_2_immobilien.webp', '/media/hd_7_immobilien.jpg'],
     imageMeta: [
       { tag: 'Drohne', title: 'Drohnenfilm', description: 'Luftaufnahmen für Immobilienpräsentationen' },
       { tag: 'Exposé', title: 'Immobilienfilm' },
@@ -285,21 +285,21 @@ const flow: Record<NodeId, ChatNode> = {
     text: 'Einfachste Option: anrufen.',
     action: { label: '0159 06401995', href: 'tel:+4915906401995', icon: 'phone' },
     chips: [],
-    images: ['/media/detail/portrait.webp'],
+    images: ['/media/portrait.webp'],
   },
   'contact-whatsapp': {
     id: 'contact-whatsapp',
     text: 'Schreib mir direkt auf WhatsApp — ich antworte so schnell ich kann.',
     action: { label: 'WhatsApp öffnen', href: 'https://wa.me/4915906401995', icon: 'whatsapp' },
     chips: [],
-    images: ['/media/detail/portrait.webp'],
+    images: ['/media/portrait.webp'],
   },
   'contact-mail': {
     id: 'contact-mail',
     text: 'Erzähl mir was du brauchst und ich meld mich in Kürze bei dir.',
     action: { label: 'pzillas2@gmail.com', href: 'mailto:pzillas2@gmail.com', icon: 'mail' },
     chips: [],
-    images: ['/media/detail/portrait.webp'],
+    images: ['/media/portrait.webp'],
   },
   'contact-more': {
     id: 'contact-more',
@@ -701,13 +701,13 @@ export function App() {
 
   // Start gallery — hardcoded, served from /public via Vercel
   const startGalleryImages = [
-    '/media/foto-hd/6_immobilien.jpg',
-    '/media/screens/expose.png',
-    '/media/foto-hd/10_architektur.jpg',
-    '/media/screens/tososto.png',
-    '/media/foto-hd/21_menschen.jpg',
-    '/media/screens/wassertechnik.png',
-    '/media/foto-hd/26_business.jpg',
+    '/media/hd_6_immobilien.jpg',
+    '/media/expose.png',
+    '/media/hd_10_architektur.jpg',
+    '/media/tososto.png',
+    '/media/hd_21_menschen.jpg',
+    '/media/wassertechnik.png',
+    '/media/hd_26_business.jpg',
   ];
 
 

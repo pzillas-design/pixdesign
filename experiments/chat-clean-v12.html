@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Minimal Filmstrip</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;600&display=swap');
+
+  :root {
+    --bg: #000;
+    --text: #fff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 40px;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 100;
+  }
+  .logo { width: 60px; filter: grayscale(1) brightness(2); opacity: 0.3; }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 120px 60px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .message {
+    margin-bottom: 100px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .system-bubble {
+    font-size: 56px;
+    font-weight: 200;
+    line-height: 1.1;
+    max-width: 800px;
+  }
+
+  /* Different Gallery: Filmstrip Background */
+  .filmstrip {
+    width: 100vw;
+    margin-left: -60px;
+    height: 500px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-top: 40px;
+  }
+  .filmstrip img {
+    height: 100%;
+    width: auto;
+    object-fit: cover;
+    opacity: 0.6;
+    transition: opacity 0.5s;
+  }
+  .filmstrip img:hover { opacity: 1; }
+
+  .chip-row {
+    display: flex;
+    gap: 40px;
+    margin-top: 40px;
+  }
+  .chip {
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 10px;
+    cursor: pointer;
+    opacity: 0.4;
+  }
+  .chip:hover { opacity: 1; }
+
+  .composer {
+    position: fixed;
+    bottom: 60px;
+    right: 60px;
+  }
+  .composer input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 200;
+    outline: none;
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <img src="../public/pix-logo.svg" alt="PIX" class="logo">
+  </header>
+
+  <div class="chat-container">
+    <div class="message">
+      <div class="system-bubble">
+        Stille ist die höchste Form der Kommunikation.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Portfolio</div>
+        <div class="chip">Kontakt</div>
+      </div>
+    </div>
+
+    <div class="message">
+      <div class="filmstrip">
+        <img src="../public/media/foto-hd/10_architektur.jpg" alt="S1">
+        <img src="../public/media/foto-hd/11_immobilien.png" alt="S2">
+        <img src="../public/media/foto-hd/30_architektur.jpg" alt="S3">
+        <img src="../public/media/foto-hd/17_business.webp" alt="S4">
+      </div>
+      <div class="system-bubble" style="margin-top: 60px;">
+        Präzision in jedem Detail.
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <input type="text" placeholder="Ihre Nachricht...">
+  </div>
+</body>
+</html>

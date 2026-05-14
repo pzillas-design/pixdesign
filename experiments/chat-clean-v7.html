@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Ethereal Light</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&display=swap');
+
+  :root {
+    --bg: #fff;
+    --text: #333;
+    --accent: #a5b4fc;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Aurora Background */
+  .aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: 
+      radial-gradient(at 0% 0%, #fdf2f8 0, transparent 50%), 
+      radial-gradient(at 100% 0%, #e0e7ff 0, transparent 50%), 
+      radial-gradient(at 100% 100%, #fefce8 0, transparent 50%), 
+      radial-gradient(at 0% 100%, #f0f9ff 0, transparent 50%);
+    filter: blur(100px);
+    opacity: 0.6;
+  }
+
+  header {
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 100;
+  }
+  .logo { width: 90px; opacity: 0.7; }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 120px 20px 140px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .message {
+    margin-bottom: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .system-bubble {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(40px);
+    border-radius: 40px;
+    padding: 40px 60px;
+    font-size: 34px;
+    font-weight: 100;
+    line-height: 1.2;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+    text-align: center;
+    color: #000;
+  }
+
+  .user-bubble {
+    background: #000;
+    color: #fff;
+    border-radius: 99px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* Soft Glass Image Strip */
+  .image-strip {
+    display: flex;
+    gap: 15px;
+    margin: 40px 0;
+    padding: 10px;
+  }
+  .image-strip img {
+    height: 320px;
+    border-radius: 160px;
+    border: 4px solid #fff;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+  }
+  .image-strip img:hover { transform: scale(1.05); }
+
+  .chip-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+  }
+  .chip {
+    background: #fff;
+    padding: 10px 25px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid rgba(0,0,0,0.05);
+    cursor: pointer;
+  }
+
+  .composer {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    z-index: 100;
+  }
+  .composer-inner {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 99px;
+    padding: 15px 30px;
+    border: 1px solid rgba(255, 255, 255, 1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    display: flex;
+    align-items: center;
+  }
+  .composer input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    outline: none;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="aurora"></div>
+  <header>
+    <img src="../public/pix-logo.svg" alt="PIX" class="logo">
+  </header>
+
+  <div class="chat-container">
+    <div class="message">
+      <div class="system-bubble">
+        Leichtigkeit.<br>
+        Digitale Räume zum Atmen.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Portfolio</div>
+        <div class="chip">Kontakt</div>
+      </div>
+    </div>
+
+    <div class="message">
+      <div class="image-strip">
+        <img src="../public/media/foto-hd/10_architektur.jpg" alt="E1">
+        <img src="../public/media/foto-hd/30_architektur.jpg" alt="E2">
+      </div>
+      <div class="system-bubble">
+        Fokus auf das Wesentliche.
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="composer-inner">
+      <input type="text" placeholder="Gedanken teilen...">
+    </div>
+  </div>
+</body>
+</html>

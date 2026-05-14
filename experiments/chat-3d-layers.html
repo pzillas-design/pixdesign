@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - 3D Layers</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600;800&display=swap');
+
+  :root {
+    --bg: #111;
+    --text: #fff;
+    --accent: #f3ff33;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    perspective: 1000px;
+  }
+
+  header {
+    padding: 30px;
+    z-index: 100;
+  }
+  .logo { font-weight: 800; font-size: 20px; }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 100px 20px 140px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    transform-style: preserve-3d;
+  }
+
+  .message {
+    margin-bottom: 80px;
+    display: flex;
+    flex-direction: column;
+    transform-style: preserve-3d;
+  }
+  
+  .system-bubble {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 40px;
+    padding: 50px;
+    font-size: 38px;
+    font-weight: 300;
+    line-height: 1.1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateZ(50px);
+  }
+
+  .user-bubble {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #000;
+    border-radius: 30px;
+    padding: 20px 40px;
+    font-size: 20px;
+    font-weight: 700;
+    transform: translateZ(100px);
+    margin-top: -30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+
+  /* Floating 3D Image */
+  .floating-img {
+    position: absolute;
+    width: 280px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    transform: translate3d(500px, -50px, 150px) rotateY(-20deg);
+    z-index: 5;
+    pointer-events: none;
+  }
+  .floating-img--alt {
+    transform: translate3d(-300px, 100px, 200px) rotateY(20deg);
+  }
+
+  .chip-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    transform: translateZ(60px);
+  }
+  .chip {
+    background: #fff;
+    color: #000;
+    padding: 15px 30px;
+    border-radius: 99px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+  }
+
+  .composer {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateZ(200px);
+    width: 90%;
+    max-width: 600px;
+    z-index: 1000;
+  }
+  .composer-inner {
+    background: #fff;
+    border-radius: 99px;
+    padding: 20px 40px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+  }
+  .composer input {
+    width: 100%;
+    border: none;
+    font-size: 18px;
+    outline: none;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">PIX 3D_DIMENSION</div>
+  </header>
+
+  <div class="chat-container">
+    <div class="message">
+      <img src="../public/media/foto-hd/12_event.jpg" alt="F1" class="floating-img">
+      <div class="system-bubble">
+        Eintauchen in neue Welten.<br>
+        Digitales Handwerk mit Tiefe.
+      </div>
+      <div class="chip-row">
+        <button class="chip">Entdecken</button>
+      </div>
+    </div>
+
+    <div class="message" style="align-items: flex-end;">
+      <div class="user-bubble">
+        Zeig mir mehr Tiefe.
+      </div>
+    </div>
+
+    <div class="message">
+      <img src="../public/media/foto-hd/30_architektur.jpg" alt="F2" class="floating-img floating-img--alt">
+      <div class="system-bubble">
+        Perspektive ist alles.<br>
+        Vom Detail zum Ganzen.
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="composer-inner">
+      <input type="text" placeholder="Interaktion starten...">
+    </div>
+  </div>
+</body>
+</html>

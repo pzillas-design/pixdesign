@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Seamless Dark</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap');
+
+  :root {
+    --bg: #000;
+    --text: #fff;
+    --bubble-bg: rgba(255, 255, 255, 0.03);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 100;
+  }
+  .logo { width: 80px; filter: brightness(2); }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 120px 20px 140px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .message {
+    margin-bottom: 60px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .system-bubble {
+    background: var(--bubble-bg);
+    padding: 40px;
+    font-size: 40px;
+    font-weight: 200;
+    line-height: 1.2;
+    border-radius: 40px;
+    max-width: 100%;
+    /* No borders */
+  }
+
+  .user-bubble {
+    align-self: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+
+  /* Different Gallery: Seamless Grid */
+  .mosaic-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin: 40px 0;
+    width: calc(100% + 40px);
+    margin-left: -20px;
+  }
+  .mosaic-gallery img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    transition: transform 0.4s;
+  }
+  .mosaic-gallery img:hover { transform: scale(0.98); }
+  .mosaic-gallery img:first-child { grid-column: span 2; aspect-ratio: 2/1; }
+
+  .chip-row {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 30px;
+  }
+  .chip {
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+  }
+  .chip:hover { opacity: 1; }
+
+  .composer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 60px 20px;
+    background: linear-gradient(to top, #000 70%, transparent);
+    text-align: center;
+  }
+  .composer input {
+    width: 100%;
+    max-width: 500px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    outline: none;
+    text-align: center;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <img src="../public/pix-logo.svg" alt="PIX" class="logo">
+  </header>
+
+  <div class="chat-container">
+    <div class="message">
+      <div class="system-bubble">
+        Design ohne Grenzen.<br>
+        Reinheit in jedem Detail.
+      </div>
+      <div class="chip-row">
+        <div class="chip">SHOWCASE</div>
+        <div class="chip">CONTACT</div>
+      </div>
+    </div>
+
+    <div class="message">
+      <div class="mosaic-gallery">
+        <img src="../public/media/foto-hd/10_architektur.jpg" alt="M1">
+        <img src="../public/media/foto-hd/12_event.jpg" alt="M2">
+        <img src="../public/media/foto-hd/30_architektur.jpg" alt="M3">
+        <img src="../public/media/foto-hd/17_business.webp" alt="M4">
+      </div>
+      <div class="system-bubble" style="font-size: 24px;">
+        Visuals, die Geschichten erzählen.
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <input type="text" placeholder="Entdecken...">
+  </div>
+</body>
+</html>

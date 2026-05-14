@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Refined Dark</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap');
+
+  :root {
+    --bg: #0a0a0c;
+    --bubble: #161618;
+    --accent: #007aff;
+    --text: #ffffff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 100;
+  }
+  .logo { width: 120px; filter: brightness(2); }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 850px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 120px 20px 140px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .chat-container::-webkit-scrollbar { display: none; }
+
+  .message {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .system-bubble {
+    background: var(--bubble);
+    border-radius: 28px;
+    padding: 40px;
+    font-size: 36px;
+    font-weight: 200;
+    line-height: 1.25;
+    border: 1px solid rgba(255,255,255,0.05);
+    max-width: 90%;
+  }
+
+  .user-bubble {
+    align-self: flex-end;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-radius: 20px;
+    padding: 15px 25px;
+    font-size: 18px;
+    backdrop-filter: blur(20px);
+  }
+
+  /* Image Strip Gallery */
+  .image-strip {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    overflow-x: auto;
+    display: flex;
+    gap: 12px;
+    padding: 10px 40px;
+    margin-bottom: 15px;
+    scrollbar-width: none;
+  }
+  .image-strip img {
+    height: 280px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .chip-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .chip {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    padding: 16px 32px;
+    font-weight: 500;
+    font-size: 14px;
+    border-radius: 99px;
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .chip:hover { background: #fff; color: #000; }
+
+  .composer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 40px 20px;
+    background: linear-gradient(to top, var(--bg) 50%, transparent);
+  }
+  .composer-inner {
+    max-width: 850px;
+    margin: 0 auto;
+    background: #1c1c1e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 99px;
+    padding: 10px 10px 10px 30px;
+    display: flex;
+    align-items: center;
+  }
+  .composer input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    outline: none;
+  }
+  .composer button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <img src="../public/pix-logo.svg" alt="PIX" class="logo">
+  </header>
+
+  <div class="chat-container">
+    <div class="message">
+      <div class="system-bubble">
+        Präzision in jedem Pixel.<br>
+        Willkommen bei PIX.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Webdesign</div>
+        <div class="chip">Visuals</div>
+      </div>
+    </div>
+
+    <div class="message" style="align-items: flex-end;">
+      <div class="user-bubble">
+        Zeig mir Architektur-Fotos.
+      </div>
+    </div>
+
+    <div class="message">
+      <div class="image-strip">
+        <img src="../public/media/foto-hd/10_architektur.jpg" alt="A1">
+        <img src="../public/media/foto-hd/4_immobilien.jpg" alt="A2">
+        <img src="../public/media/foto-hd/30_architektur.jpg" alt="A3">
+      </div>
+      <div class="system-bubble">
+        Strukturen und Licht.<br>
+        Architekturfotografie neu gedacht.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Anfrage stellen</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="composer-inner">
+      <input type="text" placeholder="Frage PIX...">
+      <button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</body>
+</html>

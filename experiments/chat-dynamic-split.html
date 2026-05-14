@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Dynamic Split</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
+
+  :root {
+    --bg: #000;
+    --text: #fff;
+    --accent: #555;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+  }
+
+  /* Split Layout */
+  .chat-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 60px;
+    background: #000;
+    z-index: 10;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .gallery-side {
+    flex: 1.2;
+    overflow-y: auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    background: #0a0a0a;
+    scrollbar-width: none;
+  }
+  .gallery-side::-webkit-scrollbar { display: none; }
+
+  header {
+    margin-bottom: 60px;
+  }
+  .logo { font-weight: 700; font-size: 32px; letter-spacing: -2px; }
+
+  .message {
+    margin-bottom: 50px;
+    max-width: 500px;
+  }
+  
+  .system-bubble {
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 30px;
+  }
+
+  .user-bubble {
+    background: #fff;
+    color: #000;
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-weight: 700;
+    width: fit-content;
+    margin-bottom: 20px;
+  }
+
+  .gallery-item {
+    width: 100%;
+    aspect-ratio: 4/5;
+    background: #222;
+    overflow: hidden;
+    position: relative;
+    border-radius: 4px;
+  }
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.2, 1, 0.2, 1);
+  }
+  .gallery-item:hover img { transform: scale(1.1); }
+
+  .chip-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    padding: 10px 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 99px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .chip:hover { background: #fff; color: #000; }
+
+  .composer {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 30px;
+  }
+  .composer input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    outline: none;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+  <div class="chat-side">
+    <header>
+      <div class="logo">PIX.DYNAMIC</div>
+    </header>
+
+    <div class="message">
+      <div class="system-bubble">
+        Kreativität in<br>
+        Echtzeit.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Showcase</div>
+        <div class="chip">About</div>
+        <div class="chip">Let's talk</div>
+      </div>
+    </div>
+
+    <div class="user-bubble">
+      Zeig mir Architektur.
+    </div>
+
+    <div class="message">
+      <div class="system-bubble" style="font-size: 24px; opacity: 0.6;">
+        Schatten, Licht und Struktur vereint in einem Bild.
+      </div>
+    </div>
+
+    <div class="composer">
+      <input type="text" placeholder="Schreib etwas...">
+    </div>
+  </div>
+
+  <div class="gallery-side">
+    <div class="gallery-item"><img src="../public/media/foto-hd/10_architektur.jpg" alt="G1"></div>
+    <div class="gallery-item"><img src="../public/media/foto-hd/30_architektur.jpg" alt="G2"></div>
+    <div class="gallery-item"><img src="../public/media/foto-hd/3_architektur.jpg" alt="G3"></div>
+    <div class="gallery-item"><img src="../public/media/foto-hd/9_architektur.jpg" alt="G4"></div>
+    <div class="gallery-item"><img src="../public/media/foto-hd/2_immobilien.webp" alt="G5"></div>
+    <div class="gallery-item"><img src="../public/media/foto-hd/11_immobilien.png" alt="G6"></div>
+  </div>
+</body>
+</html>

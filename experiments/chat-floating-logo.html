@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Floating Logo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;700&display=swap');
+
+  :root {
+    --bg: #030305;
+    --accent: #5e5ce6;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .glow {
+    position: fixed;
+    top: -10%; left: 50%;
+    transform: translateX(-50%);
+    width: 60vw;
+    height: 40vh;
+    background: radial-gradient(circle, rgba(94, 92, 230, 0.15) 0%, transparent 70%);
+    z-index: -1;
+  }
+
+  header {
+    padding: 60px;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 100;
+  }
+  .logo { 
+    width: 80px; 
+    filter: drop-shadow(0 0 20px rgba(94, 92, 230, 0.5));
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .chat-container {
+    flex: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 160px 20px 140px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .message {
+    margin-bottom: 80px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .system-bubble {
+    font-size: 56px;
+    font-weight: 200;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    background: linear-gradient(to bottom, #fff, #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+  }
+
+  .image-strip {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 40px 0;
+  }
+  .image-strip img {
+    height: 450px;
+    width: 300px;
+    object-fit: cover;
+    border-radius: 200px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .image-strip img:nth-child(even) { transform: translateY(40px); }
+
+  .chip-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 40px;
+  }
+  .chip {
+    padding: 15px 40px;
+    border-radius: 99px;
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+  }
+  .chip:hover { border-color: #fff; background: #fff; color: #000; }
+
+  .composer {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+  }
+  .composer input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    outline: none;
+    text-align: center;
+    width: 100%;
+    font-family: inherit;
+    font-weight: 200;
+  }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <header>
+    <img src="../public/pix-logo.svg" alt="PIX" class="logo">
+  </header>
+
+  <div class="chat-container">
+    <div class="message">
+      <div class="system-bubble">
+        Inspiration<br>
+        ohne Grenzen.
+      </div>
+      <div class="image-strip">
+        <img src="../public/media/foto-hd/17_business.webp" alt="F1">
+        <img src="../public/media/foto-hd/2_immobilien.webp" alt="F2">
+      </div>
+      <div class="chip-row">
+        <div class="chip">Start Journey</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <input type="text" placeholder="Gedanken manifestieren...">
+  </div>
+</body>
+</html>

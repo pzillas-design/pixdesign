@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PIX Chat - Neo Trend</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap');
+
+  :root {
+    --bg: #000;
+    --card: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --accent: #ff00ff;
+    --accent2: #00ffff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Mesh Gradient Background */
+  .mesh {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: 
+      radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+      radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+    filter: blur(80px);
+  }
+
+  header {
+    padding: 30px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 100;
+  }
+  .logo { font-weight: 700; font-size: 24px; background: linear-gradient(to right, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 120px 20px 160px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .message {
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .system-bubble {
+    background: var(--card);
+    backdrop-filter: blur(40px);
+    border-radius: 30px;
+    padding: 40px;
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1.2;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    max-width: 100%;
+  }
+
+  .user-bubble {
+    align-self: flex-end;
+    background: linear-gradient(45deg, var(--accent), var(--accent2));
+    border-radius: 20px;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+    margin-top: 15px;
+    box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+  }
+
+  /* Bento Style Image Strip */
+  .image-strip {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 200px 200px;
+    gap: 15px;
+    margin: 30px 0;
+  }
+  .image-strip__item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+  .image-strip__item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+  }
+  .image-strip__item:hover img { transform: scale(1.1); }
+  .item-wide { grid-row: span 2; }
+
+  .chip-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+  }
+  .chip {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 15px 30px;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 15px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  .chip:hover { background: #fff; color: #000; }
+
+  .composer {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 900px;
+    z-index: 100;
+  }
+  .composer-inner {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(50px);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  .composer input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    outline: none;
+  }
+</style>
+</head>
+<body>
+  <div class="mesh"></div>
+  <header>
+    <div class="logo">PIX NEO</div>
+  </header>
+
+  <div class="chat-container">
+    <div class="message">
+      <div class="system-bubble">
+        Beyond the expected.<br>
+        Digital mastery for next-gen brands.
+      </div>
+      <div class="chip-row">
+        <div class="chip">Start Project</div>
+        <div class="chip">The Vision</div>
+      </div>
+    </div>
+
+    <div class="message">
+      <div class="image-strip">
+        <div class="image-strip__item item-wide">
+          <img src="../public/media/foto-hd/30_architektur.jpg" alt="B1">
+        </div>
+        <div class="image-strip__item">
+          <img src="../public/media/foto-hd/12_event.jpg" alt="B2">
+        </div>
+        <div class="image-strip__item">
+          <img src="../public/media/foto-hd/17_business.webp" alt="B3">
+        </div>
+        <div class="image-strip__item" style="grid-column: span 2;">
+          <img src="../public/media/foto-hd/2_immobilien.webp" alt="B4">
+        </div>
+      </div>
+      <div class="system-bubble">
+        Structured. Dynamic.<br>
+        Unforgettable.
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="composer-inner">
+      <input type="text" placeholder="Initiate Protocol...">
+    </div>
+  </div>
+</body>
+</html>
