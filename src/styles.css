@@ -642,6 +642,34 @@ img {
   width: 100%;
   overflow: hidden;
   flex-shrink: 0;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 8%,
+    black 78%,
+    transparent 100%
+  ), linear-gradient(
+    to right,
+    transparent 0%,
+    black 4%,
+    black 96%,
+    transparent 100%
+  );
+  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 8%,
+    black 78%,
+    transparent 100%
+  ), linear-gradient(
+    to right,
+    transparent 0%,
+    black 4%,
+    black 96%,
+    transparent 100%
+  );
+  -webkit-mask-composite: source-in;
 }
 
 .chat-segment {
