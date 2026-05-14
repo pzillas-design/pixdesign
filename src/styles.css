@@ -1,10 +1,10 @@
 :root {
   color: #fff;
   background: #000;
-  --type-chat: clamp(20px, calc(13px + 1.45vw), 34px);
-  --type-chat-mobile: clamp(18px, 5.2vw, 27px);
-  --type-chip: clamp(15px, calc(12px + 0.45vw), 18px);
-  --type-chip-mobile: clamp(15px, 4vw, 18px);
+  --type-chat: clamp(22px, calc(14px + 1.6vw), 38px);
+  --type-chat-mobile: clamp(20px, 5.8vw, 30px);
+  --type-chip: clamp(16px, calc(12px + 0.55vw), 20px);
+  --type-chip-mobile: clamp(15px, 4.2vw, 19px);
   --type-ui: clamp(14px, 1vw, 16px);
   --leading-chat: 1.38;
   --tracking-tight: 0;
@@ -185,7 +185,8 @@ img {
   -webkit-backdrop-filter: none;
 }
 
-.theme-light .chat-composer input::placeholder {
+.theme-light .chat-composer input::placeholder,
+.theme-light .chat-composer__input:empty::before {
   color: rgba(9, 9, 9, 0.55);
 }
 
@@ -596,7 +597,8 @@ img {
   line-height: 1;
 }
 
-.chat-composer input {
+.chat-composer input,
+.chat-composer__input {
   min-width: 0;
   flex: 1;
   border: 0;
@@ -609,11 +611,16 @@ img {
   letter-spacing: var(--tracking-tight);
   font-weight: 400;
   font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.chat-composer input::placeholder {
+.chat-composer input::placeholder,
+.chat-composer__input:empty::before {
+  content: attr(data-placeholder);
   color: rgba(255, 255, 255, 0.65);
   font-weight: 400;
+  pointer-events: none;
 }
 
 .chat-composer button {
@@ -644,6 +651,10 @@ img {
   flex-shrink: 0;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 28%, black 55%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 28%, black 55%, transparent 100%);
+}
+
+.strip-shutter-frame + .system-row {
+  margin-top: clamp(-62px, -5vh, -38px);
 }
 
 .chat-segment {
@@ -1068,6 +1079,10 @@ img {
     /* height controlled by Framer Motion inline style */
   }
 
+  .strip-shutter-frame + .system-row {
+    margin-top: -34px;
+  }
+
   .chat-scroll {
     grid-row: 1;
     height: auto;
@@ -1159,7 +1174,8 @@ img {
     padding: 14px 12px 14px 24px;
   }
 
-  .chat-composer input {
+  .chat-composer input,
+  .chat-composer__input {
     padding-left: 0;
   }
 
