@@ -303,7 +303,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-more': {
     id: 'contact-more',
-    text: 'Diese Webseite ist ein kleiner Vorgeschmack, wie sich das Internet von morgen anfühlen könnte. KI-Agenten werden einen Großteil des Internets ersetzen. Sie werden Informationen beschaffen, anfragen stellen, einkaufen, planen, Benutzeroberflächen individuell für ihre Nutzer erzeugen.\n\nWas sie nicht können: wollen. Sie haben keinen Drang, etwas zu erschaffen, keine Idee, die sie nachts wach hält. Genau dafür gibt\'s uns und dabei will ich dich unterstützen. Die Werkzeuge der Zukunft zu entwickeln. Für deine Projekte, deine Ideen und deine Vision.',
+    text: 'Diese Webseite ist ein kleiner Vorgeschmack, wie sich das Internet von morgen anfühlen könnte. KI-Agenten werden einen Großteil des Internets ersetzen. Sie werden Informationen beschaffen, anfragen stellen, einkaufen, planen, Benutzeroberflächen individuell für ihre Nutzer erzeugen.\n\nWas sie nicht können: wollen. Sie haben keinen Drang, etwas zu erschaffen. Genau dafür gibt\'s uns und dabei will ich dich unterstützen.',
     chips: [
       { label: 'About PIX', targetId: 'about' },
       { label: 'Impressum', targetId: 'impressum' },

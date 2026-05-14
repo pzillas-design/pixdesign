@@ -6,7 +6,7 @@
   --type-chip: clamp(16px, calc(12px + 0.55vw), 20px);
   --type-chip-mobile: clamp(15px, 4.2vw, 19px);
   --type-ui: clamp(14px, 1vw, 16px);
-  --leading-chat: 1.22;
+  --leading-chat: 1.38;
   --tracking-tight: 0;
   font-family:
     "Google Sans Flex", "Plus Jakarta Sans", "Helvetica Neue", Helvetica, Arial,
@@ -1012,7 +1012,7 @@ img {
   :root {
     --type-chat: var(--type-chat-mobile);
     --type-chip: var(--type-chip-mobile);
-    --leading-chat: 1.12;
+    --leading-chat: 1.28;
   }
 
   .strip-shutter-frame {
