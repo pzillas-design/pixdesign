@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from './supabase';
 import { SYSTEM_PROMPT as HARDCODED_SYSTEM_PROMPT } from './systemPrompt';
+import { logError } from './logger';
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
 
@@ -169,7 +170,7 @@ export async function sendMessage(message: string): Promise<AIResponse> {
 
     return { text: responseText };
   } catch (error: any) {
-    console.error('Gemini error:', error?.message ?? error);
+    logError('sendMessage', error);
     return { text: 'Es gab einen Verbindungsfehler. Bitte nochmal versuchen.' };
   }
 }
@@ -218,8 +219,13 @@ export async function sendInquiry(fields: Record<string, string>): Promise<boole
         text: lines.join('\n'),
       }),
     });
+    if (!res.ok) {
+      const body = await res.text();
+      logError('sendInquiry', new Error(`Telegram HTTP ${res.status}: ${body}`));
+    }
     return res.ok;
-  } catch {
+  } catch (error) {
+    logError('sendInquiry', error);
     return false;
   }
 }

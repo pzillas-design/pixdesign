@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { App } from './App';
 import './styles.css';
 
@@ -30,6 +32,8 @@ if (rootElement) {
     <React.StrictMode>
       <BootBoundary>
         <App />
+        <Analytics />
+        <SpeedInsights />
       </BootBoundary>
     </React.StrictMode>
   );

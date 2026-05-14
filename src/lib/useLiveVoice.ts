@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { GoogleGenAI, Modality, Type } from '@google/genai';
 import { sendInquiry } from './gemini';
 import { SYSTEM_PROMPT } from './systemPrompt';
+import { logError } from './logger';
 
 export type LiveVoiceState = 'idle' | 'connecting' | 'listening' | 'speaking';
 
@@ -184,14 +185,14 @@ export function useLiveVoice(onEmailSent?: () => void) {
             }
           },
 
-          onerror: (e: any) => { console.error('Live voice error:', e); stop(); },
+          onerror: (e: any) => { logError('LiveVoice', e); stop(); },
           onclose: () => { if (activeRef.current) stop(); },
         },
       });
 
       sessionRef.current = session;
     } catch (err) {
-      console.error('Live voice start error:', err);
+      logError('LiveVoice start', err);
       stop();
     }
   }, [state, stop, playNextChunk, onEmailSent]);
