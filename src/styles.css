@@ -239,8 +239,8 @@ img {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(220px) saturate(1.55);
-  opacity: 0.28;
+  filter: blur(180px) saturate(2.2);
+  opacity: 0.55;
   transform: scale(1.12);
 }
 
@@ -248,9 +248,7 @@ img {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.12)),
-    rgba(29, 15, 8, 0.58);
+  background: rgba(0, 0, 0, 0.28);
 }
 
 :root[data-theme="light"] .chat-bg-glow {
