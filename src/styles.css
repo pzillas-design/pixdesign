@@ -115,7 +115,7 @@ img {
   grid-template-columns: 1fr;
   height: 100%;
   overflow: hidden;
-  background: #000;
+  background: transparent;
   color: #fff;
 }
 
@@ -150,12 +150,12 @@ img {
 }
 
 .portfolio-chat.theme-light {
-  background: #edf1f5;
+  background: transparent;
   color: #090909;
 }
 
 .theme-light .chat-scroll {
-  background: #edf1f5;
+  background: transparent;
 }
 
 .theme-light .system-bubble {
