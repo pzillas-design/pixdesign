@@ -728,10 +728,13 @@ export function App() {
     const bubbleText = displayLabel || label;
     const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
     const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
-    // t=0: close old strip
+    const targetHasImages = !!(flow[targetId]?.images?.length);
+    // t=0: close old strip (only if new node has its own images)
     setMessages((current) => current.slice(0, fromIndex + 1));
-    setActiveStripId('');
-    setStripReadyIds(new Set());
+    if (targetHasImages) {
+      setActiveStripId('');
+      setStripReadyIds(new Set());
+    }
     resetSession();
     // t=320ms: user bubble slides in
     setTimeout(() => {
@@ -741,7 +744,10 @@ export function App() {
     setTimeout(() => {
       setMessages((current) => [...current, systemMessage]);
       setSliderNodeId(targetId);
-      setActiveStripId(systemMessage.id);
+      // Only switch active strip if the new node actually has images
+      if (flow[targetId]?.images?.length) {
+        setActiveStripId(systemMessage.id);
+      }
     }, 560);
   }
 
