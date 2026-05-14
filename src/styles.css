@@ -213,7 +213,7 @@ img {
 
 
 .chat-bg-glow {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
   background-size: cover;
@@ -223,8 +223,8 @@ img {
   opacity: 0.38;
   pointer-events: none;
   transform: scale(1.8);
-  mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
-  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
+  mask-image: none;
+  -webkit-mask-image: none;
 }
 
 .reset-button {
