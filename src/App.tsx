@@ -187,7 +187,7 @@ const flow: Record<NodeId, ChatNode> = {
   'web-business': {
     id: 'web-business',
     text: 'Dann wuerde ich zuerst klaeren, was Menschen in den ersten zehn Sekunden verstehen muessen.',
-    chips: [{ label: 'Zurueck', targetId: 'web', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/web-projects/pms/cover.webp', '/media/web-projects/leasehub/02-dahsboard.webp'],
     imageMeta: [
       { tag: 'PMS', title: 'PMS Verwaltung', description: 'Verwaltungsplattform für Property Management' },
@@ -197,7 +197,7 @@ const flow: Record<NodeId, ChatNode> = {
   'web-tools': {
     id: 'web-tools',
     text: 'Wenn heute noch viel in Tabellen, Mails oder Bauchgefuehl steckt, kann ein kleines Tool sehr viel Ruhe reinbringen.',
-    chips: [{ label: 'Zurueck', targetId: 'web', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/web-projects/leasehub/02-dahsboard.webp', '/media/web-projects/tososto/05-karte.webp'],
     imageMeta: [
       { tag: 'LeaseHub', title: 'LeaseHub', description: 'SaaS-Tool für Leasingverwaltung' },
@@ -207,7 +207,7 @@ const flow: Record<NodeId, ChatNode> = {
   'web-landing': {
     id: 'web-landing',
     text: 'Landing Pages sollten nicht viel erklaeren, sondern schnell die richtige Entscheidung leichter machen.',
-    chips: [{ label: 'Zurueck', targetId: 'web', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/web-projects/600kids/cover.webp', '/media/web-projects/crewting/cover.webp'],
     imageMeta: [
       { tag: '600 Kids', title: '600 Kids Festival', description: 'Event-Landing-Page für ein Jugendfestival' },
@@ -217,7 +217,7 @@ const flow: Record<NodeId, ChatNode> = {
   'photo-business': {
     id: 'photo-business',
     text: 'Bei Business-Fotos geht es meistens um Vertrauen. Nicht zu steif, nicht zu inszeniert.',
-    chips: [{ label: 'Zurueck', targetId: 'photo', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/foto-hd/1_business.webp', '/media/foto-hd/17_business.webp', '/media/foto-hd/28_business.jpg'],
     imageMeta: [
       { tag: 'Business', title: 'Business-Portrait' },
@@ -228,7 +228,7 @@ const flow: Record<NodeId, ChatNode> = {
   'photo-events': {
     id: 'photo-events',
     text: 'Events brauchen Bilder, die sich spaeter noch nach dem Abend anfuehlen.',
-    chips: [{ label: 'Zurueck', targetId: 'photo', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/foto-hd/12_event.jpg', '/media/foto-hd/15_event.webp', '/media/foto-hd/29_event.jpg'],
     imageMeta: [
       { tag: '600 Kids', title: '600 Kids Festival', description: 'Eventfotografie für ein Jugendfestival in Frankfurt' },
@@ -239,7 +239,7 @@ const flow: Record<NodeId, ChatNode> = {
   'photo-realestate': {
     id: 'photo-realestate',
     text: 'Bei Immobilien wuerde ich ruhig bleiben. Klare Perspektiven, gutes Licht, kein Show-Effekt.',
-    chips: [{ label: 'Zurueck', targetId: 'photo', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/foto-hd/2_immobilien.webp', '/media/foto-hd/7_immobilien.jpg', '/media/foto-hd/30_architektur.jpg'],
     imageMeta: [
       { tag: 'Exposé', title: 'Immobilien Exposé', description: 'Exposé-Fotografie für eine Wohnimmobilie' },
@@ -250,7 +250,7 @@ const flow: Record<NodeId, ChatNode> = {
   'video-brand': {
     id: 'video-brand',
     text: 'Ein Imagefilm sollte ein Gefuehl setzen und schnell zeigen, warum es euch gibt.',
-    chips: [{ label: 'Zurueck', targetId: 'video', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/detail/video-brand.webp', '/media/detail/video-story.webp', '/media/detail/video-motion.webp'],
     imageMeta: [
       { tag: 'Imagefilm', title: 'Imagefilm' },
@@ -261,7 +261,7 @@ const flow: Record<NodeId, ChatNode> = {
   'video-event': {
     id: 'video-event',
     text: 'Ein Eventfilm braucht Tempo, Stimmen und die kleinen Momente zwischen den Programmpunkten.',
-    chips: [{ label: 'Zurueck', targetId: 'video', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/detail/video-event.webp', '/media/detail/video-konferenz.webp', '/media/foto-hd/12_event.jpg'],
     imageMeta: [
       { tag: 'Event', title: 'Eventfilm' },
@@ -272,7 +272,7 @@ const flow: Record<NodeId, ChatNode> = {
   'video-realestate': {
     id: 'video-realestate',
     text: 'Immobilienfilm darf ruhig sein. Ein guter Rundgang zeigt Orientierung und laesst Raeume wirken.',
-    chips: [{ label: 'Zurueck', targetId: 'video', icon: 'rotateccw' }],
+    chips: [],
     images: ['/media/detail/video-drone.webp', '/media/foto-hd/2_immobilien.webp', '/media/foto-hd/7_immobilien.jpg'],
     imageMeta: [
       { tag: 'Drohne', title: 'Drohnenfilm', description: 'Luftaufnahmen für Immobilienpräsentationen' },
@@ -305,11 +305,10 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'contact-more',
     text: 'Diese Webseite ist ein kleiner Vorgeschmack, wie sich das Internet von morgen anfühlen könnte. KI-Agenten werden einen Großteil des Internets ersetzen. Sie werden Informationen beschaffen, anfragen stellen, einkaufen, planen, Benutzeroberflächen individuell für ihre Nutzer erzeugen.\n\nWas sie nicht können: wollen. Sie haben keinen Drang, etwas zu erschaffen, keine Idee, die sie nachts wach hält. Genau dafür gibt\'s uns und dabei will ich dich unterstützen. Die Werkzeuge der Zukunft zu entwickeln. Für deine Projekte, deine Ideen und deine Vision.',
     chips: [
-      { label: 'About PIX', targetId: 'about', icon: 'users' },
-      { label: 'Impressum', targetId: 'impressum', icon: 'briefcase' },
-      { label: 'Zurück', targetId: 'start', icon: 'rotateccw' },
+      { label: 'About PIX', targetId: 'about' },
+      { label: 'Impressum', targetId: 'impressum' },
     ],
-    images: ['/media/detail/portrait.webp'],
+    images: [],
   },
   about: {
     id: 'about',
@@ -319,14 +318,12 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
       { label: 'Video', targetId: 'video', icon: 'film' },
     ],
-    images: ['/media/detail/portrait.webp'],
+    images: [],
   },
   impressum: {
     id: 'impressum',
     text: 'Angaben gemäß § 5 TMG\n\nMichael Pzillas\nLahnstraße 96\n60326 Frankfurt am Main\n\nKontakt:\nTel: 0159 06401995\nMail: pzillas2@gmail.com\n\nUmsatzsteuer-ID gemäß § 27a UStG: wird auf Anfrage mitgeteilt.\n\nVerantwortlich für den Inhalt nach § 55 Abs. 2 RStV: Michael Pzillas',
-    chips: [
-      { label: 'Zurück', targetId: 'start', icon: 'rotateccw' },
-    ],
+    chips: [],
     images: [],
   },
 };
