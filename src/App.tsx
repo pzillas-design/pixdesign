@@ -813,20 +813,23 @@ export function App() {
 
   return (
     <main className={`portfolio-chat theme-${timeTheme}`}>
-      {/* Ambient background glow from center image */}
-      <AnimatePresence>
-        {bgImage && (
-          <motion.div
-            key={bgImage}
-            className="chat-bg-glow"
-            style={{ backgroundImage: `url(${bgImage})` }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.45 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: 'easeInOut' }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Ambient background glow — portalled to body to avoid overflow:hidden clipping */}
+      {createPortal(
+        <AnimatePresence>
+          {bgImage && (
+            <motion.div
+              key={bgImage}
+              className="chat-bg-glow"
+              style={{ backgroundImage: `url(${bgImage})` }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.45 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: 'easeInOut' }}
+            />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
         <AnimatePresence initial={false}>
