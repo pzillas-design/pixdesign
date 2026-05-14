@@ -514,6 +514,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
           dragStartXRef.current = e.clientX;
           scrollStartRef.current = stripRef.current?.scrollLeft ?? 0;
           setGrabbing(true);
+          stripRef.current?.classList.add('image-strip--user-dragging');
           e.preventDefault();
         }}
         onMouseMove={(e) => {
@@ -523,8 +524,8 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
           stripRef.current.scrollLeft = scrollStartRef.current - dx;
         }}
         onMouseEnter={() => { isHoveredRef.current = true; }}
-        onMouseUp={() => { isDraggingRef.current = false; setGrabbing(false); }}
-        onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); isHoveredRef.current = false; }}
+        onMouseUp={() => { isDraggingRef.current = false; setGrabbing(false); stripRef.current?.classList.remove('image-strip--user-dragging'); }}
+        onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); isHoveredRef.current = false; stripRef.current?.classList.remove('image-strip--user-dragging'); }}
       >
         <div ref={trackRef} className="image-strip__track">
           {tripled.map((image, index) => (

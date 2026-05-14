@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { supabase, PixMedia, PixGallery } from './lib/supabase';
-import { Upload, Trash2, Save, LogOut, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic, LayoutGrid, Check } from 'lucide-react';
+import { Upload, Trash2, Save, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic, LayoutGrid, Check } from 'lucide-react';
 
 type Tab = 'media' | 'galleries';
 
@@ -446,16 +446,7 @@ function GalleryTab() {
 // Shell
 // ─────────────────────────────────────────────
 export function AdminPanel() {
-  const [session, setSession] = useState<boolean | null>(null);
   const [tab, setTab] = useState<Tab>('galleries');
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(!!data.session));
-    supabase.auth.onAuthStateChange((_, s) => setSession(!!s));
-  }, []);
-
-  if (session === null) return null;
-  if (!session) return <LoginScreen onLogin={() => setSession(true)} />;
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'galleries', label: 'Galerien', icon: <LayoutGrid size={18} /> },
@@ -472,10 +463,6 @@ export function AdminPanel() {
             {t.icon} {t.label}
           </button>
         ))}
-        <button onClick={() => supabase.auth.signOut()}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'transparent', color: 'rgba(255,255,255,0.3)', fontSize: 14, marginTop: 'auto', border: 'none', cursor: 'pointer', width: '100%' }}>
-          <LogOut size={16} /> Abmelden
-        </button>
       </aside>
 
       <main style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
