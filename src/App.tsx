@@ -116,7 +116,7 @@ type Message =
 const flow: Record<NodeId, ChatNode> = {
   start: {
     id: 'start',
-    text: 'PIX macht Webdesign, Fotografie und Video in Frankfurt. Einfach ein Thema tippen oder einen der Chips wählen.',
+    text: 'Willkommen bei PIX ✌️\nIch baue Webseiten, mache Fotos und Videos in Frankfurt und Umgebung. Womit kann ich helfen?',
     chips: [
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
