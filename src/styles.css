@@ -222,15 +222,48 @@ img {
   position: fixed;
   inset: 0;
   z-index: -1;
+  overflow: hidden;
+  background: #1d0f08;
+  opacity: 1;
+  pointer-events: none;
+  isolation: isolate;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.chat-bg-glow::before {
+  content: "";
+  position: absolute;
+  inset: -42vmax;
+  background-image: var(--glow-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(320px) saturate(2.2);
-  opacity: 0.38;
-  pointer-events: none;
-  transform: scale(1.8);
-  mask-image: none;
-  -webkit-mask-image: none;
+  filter: blur(220px) saturate(1.55);
+  opacity: 0.28;
+  transform: scale(1.12);
+}
+
+.chat-bg-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.12)),
+    rgba(29, 15, 8, 0.58);
+}
+
+:root[data-theme="light"] .chat-bg-glow {
+  background: #edf1f5;
+}
+
+:root[data-theme="light"] .chat-bg-glow::before {
+  opacity: 0.16;
+  filter: blur(220px) saturate(1.15);
+}
+
+:root[data-theme="light"] .chat-bg-glow::after {
+  background: rgba(237, 241, 245, 0.68);
 }
 
 .reset-button {
