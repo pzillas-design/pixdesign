@@ -517,7 +517,7 @@ img {
   max-width: min(520px, 60vw);
   border-radius: 1.6em 1.6em 0.25em 1.6em;
   background: rgba(255, 255, 255, 0.08);
-  padding: 16px 24px;
+  padding: 20px 30px;
   color: #fff;
   font-size: var(--type-chat);
   font-weight: 300;
@@ -1088,7 +1088,7 @@ img {
   .user-bubble {
     margin-left: auto;
     max-width: 78vw;
-    padding: 10px 16px;
+    padding: 14px 22px;
   }
 
   .chip-button {

@@ -99,7 +99,7 @@ type ImageMeta = { tag?: string; title?: string; description?: string };
 type ChatNode = {
   id: NodeId;
   text: string;
-  chips?: Array<{ label: string; displayLabel?: string; targetId: NodeId; icon?: IconName }>;
+  chips?: Array<{ label: string; displayLabel?: string; targetId: NodeId; icon?: IconName; href?: string }>;
   action?: { label: string; href: string; icon?: IconName };
   images: string[];
   imageMeta?: ImageMeta[];
@@ -121,9 +121,9 @@ const flow: Record<NodeId, ChatNode> = {
       { label: 'Webdesign', targetId: 'web', icon: 'globe' },
       { label: 'Foto', targetId: 'photo', icon: 'camera' },
       { label: 'Video', targetId: 'video', icon: 'film' },
-      { label: '', displayLabel: 'Anrufen', targetId: 'contact-call', icon: 'phone' },
-      { label: '', displayLabel: 'WhatsApp', targetId: 'contact-whatsapp', icon: 'whatsapp' },
-      { label: '', displayLabel: 'E-Mail', targetId: 'contact-mail', icon: 'mail' },
+      { label: '', displayLabel: 'Anrufen', targetId: 'contact-call', icon: 'phone', href: atob('dGVsOis0OTE1OTA2NDAxOTk1') },
+      { label: '', displayLabel: 'WhatsApp', targetId: 'contact-whatsapp', icon: 'whatsapp', href: atob('aHR0cHM6Ly93YS5tZS80OTE1OTA2NDAxOTk1') },
+      { label: '', displayLabel: 'E-Mail', targetId: 'contact-mail', icon: 'mail', href: atob('bWFpbHRvOnB6aWxsYXMyQGdtYWlsLmNvbQ==') },
       { label: '', displayLabel: 'Mehr erfahren', targetId: 'contact-more', icon: 'circlehelp' },
     ],
     images: ['/media/detail/slider-start.png'],
@@ -953,7 +953,9 @@ export function App() {
                               key={chip.targetId}
                               type="button"
                               onClick={() => {
-                                if (isActive) {
+                                if (chip.href) {
+                                  window.open(chip.href, '_blank', 'noopener');
+                                } else if (isActive) {
                                   // Second click → reset to start
                                   setMessages([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
                                   setSliderNodeId('start');
