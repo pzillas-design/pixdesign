@@ -105,8 +105,8 @@ img {
 .typing-dot:nth-child(3) { animation-delay: 0.36s; }
 
 @keyframes typingBounce {
-  0%, 60%, 100% { transform: translateY(0);    opacity: 0.35; }
-  30%           { transform: translateY(-5px); opacity: 1; }
+  0%, 60%, 100% { transform: translateX(0);    opacity: 0.35; }
+  30%           { transform: translateX(4px); opacity: 1; }
 }
 
 .portfolio-chat {
