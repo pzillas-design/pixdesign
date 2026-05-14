@@ -381,10 +381,11 @@ function getIconComponent(iconName?: IconName) {
   }
 }
 
-function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?: (src: string) => void }) {
+function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCenterChange?: (src: string) => void; onReady?: () => void }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [grabbing, setGrabbing] = useState(false);
   const [ready, setReady] = useState(false);
+  const loadedCountRef = useRef(0);
   const stripRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const lastCenterRef = useRef<string | null>(null);
@@ -525,7 +526,18 @@ function ImageStrip({ node, onCenterChange }: { node: ChatNode; onCenterChange?:
               key={`${node.id}-${index}`}
               onClick={() => { if (!hasDraggedRef.current) setLightboxIndex(index % images.length); }}
             >
-              <img src={image} alt={meta[index % images.length]?.title ?? ''} draggable={false} />
+              <img
+                src={image}
+                alt={meta[index % images.length]?.title ?? ''}
+                draggable={false}
+                onLoad={() => {
+                  // only count first set (not duplicates)
+                  if (index < images.length) {
+                    loadedCountRef.current += 1;
+                    if (loadedCountRef.current >= images.length) onReady?.();
+                  }
+                }}
+              />
             </div>
           ))}
         </div>
@@ -650,6 +662,7 @@ export function App() {
   const [messages, setMessages] = useState<Message[]>([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
   const [sliderNodeId, setSliderNodeId] = useState<NodeId>('start');
   const [activeStripId, setActiveStripId] = useState<string>('system-start');
+  const [stripReadyIds, setStripReadyIds] = useState<Set<string>>(new Set());
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [bgImage, setBgImage] = useState<string | null>(null);
@@ -711,6 +724,7 @@ export function App() {
     // t=0: close old strip
     setMessages((current) => current.slice(0, fromIndex + 1));
     setActiveStripId('');
+    setStripReadyIds(new Set());
     resetSession();
     // t=320ms: user bubble slides in
     setTimeout(() => {
@@ -872,16 +886,23 @@ export function App() {
 
               // Strip above this message — only if it's the active strip
               if (nodeImages?.length && message.id === activeStripId) {
+                const stripOpen = stripReadyIds.has(message.id);
                 chatElements.push(
                   <motion.div
                     key={`strip-${message.id}`}
                     className="strip-shutter-frame"
                     initial={{ height: 0, clipPath: 'inset(0% 0 100%)' }}
-                    animate={{ height: 'clamp(300px, 50vh, 580px)', clipPath: 'inset(0% 0 0%)' }}
+                    animate={stripOpen
+                      ? { height: 'clamp(300px, 50vh, 580px)', clipPath: 'inset(0% 0 0%)' }
+                      : { height: 0, clipPath: 'inset(0% 0 100%)' }}
                     exit={{ height: 0, clipPath: 'inset(0% 0 100%)' }}
-                    transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <ImageStrip node={node} onCenterChange={setBgImage} />
+                    <ImageStrip
+                      node={node}
+                      onCenterChange={setBgImage}
+                      onReady={() => setStripReadyIds(prev => new Set([...prev, message.id]))}
+                    />
                   </motion.div>
                 );
               }
