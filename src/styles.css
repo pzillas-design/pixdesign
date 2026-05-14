@@ -160,11 +160,16 @@ img {
 
 .theme-light .system-bubble {
   color: #090909;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(60px) saturate(1.4);
+  -webkit-backdrop-filter: blur(60px) saturate(1.4);
 }
 
 .theme-light .user-bubble {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.72);
   color: #090909;
+  backdrop-filter: blur(60px) saturate(1.4);
+  -webkit-backdrop-filter: blur(60px) saturate(1.4);
 }
 
 .theme-light .chat-composer {
