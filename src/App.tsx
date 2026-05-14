@@ -434,6 +434,16 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
       setReady(true);
       updateCenter();
     });
+
+    // Check for already-cached images (onLoad won't fire for these)
+    const imgs = Array.from(track.querySelectorAll('img')) as HTMLImageElement[];
+    const firstSet = imgs.slice(0, images.length);
+    const alreadyLoaded = firstSet.filter(img => img.complete && img.naturalWidth > 0).length;
+    if (alreadyLoaded >= images.length) {
+      onReady?.();
+    } else {
+      loadedCountRef.current = alreadyLoaded;
+    }
   }, [node.id]);
 
   // Infinite loop + center detection
@@ -878,7 +888,7 @@ export function App() {
               // Logo before everything — only for start message, always visible
               if (isFirst) {
                 chatElements.push(
-                  <header key="pix-logo" className={`chat-header${activeStripId === 'system-start' ? ' chat-header--over-strip' : ''}`}>
+                  <header key="pix-logo" className={`chat-header${activeStripId === 'system-start' && stripReadyIds.has('system-start') ? ' chat-header--over-strip' : ''}`}>
                     <img src="/pix-logo.svg" alt="PIX" className="chat-header__logo" />
                   </header>
                 );
