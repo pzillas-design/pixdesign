@@ -19,8 +19,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import React, { MouseEvent, useEffect, useRef, useState, useCallback } from 'react';
+import React, { MouseEvent, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { CanvasEditor } from './CanvasEditor';
 import { AdminPanel } from './AdminPanel';
@@ -31,10 +32,10 @@ import { getMediaByTags } from './lib/mediaLibrary';
 const bubbleAnim = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: 'easeOut' },
+  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
 };
 
-const rowExit = { opacity: 0, y: -8, transition: { duration: 0.25, ease: 'easeIn' } };
+const rowExit = { opacity: 0, y: -8, transition: { duration: 0.25, ease: [0.7, 0, 0.84, 0] as const } };
 
 function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
@@ -384,8 +385,13 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
   const [grabbing, setGrabbing] = useState(false);
   const [ready, setReady] = useState(false);
   const loadedCountRef = useRef(0);
+  const imagesLoadedRef = useRef(false);
+  const positionedRef = useRef(false);
+  const openNotifiedRef = useRef(false);
+  const readyNotifiedRef = useRef(false);
   const stripRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const onReadyRef = useRef(onReady);
   const lastCenterRef = useRef<string | null>(null);
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
@@ -394,13 +400,22 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
   const jumpingRef = useRef(false);
   const isHoveredRef = useRef(false);
   const rafRef = useRef<number>(0);
+  const centerRafRef = useRef<number>(0);
+  const resumeAutoScrollRef = useRef<number>(0);
   const scrollAccRef = useRef(0);
+  const lastTickRef = useRef<number | null>(null);
 
-  if (!node.images?.length) return null;
-  const images = node.images;
+  const images = node.images ?? [];
+  const imageKey = images.join('|');
   const meta = node.imageMeta ?? [];
   // Triple for infinite scroll
-  const tripled = [...images, ...images, ...images];
+  const tripled = useMemo(() => [...images, ...images, ...images], [imageKey]);
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
+
+  if (!images.length) return null;
 
   const updateCenter = useCallback(() => {
     const strip = stripRef.current;
@@ -420,29 +435,83 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
     }
   }, [tripled, onCenterChange]);
 
-  // Scroll to middle set on mount — hide until positioned to avoid flash
-  useEffect(() => {
+  const scheduleCenterUpdate = useCallback(() => {
+    if (centerRafRef.current) return;
+    centerRafRef.current = requestAnimationFrame(() => {
+      centerRafRef.current = 0;
+      updateCenter();
+    });
+  }, [updateCenter]);
+
+  const pauseAutoScroll = useCallback((resumeDelay = 0) => {
+    isDraggingRef.current = true;
+    if (resumeAutoScrollRef.current) {
+      window.clearTimeout(resumeAutoScrollRef.current);
+      resumeAutoScrollRef.current = 0;
+    }
+    if (resumeDelay > 0) {
+      resumeAutoScrollRef.current = window.setTimeout(() => {
+        isDraggingRef.current = false;
+        scrollAccRef.current = stripRef.current?.scrollLeft ?? scrollAccRef.current;
+      }, resumeDelay);
+    }
+  }, []);
+
+  const markStripReady = useCallback(() => {
+    if (!positionedRef.current || readyNotifiedRef.current) return;
+    readyNotifiedRef.current = true;
+    setReady(true);
+  }, []);
+
+  const positionStrip = useCallback(() => {
     const strip = stripRef.current;
     const track = trackRef.current;
     if (!strip || !track) return;
     const oneThird = track.scrollWidth / 3;
+    if (oneThird <= 0) {
+      requestAnimationFrame(positionStrip);
+      return;
+    }
     strip.scrollLeft = oneThird;
     scrollAccRef.current = oneThird;
+    positionedRef.current = true;
+    updateCenter();
+    markStripReady();
+  }, [markStripReady, updateCenter]);
+
+  const markImagesLoaded = useCallback(() => {
+    imagesLoadedRef.current = true;
+    if (!openNotifiedRef.current) {
+      openNotifiedRef.current = true;
+      onReadyRef.current?.();
+    }
     requestAnimationFrame(() => {
-      setReady(true);
-      updateCenter();
+      positionStrip();
     });
+  }, [positionStrip]);
+
+  // Scroll to middle set on mount — hide until positioned to avoid flash
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    setReady(false);
+    loadedCountRef.current = 0;
+    imagesLoadedRef.current = false;
+    positionedRef.current = false;
+    openNotifiedRef.current = false;
+    readyNotifiedRef.current = false;
+    lastCenterRef.current = null;
 
     // Check for already-cached images (onLoad won't fire for these)
     const imgs = Array.from(track.querySelectorAll('img')) as HTMLImageElement[];
     const firstSet = imgs.slice(0, images.length);
     const alreadyLoaded = firstSet.filter(img => img.complete && img.naturalWidth > 0).length;
     if (alreadyLoaded >= images.length) {
-      onReady?.();
+      markImagesLoaded();
     } else {
       loadedCountRef.current = alreadyLoaded;
     }
-  }, [node.id]);
+  }, [node.id, imageKey, images.length]);
 
   // Infinite loop + center detection
   useEffect(() => {
@@ -462,7 +531,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
         strip.scrollLeft -= oneThird;
         jumpingRef.current = false;
       }
-      updateCenter();
+      scheduleCenterUpdate();
     }
 
     strip.addEventListener('scroll', onScroll, { passive: true });
@@ -473,25 +542,33 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
-    const speed = 0.175; // px per frame
+    const stripEl = strip;
+    const speed = 10.5; // px per second
     // Track float position ourselves so sub-pixel moves are smooth
-    scrollAccRef.current = strip.scrollLeft;
-    function tick() {
-      if (!isHoveredRef.current && !isDraggingRef.current) {
-        scrollAccRef.current += speed;
-        strip.scrollLeft = scrollAccRef.current;
+    scrollAccRef.current = stripEl.scrollLeft;
+    function tick(now: number) {
+      const previous = lastTickRef.current ?? now;
+      const delta = Math.min(now - previous, 40) / 1000;
+      lastTickRef.current = now;
+      if (readyNotifiedRef.current && !isHoveredRef.current && !isDraggingRef.current) {
+        scrollAccRef.current += speed * delta;
+        stripEl.scrollLeft = scrollAccRef.current;
       } else {
         // Re-sync when user drags or hovers (so we resume from correct position)
-        scrollAccRef.current = strip.scrollLeft;
+        scrollAccRef.current = stripEl.scrollLeft;
       }
       rafRef.current = requestAnimationFrame(tick);
     }
     rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      if (centerRafRef.current) cancelAnimationFrame(centerRafRef.current);
+      if (resumeAutoScrollRef.current) window.clearTimeout(resumeAutoScrollRef.current);
+    };
   }, [node.id]);
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
+    function onKey(e: globalThis.KeyboardEvent) {
       if (lightboxIndex === null) return;
       if (e.key === 'Escape') setLightboxIndex(null);
       if (e.key === 'ArrowLeft') setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : null);
@@ -508,9 +585,9 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
       <div
         ref={stripRef}
         className="image-strip"
-        style={{ cursor: grabbing ? 'grabbing' : 'grab', opacity: ready ? 1 : 0, transition: 'opacity 0.3s ease' }}
+        style={{ cursor: grabbing ? 'grabbing' : 'grab', opacity: ready ? 1 : 0 }}
         onMouseDown={(e) => {
-          isDraggingRef.current = true;
+          pauseAutoScroll();
           hasDraggedRef.current = false;
           dragStartXRef.current = e.clientX;
           scrollStartRef.current = stripRef.current?.scrollLeft ?? 0;
@@ -525,8 +602,11 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
           stripRef.current.scrollLeft = scrollStartRef.current - dx;
         }}
         onMouseEnter={() => { isHoveredRef.current = true; }}
-        onMouseUp={() => { isDraggingRef.current = false; setGrabbing(false); stripRef.current?.classList.remove('image-strip--user-dragging'); }}
-        onMouseLeave={() => { isDraggingRef.current = false; setGrabbing(false); isHoveredRef.current = false; stripRef.current?.classList.remove('image-strip--user-dragging'); }}
+        onMouseUp={() => { pauseAutoScroll(900); setGrabbing(false); stripRef.current?.classList.remove('image-strip--user-dragging'); }}
+        onMouseLeave={() => { pauseAutoScroll(900); setGrabbing(false); isHoveredRef.current = false; stripRef.current?.classList.remove('image-strip--user-dragging'); }}
+        onTouchStart={() => { pauseAutoScroll(); hasDraggedRef.current = false; }}
+        onTouchMove={() => { hasDraggedRef.current = true; scrollAccRef.current = stripRef.current?.scrollLeft ?? scrollAccRef.current; }}
+        onTouchEnd={() => { pauseAutoScroll(1400); }}
       >
         <div ref={trackRef} className="image-strip__track">
           {tripled.map((image, index) => (
@@ -539,11 +619,12 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
                 src={image}
                 alt={meta[index % images.length]?.title ?? ''}
                 draggable={false}
+                decoding="async"
                 onLoad={() => {
                   // only count first set (not duplicates)
                   if (index < images.length) {
                     loadedCountRef.current += 1;
-                    if (loadedCountRef.current >= images.length) onReady?.();
+                    if (loadedCountRef.current >= images.length) markImagesLoaded();
                   }
                 }}
               />
@@ -585,38 +666,40 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
               )}
 
               <div className="image-lightbox__stage">
-                {images.length > 1 && (
-                  <button
-                    type="button"
-                    className="image-lightbox__nav"
-                    aria-label="Vorheriges Bild"
-                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : 0); }}
-                  >
-                    <ChevronLeft size={22} strokeWidth={2} />
-                  </button>
-                )}
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={lightboxIndex}
-                    src={images[lightboxIndex]}
-                    alt={currentMeta?.title ?? ''}
-                    className="image-lightbox__main-img"
-                    initial={{ opacity: 0, x: 16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -16 }}
-                    transition={{ duration: 0.16 }}
-                  />
-                </AnimatePresence>
-                {images.length > 1 && (
-                  <button
-                    type="button"
-                    className="image-lightbox__nav"
-                    aria-label="Naechstes Bild"
-                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i + 1) % images.length : 0); }}
-                  >
-                    <ChevronRight size={22} strokeWidth={2} />
-                  </button>
-                )}
+                <div className="image-lightbox__image-wrap">
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={lightboxIndex}
+                      src={images[lightboxIndex]}
+                      alt={currentMeta?.title ?? ''}
+                      className="image-lightbox__main-img"
+                      initial={{ opacity: 0, x: 16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -16 }}
+                      transition={{ duration: 0.16 }}
+                    />
+                  </AnimatePresence>
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        className="image-lightbox__nav image-lightbox__nav--prev"
+                        aria-label="Vorheriges Bild"
+                        onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : 0); }}
+                      >
+                        <ChevronLeft size={22} strokeWidth={2} />
+                      </button>
+                      <button
+                        type="button"
+                        className="image-lightbox__nav image-lightbox__nav--next"
+                        aria-label="Naechstes Bild"
+                        onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i + 1) % images.length : 0); }}
+                      >
+                        <ChevronRight size={22} strokeWidth={2} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {images.length > 1 && (
@@ -680,6 +763,7 @@ export function App() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastAiTextRef = useRef<string>('');
   const waveformRef = useRef<HTMLDivElement | null>(null);
+  const composerInputRef = useRef<HTMLDivElement | null>(null);
 
   const { state: voiceMode, start: startLiveVoice, stop: stopLiveVoice } = useLiveVoice(
     useCallback(() => {
@@ -696,6 +780,12 @@ export function App() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (composerText === '' && composerInputRef.current?.textContent) {
+      composerInputRef.current.textContent = '';
+    }
+  }, [composerText]);
 
   // Keep AI runtime context in sync
   useEffect(() => {
@@ -811,6 +901,12 @@ export function App() {
     startLiveVoice();
   }
 
+  function handleComposerKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    handleComposerSubmit();
+  }
+
   return (
     <main className={`portfolio-chat theme-${timeTheme}`}>
       {/* Ambient background glow — portalled to body to avoid overflow:hidden clipping */}
@@ -820,7 +916,7 @@ export function App() {
             <motion.div
               key={bgImage}
               className="chat-bg-glow"
-              style={{ '--glow-image': `url(${bgImage})` } as React.CSSProperties}
+              style={{ '--glow-image': `url(${bgImage})` } as CSSProperties}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -906,12 +1002,12 @@ export function App() {
                   <motion.div
                     key={`strip-${message.id}`}
                     className="strip-shutter-frame"
-                    initial={{ height: 0, clipPath: 'inset(0% 0 100%)' }}
+                    initial={{ height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
                     animate={stripOpen
-                      ? { height: 'clamp(300px, 50vh, 580px)', clipPath: 'inset(0% 0 0%)' }
-                      : { height: 0, clipPath: 'inset(0% 0 100%)' }}
-                    exit={{ height: 0, clipPath: 'inset(0% 0 100%)' }}
-                    transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
+                      ? { height: 'var(--strip-height)', opacity: 1, clipPath: 'inset(0% 0 0%)' }
+                      : { height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
+                    exit={{ height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
+                    transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <ImageStrip
                       node={node}
@@ -990,7 +1086,7 @@ export function App() {
         <div className="chat-stack__spacer" aria-hidden="true" />
       </section>
 
-      <form className="chat-composer" aria-label="Nachricht schreiben" onSubmit={(event) => { event.preventDefault(); handleComposerSubmit(); }}>
+      <div className="chat-composer" role="form" aria-label="Nachricht schreiben">
         {voiceMode !== 'idle' ? (
           <div ref={waveformRef} className="voice-waveform-pill" aria-hidden="true">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -998,16 +1094,21 @@ export function App() {
             ))}
           </div>
         ) : (
-          <input
-            type="text"
-            value={composerText}
-            onChange={(event) => setComposerText(event.target.value)}
-            placeholder="Schreibe etwas..."
+          <div
+            ref={composerInputRef}
+            className="chat-composer__input"
+            role="textbox"
+            contentEditable
+            suppressContentEditableWarning
+            data-placeholder="Frag mich etwas..."
+            onKeyDown={handleComposerKeyDown}
+            onInput={(event) => setComposerText(event.currentTarget.textContent ?? '')}
             aria-label="Nachricht"
+            spellCheck={false}
           />
         )}
         {composerText.trim() && voiceMode === 'idle' ? (
-          <button type="submit" className="is-active" aria-label="Senden">
+          <button type="button" className="is-active" aria-label="Senden" onClick={handleComposerSubmit}>
             <ArrowUp size={22} strokeWidth={2.2} />
           </button>
         ) : voiceMode !== 'idle' ? (
@@ -1024,7 +1125,7 @@ export function App() {
             <AudioLines size={20} strokeWidth={2} />
           </button>
         )}
-      </form>
+      </div>
 
     </main>
   );
