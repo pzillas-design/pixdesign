@@ -792,18 +792,6 @@ export function App() {
 
   const activeNode = flow[sliderNodeId];
 
-  // Parallax: all strips scroll at 35% of chat scroll speed → appear further away
-  useEffect(() => {
-    const scroller = scrollRef.current;
-    if (!scroller) return;
-    const onScroll = () => {
-      const strips = scroller.querySelectorAll<HTMLElement>('.strip-shutter-frame');
-      const offset = scroller.scrollTop * 0.12;
-      strips.forEach(el => { el.style.transform = `translateY(${offset}px)`; });
-    };
-    scroller.addEventListener('scroll', onScroll, { passive: true });
-    return () => scroller.removeEventListener('scroll', onScroll);
-  }, []);
 
   function scrollMessageToTop(messageId: string, behavior: ScrollBehavior = 'smooth') {
     const scroller = scrollRef.current;
