@@ -30,12 +30,13 @@ import { useLiveVoice } from './lib/useLiveVoice';
 import { getMediaByTags } from './lib/mediaLibrary';
 
 const bubbleAnim = {
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+  transition: { duration: 0.46, ease: [0.16, 1, 0.3, 1] as const },
 };
 
-const rowExit = { opacity: 0, y: -8, transition: { duration: 0.25, ease: [0.7, 0, 0.84, 0] as const } };
+const rowExit = { opacity: 0, y: -4, transition: { duration: 0.22, ease: [0.7, 0, 0.84, 0] as const } };
+const STRIP_TRANSITION_MS = 820;
 
 function Typewriter({ text, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
@@ -384,6 +385,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [grabbing, setGrabbing] = useState(false);
   const [ready, setReady] = useState(false);
+  const lightboxTouchStartRef = useRef<{ x: number; y: number } | null>(null);
   const loadedCountRef = useRef(0);
   const imagesLoadedRef = useRef(false);
   const positionedRef = useRef(false);
@@ -571,14 +573,22 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
     function onKey(e: globalThis.KeyboardEvent) {
       if (lightboxIndex === null) return;
       if (e.key === 'Escape') setLightboxIndex(null);
-      if (e.key === 'ArrowLeft') setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : null);
-      if (e.key === 'ArrowRight') setLightboxIndex(i => i !== null ? (i + 1) % images.length : null);
+      if (e.key === 'ArrowLeft') showPreviousImage();
+      if (e.key === 'ArrowRight') showNextImage();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [lightboxIndex, images.length]);
 
   const currentMeta = lightboxIndex !== null ? (meta[lightboxIndex] ?? null) : null;
+
+  function showPreviousImage() {
+    setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : 0);
+  }
+
+  function showNextImage() {
+    setLightboxIndex(i => i !== null ? (i + 1) % images.length : 0);
+  }
 
   return (
     <>
@@ -643,6 +653,22 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={() => setLightboxIndex(null)}
+            onTouchStart={(e) => {
+              const touch = e.touches[0];
+              lightboxTouchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+            }}
+            onTouchEnd={(e) => {
+              const start = lightboxTouchStartRef.current;
+              const touch = e.changedTouches[0];
+              lightboxTouchStartRef.current = null;
+              if (!start || !touch || images.length < 2) return;
+              const dx = touch.clientX - start.x;
+              const dy = touch.clientY - start.y;
+              if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+              e.stopPropagation();
+              if (dx < 0) showNextImage();
+              else showPreviousImage();
+            }}
           >
             <motion.div
               className="image-lightbox__inner"
@@ -685,7 +711,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
                         type="button"
                         className="image-lightbox__nav image-lightbox__nav--prev"
                         aria-label="Vorheriges Bild"
-                        onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : 0); }}
+                        onClick={(e) => { e.stopPropagation(); showPreviousImage(); }}
                       >
                         <ChevronLeft size={22} strokeWidth={2} />
                       </button>
@@ -693,7 +719,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
                         type="button"
                         className="image-lightbox__nav image-lightbox__nav--next"
                         aria-label="Naechstes Bild"
-                        onClick={(e) => { e.stopPropagation(); setLightboxIndex(i => i !== null ? (i + 1) % images.length : 0); }}
+                        onClick={(e) => { e.stopPropagation(); showNextImage(); }}
                       >
                         <ChevronRight size={22} strokeWidth={2} />
                       </button>
@@ -702,20 +728,6 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
                 </div>
               </div>
 
-              {images.length > 1 && (
-                <div className="image-lightbox__thumbs">
-                  {images.map((img, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={`image-lightbox__thumb${i === lightboxIndex ? ' is-active' : ''}`}
-                      onClick={() => setLightboxIndex(i)}
-                    >
-                      <img src={img} alt={meta[i]?.title ?? ''} />
-                    </button>
-                  ))}
-                </div>
-              )}
             </motion.div>
           </motion.div>
         )}
@@ -764,6 +776,9 @@ export function App() {
   const lastAiTextRef = useRef<string>('');
   const waveformRef = useRef<HTMLDivElement | null>(null);
   const composerInputRef = useRef<HTMLDivElement | null>(null);
+  const stripSwitchingRef = useRef(false);
+  const resetToStartRef = useRef(false);
+  const focusedUserMessageIdRef = useRef<string | null>(null);
 
   const { state: voiceMode, start: startLiveVoice, stop: stopLiveVoice } = useLiveVoice(
     useCallback(() => {
@@ -777,8 +792,34 @@ export function App() {
 
   const activeNode = flow[sliderNodeId];
 
+  function scrollMessageToTop(messageId: string, behavior: ScrollBehavior = 'smooth') {
+    const scroller = scrollRef.current;
+    const messageEl = scroller?.querySelector<HTMLElement>(`[data-chat-message-id="${messageId}"]`);
+    if (!scroller || !messageEl) return;
+    scroller.scrollTo({
+      top: Math.max(0, messageEl.offsetTop),
+      behavior,
+    });
+  }
+
+  function settleMessageNearTop(messageId: string) {
+    requestAnimationFrame(() => scrollMessageToTop(messageId, 'smooth'));
+    window.setTimeout(() => scrollMessageToTop(messageId, 'smooth'), Math.round(STRIP_TRANSITION_MS * 0.45));
+    window.setTimeout(() => scrollMessageToTop(messageId, 'smooth'), STRIP_TRANSITION_MS + 80);
+  }
+
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    if (focusedUserMessageIdRef.current) {
+      requestAnimationFrame(() => {
+        scrollMessageToTop(focusedUserMessageIdRef.current!, 'smooth');
+      });
+      return;
+    }
+
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: stripSwitchingRef.current ? 'auto' : 'smooth',
+    });
   }, [messages]);
 
   useEffect(() => {
@@ -823,6 +864,8 @@ export function App() {
     const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
     const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
     const targetHasImages = !!(flow[targetId]?.images?.length);
+    stripSwitchingRef.current = targetHasImages;
+    focusedUserMessageIdRef.current = userMessage.id;
     // t=0: close old strip (only if new node has its own images)
     setMessages((current) => current.slice(0, fromIndex + 1));
     if (targetHasImages) {
@@ -830,19 +873,43 @@ export function App() {
       setStripReadyIds(new Set());
     }
     resetSession();
-    // t=320ms: user bubble slides in
+    // Let the user bubble enter while the old strip is closing; the new content waits for the strip.
     setTimeout(() => {
       setMessages((current) => [...current, userMessage]);
-    }, 320);
-    // t=560ms: new strip opens + system text fades in simultaneously
+    }, targetHasImages ? 140 : 320);
     setTimeout(() => {
       setMessages((current) => [...current, systemMessage]);
       setSliderNodeId(targetId);
       // Only switch active strip if the new node actually has images
       if (flow[targetId]?.images?.length) {
         setActiveStripId(systemMessage.id);
+        requestAnimationFrame(() => {
+          settleMessageNearTop(userMessage.id);
+        });
       }
-    }, 560);
+      window.setTimeout(() => {
+        stripSwitchingRef.current = false;
+        focusedUserMessageIdRef.current = null;
+      }, targetHasImages ? STRIP_TRANSITION_MS : 0);
+    }, targetHasImages ? STRIP_TRANSITION_MS : 560);
+  }
+
+  function resetToStartWithStripTransition() {
+    if (resetToStartRef.current || activeStripId === 'system-start') return;
+    resetToStartRef.current = true;
+    stripSwitchingRef.current = true;
+    setActiveStripId('');
+    setStripReadyIds(new Set());
+    resetSession();
+
+    window.setTimeout(() => {
+      setSliderNodeId('start');
+      setActiveStripId('system-start');
+      window.setTimeout(() => {
+        stripSwitchingRef.current = false;
+        resetToStartRef.current = false;
+      }, STRIP_TRANSITION_MS);
+    }, STRIP_TRANSITION_MS);
   }
 
   function dropHeaderMessage(label: string, targetId: NodeId) {
@@ -911,31 +978,22 @@ export function App() {
     <main className={`portfolio-chat theme-${timeTheme}`}>
       {/* Ambient background glow — portalled to body to avoid overflow:hidden clipping */}
       {createPortal(
-        <AnimatePresence>
-          {bgImage && (
-            <motion.div
-              key={bgImage}
-              className="chat-bg-glow"
-              style={{ '--glow-image': `url(${bgImage})` } as CSSProperties}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.7, ease: 'easeInOut' }}
-            />
-          )}
-        </AnimatePresence>,
+        <div
+          className="chat-bg-glow"
+          style={{ '--glow-image': bgImage ? `url(${bgImage})` : 'none' } as CSSProperties}
+        />,
         document.body
       )}
 
       <section ref={scrollRef} className="chat-scroll" aria-label="PIX Portfolio Chat">
-        <AnimatePresence initial={false}>
+        <AnimatePresence initial={false} mode="popLayout">
           {(() => {
             const chatElements: React.ReactNode[] = [];
 
             messages.forEach((message, index) => {
               if (message.type === 'user') {
                 chatElements.push(
-                  <motion.div key={message.id} className="chat-segment user-row" exit={rowExit}>
+                  <motion.div key={message.id} data-chat-message-id={message.id} className="chat-segment user-row" exit={rowExit}>
                     <motion.div className="user-bubble" {...bubbleAnim}>{message.text}</motion.div>
                   </motion.div>
                 );
@@ -1006,8 +1064,8 @@ export function App() {
                     animate={stripOpen
                       ? { height: 'var(--strip-height)', opacity: 1, clipPath: 'inset(0% 0 0%)' }
                       : { height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
-                    exit={{ height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
-                    transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
+                    exit={{ position: 'absolute', height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
+                    transition={{ duration: STRIP_TRANSITION_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <ImageStrip
                       node={node}
@@ -1023,10 +1081,10 @@ export function App() {
                 <motion.article
                   key={message.id}
                   className="chat-segment system-row"
-                  initial={{ opacity: 0, y: 18, scale: 0.985 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className="system-row__spacer" />
                   <div className="system-content">
@@ -1058,10 +1116,7 @@ export function App() {
                                   window.open(chip.href, '_blank', 'noopener');
                                 } else if (isActive) {
                                   // Second click → reset to start
-                                  setMessages([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
-                                  setSliderNodeId('start');
-                                  setActiveStripId('system-start');
-                                  resetSession();
+                                  resetToStartWithStripTransition();
                                 } else {
                                   handleChipClick(chip.label, chip.targetId, index, chip.displayLabel);
                                 }
