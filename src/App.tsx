@@ -773,6 +773,7 @@ export function App() {
   const [aiLoading, setAiLoading] = useState(false);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const stripParallaxRef = useRef<HTMLDivElement | null>(null);
   const lastAiTextRef = useRef<string>('');
   const waveformRef = useRef<HTMLDivElement | null>(null);
   const composerInputRef = useRef<HTMLDivElement | null>(null);
@@ -791,6 +792,19 @@ export function App() {
   );
 
   const activeNode = flow[sliderNodeId];
+
+  // Parallax: strip scrolls at 35% of chat scroll speed → appears further away
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+    const onScroll = () => {
+      const el = stripParallaxRef.current;
+      if (!el) return;
+      el.style.transform = `translateY(${scroller.scrollTop * 0.35}px)`;
+    };
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    return () => scroller.removeEventListener('scroll', onScroll);
+  }, []);
 
   function scrollMessageToTop(messageId: string, behavior: ScrollBehavior = 'smooth') {
     const scroller = scrollRef.current;
@@ -1059,6 +1073,7 @@ export function App() {
                 chatElements.push(
                   <motion.div
                     key={`strip-${message.id}`}
+                    ref={stripParallaxRef}
                     className="strip-shutter-frame"
                     initial={{ height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
                     animate={stripOpen
