@@ -614,8 +614,22 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
         onMouseEnter={() => { isHoveredRef.current = true; }}
         onMouseUp={() => { pauseAutoScroll(900); setGrabbing(false); stripRef.current?.classList.remove('image-strip--user-dragging'); }}
         onMouseLeave={() => { pauseAutoScroll(900); setGrabbing(false); isHoveredRef.current = false; stripRef.current?.classList.remove('image-strip--user-dragging'); }}
-        onTouchStart={() => { pauseAutoScroll(); hasDraggedRef.current = false; }}
-        onTouchMove={() => { hasDraggedRef.current = true; scrollAccRef.current = stripRef.current?.scrollLeft ?? scrollAccRef.current; }}
+        onTouchStart={(e) => {
+          const t = e.touches[0];
+          dragStartXRef.current = t.clientX;
+          (stripRef.current as any)._touchStartY = t.clientY;
+          pauseAutoScroll();
+          hasDraggedRef.current = false;
+        }}
+        onTouchMove={(e) => {
+          const t = e.touches[0];
+          const dx = Math.abs(t.clientX - dragStartXRef.current);
+          const dy = Math.abs(t.clientY - ((stripRef.current as any)._touchStartY ?? t.clientY));
+          // If predominantly vertical — let the chat scroll handle it, don't block
+          if (dy > dx * 1.5) return;
+          hasDraggedRef.current = true;
+          scrollAccRef.current = stripRef.current?.scrollLeft ?? scrollAccRef.current;
+        }}
         onTouchEnd={() => { pauseAutoScroll(1400); }}
       >
         <div ref={trackRef} className="image-strip__track">
