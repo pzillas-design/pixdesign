@@ -798,7 +798,7 @@ export function App() {
     if (!scroller) return;
     const onScroll = () => {
       const strips = scroller.querySelectorAll<HTMLElement>('.strip-shutter-frame');
-      const offset = scroller.scrollTop * 0.35;
+      const offset = scroller.scrollTop * 0.12;
       strips.forEach(el => { el.style.transform = `translateY(${offset}px)`; });
     };
     scroller.addEventListener('scroll', onScroll, { passive: true });
