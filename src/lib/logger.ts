@@ -1,17 +1,9 @@
-/**
- * Logger — schickt Fehler und Chat-Nachrichten per Telegram an Michael.
- * Nie im UI sichtbar.
- */
-const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN as string;
-const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID as string;
-
-async function telegramSend(text: string): Promise<void> {
-  if (!token || !chatId) return;
+async function serverLog(payload: Record<string, unknown>): Promise<void> {
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    await fetch('/api/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text }),
+      body: JSON.stringify(payload),
     });
   } catch {
     // never throw from logger
@@ -19,31 +11,21 @@ async function telegramSend(text: string): Promise<void> {
 }
 
 export async function logChat(role: 'user' | 'agent', text: string): Promise<void> {
-  const prefix = role === 'user' ? '👤 User' : '🤖 PIX';
-  await telegramSend(`${prefix}\n${text}`);
+  await serverLog({ type: 'chat', role, text });
 }
 
 export async function logError(context: string, error: unknown): Promise<void> {
   console.error(`[PIX] ${context}:`, error);
-  if (!token || !chatId) return;
+  const message = error instanceof Error ? error.message : String(error);
+  const stack = error instanceof Error && error.stack
+    ? error.stack.split('\n').slice(0, 3).join('\n')
+    : '';
 
-  try {
-    const message = error instanceof Error ? error.message : String(error);
-    const stack = error instanceof Error && error.stack
-      ? '\n' + error.stack.split('\n').slice(0, 3).join('\n')
-      : '';
-    const text = [
-      '⚠️ PIX Website Fehler',
-      '',
-      `Kontext: ${context}`,
-      `Fehler: ${message}${stack}`,
-      '',
-      `🕐 ${new Date().toLocaleString('de-DE')}`,
-      `🌐 ${typeof window !== 'undefined' ? window.location.href : ''}`,
-    ].join('\n');
-
-    await telegramSend(text);
-  } catch {
-    // never throw from logger
-  }
+  await serverLog({
+    type: 'error',
+    context,
+    message,
+    stack,
+    href: typeof window !== 'undefined' ? window.location.href : '',
+  });
 }

@@ -75,11 +75,13 @@ Tags: `web`, `photo`, `video`, `startscreen` + inhaltliche Tags
 
 `.env.local` (nicht im Repo):
 ```
-VITE_GEMINI_API_KEY=...
-VITE_TELEGRAM_BOT_TOKEN=...
-VITE_TELEGRAM_CHAT_ID=...
+GEMINI_API_KEY=...              # nur serverseitig, niemals VITE_
+TELEGRAM_BOT_TOKEN=...          # nur serverseitig, niemals VITE_
+TELEGRAM_CHAT_ID=...            # nur serverseitig, niemals VITE_
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
 ```
-Auf Vercel via `npx vercel env add VITE_...` setzen.
+Auf Vercel via `npx vercel env add ...` setzen. Secrets für Gemini/Telegram dürfen nicht mit `VITE_` beginnen, weil Vite sie sonst ins Browser-Bundle schreibt.
 
 ## Deployment
 

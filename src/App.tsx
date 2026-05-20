@@ -794,15 +794,7 @@ export function App() {
   const resetToStartRef = useRef(false);
   const focusedUserMessageIdRef = useRef<string | null>(null);
 
-  const { state: voiceMode, start: startLiveVoice, stop: stopLiveVoice } = useLiveVoice(
-    useCallback(() => {
-      setMessages(current => [
-        ...current,
-        { id: createId('sent'), type: 'sent' as const },
-        { id: createId('ai'), type: 'ai' as const, text: 'Michael meldet sich in Kürze bei dir.' },
-      ]);
-    }, [])
-  );
+  const { state: voiceMode, start: startLiveVoice, stop: stopLiveVoice } = useLiveVoice();
 
   const activeNode = flow[sliderNodeId];
 

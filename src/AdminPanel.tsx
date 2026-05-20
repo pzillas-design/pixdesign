@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase, PixMedia, PixGallery } from './lib/supabase';
 import { Upload, Trash2, Save, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic, LayoutGrid, Check } from 'lucide-react';
 
