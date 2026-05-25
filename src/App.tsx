@@ -1078,9 +1078,12 @@ export function App() {
               if (message.type === 'images') {
                 const syntheticNode: ChatNode = { id: 'start', text: '', images: message.images, chips: [] };
                 chatElements.push(
-                  <motion.div key={message.id} className="chat-segment" exit={rowExit}
+                  <motion.div
+                    key={message.id}
+                    className="strip-shutter-frame"
                     initial={{ height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
                     animate={{ height: 'var(--strip-height)', opacity: 1, clipPath: 'inset(0% 0 0%)' }}
+                    exit={{ position: 'absolute', height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
                     transition={{ duration: STRIP_TRANSITION_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <ImageStrip node={syntheticNode} onCenterChange={setBgImage} />
