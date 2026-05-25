@@ -1189,7 +1189,12 @@ export function App() {
         <div className="chat-stack__spacer" aria-hidden="true" />
       </section>
 
-      <div className="chat-composer" role="form" aria-label="Nachricht schreiben">
+      <div
+        className="chat-composer"
+        role="form"
+        aria-label="Nachricht schreiben"
+        style={{ '--glow-image': bgImage ? `url(${bgImage})` : 'none' } as CSSProperties}
+      >
         {voiceMode !== 'idle' ? (
           <div ref={waveformRef} className="voice-waveform-pill" aria-hidden="true">
             {Array.from({ length: 5 }).map((_, i) => (
