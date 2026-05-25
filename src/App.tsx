@@ -24,7 +24,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { MouseEvent, Suspense, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { CanvasEditor } from './CanvasEditor';
-import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
+import { sendMessage, resetSession, sendInquiry, appendModelTurn, setRuntimeContext, type GalleryCategory } from './lib/gemini';
 import { useLiveVoice } from './lib/useLiveVoice';
 import { getMediaByTags } from './lib/mediaLibrary';
 import { trackPhoneClick, trackWhatsAppClick, trackEmailClick, trackInquirySent } from './lib/tracking';
@@ -909,6 +909,7 @@ export function App() {
           const result = await sendInquiry(aiResponse.sendEmail);
           if (result.ok) trackInquirySent();
           const confirmText = result.ok ? 'Michael meldet sich in Kürze bei dir.' : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`;
+          appendModelTurn(`${aiResponse.text ? aiResponse.text + ' ' : ''}${confirmText}`);
           const msgs: Message[] = [...aiImgMsgs];
           if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
           if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
@@ -974,6 +975,7 @@ export function App() {
       const confirmText = result.ok
         ? 'Michael meldet sich in Kürze bei dir.'
         : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}. Schreib direkt an pzillas2@gmail.com.`;
+      appendModelTurn(`${aiResponse.text ? aiResponse.text + ' ' : ''}${confirmText}`);
       const msgs: Message[] = [...aiImgMsgs];
       if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
       if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });

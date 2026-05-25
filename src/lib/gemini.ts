@@ -19,6 +19,10 @@ export function resetSession() {
   history = [];
 }
 
+export function appendModelTurn(text: string) {
+  history.push({ role: 'model', text });
+}
+
 export type AIResponse = {
   text: string;
   gallery?: GalleryCategory;
