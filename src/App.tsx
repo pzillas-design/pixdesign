@@ -908,12 +908,11 @@ export function App() {
         if (aiResponse.sendEmail) {
           const result = await sendInquiry(aiResponse.sendEmail);
           if (result.ok) trackInquirySent();
-          const confirmText = result.ok ? 'Michael meldet sich in Kürze bei dir.' : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`;
-          appendModelTurn(`${aiResponse.text ? aiResponse.text + ' ' : ''}${confirmText}`);
+          appendModelTurn(aiResponse.text);
           const msgs: Message[] = [...aiImgMsgs];
           if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
           if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
-          msgs.push({ id: createId('ai'), type: 'ai', text: confirmText });
+          else msgs.push({ id: createId('ai'), type: 'ai', text: `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}` });
           setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
         } else {
           const msgs: Message[] = [...aiImgMsgs, { id: createId('ai'), type: 'ai', text: aiResponse.text }];
@@ -972,14 +971,11 @@ export function App() {
     if (aiResponse.sendEmail) {
       const result = await sendInquiry(aiResponse.sendEmail);
       if (result.ok) trackInquirySent();
-      const confirmText = result.ok
-        ? 'Michael meldet sich in Kürze bei dir.'
-        : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}. Schreib direkt an pzillas2@gmail.com.`;
-      appendModelTurn(`${aiResponse.text ? aiResponse.text + ' ' : ''}${confirmText}`);
+      appendModelTurn(aiResponse.text);
       const msgs: Message[] = [...aiImgMsgs];
       if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
       if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
-      msgs.push({ id: createId('ai'), type: 'ai', text: confirmText });
+      else msgs.push({ id: createId('ai'), type: 'ai', text: `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}. Schreib direkt an pzillas2@gmail.com.` });
       setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
     } else {
       const msgs: Message[] = [...aiImgMsgs, { id: createId('ai'), type: 'ai', text: aiResponse.text }];
