@@ -61,12 +61,17 @@ export default async function handler(req: any, res: any) {
 
   try {
     const body = await readBody(req);
-    const message = pickString(body.message).slice(0, 6000);
-    if (!message) return json(res, 400, { error: 'Leere Nachricht' });
+    const history: { role: string; text: string }[] = Array.isArray(body.history) ? body.history : [];
+    if (!history.length) return json(res, 400, { error: 'Leere Nachricht' });
+
+    const contents = history.map((turn: { role: string; text: string }) => ({
+      role: turn.role === 'model' ? 'model' : 'user',
+      parts: [{ text: String(turn.text).slice(0, 6000) }],
+    }));
 
     const payload = {
       systemInstruction: { parts: [{ text: buildSystemInstruction(body.runtimeContext) }] },
-      contents: [{ role: 'user', parts: [{ text: message }] }],
+      contents,
       generationConfig: {
         temperature: 0.7,
         responseMimeType: 'application/json',

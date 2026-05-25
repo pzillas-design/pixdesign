@@ -12,8 +12,11 @@ export function setRuntimeContext(ctx: RuntimeContext) {
   runtimeContext = ctx;
 }
 
+type Turn = { role: 'user' | 'model'; text: string };
+let history: Turn[] = [];
+
 export function resetSession() {
-  // Server-side chat is stateless for now; keep this API for the UI flow.
+  history = [];
 }
 
 export type AIResponse = {
@@ -42,10 +45,15 @@ export async function sendMessage(message: string): Promise<AIResponse> {
       ? (message.split('Nachricht des Besuchers:').pop()?.trim() ?? message)
       : message;
     logChat('user', logText);
-    const response = await postJson<AIResponse>('/api/chat', { message, runtimeContext });
-    if (response.text) logChat('agent', response.text);
+    history.push({ role: 'user', text: message });
+    const response = await postJson<AIResponse>('/api/chat', { history, runtimeContext });
+    if (response.text) {
+      logChat('agent', response.text);
+      history.push({ role: 'model', text: response.text });
+    }
     return response;
   } catch (error) {
+    history.pop(); // remove failed user turn
     logError('sendMessage', error);
     return { text: 'Es gab einen Verbindungsfehler. Bitte nochmal versuchen.' };
   }

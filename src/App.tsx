@@ -863,19 +863,6 @@ export function App() {
   ];
 
 
-  // Build a context string from static messages for the AI
-  function buildStaticContext(msgs: Message[]): string {
-    const lines: string[] = [];
-    for (const msg of msgs) {
-      if (msg.type === 'system') {
-        const node = flow[msg.nodeId];
-        if (node && !node.aiHandled && node.text) lines.push(`PIX: ${node.text}`);
-      } else if (msg.type === 'user') {
-        lines.push(`Besucher: ${msg.text}`);
-      }
-    }
-    return lines.join('\n');
-  }
 
   function handleChipClick(label: string, targetId: NodeId, fromIndex: number, displayLabel?: string) {
     const bubbleText = displayLabel || label;
@@ -911,11 +898,7 @@ export function App() {
         const typingId = createId('typing');
         setMessages((current) => [...current, { id: typingId, type: 'typing' }]);
         setAiLoading(true);
-        const context = buildStaticContext(messages.slice(0, fromIndex + 1));
-        const messageToSend = context
-          ? `[Bisheriger Gesprächsverlauf:\n${context}\n]\n\nNachricht des Besuchers: ${bubbleText}`
-          : bubbleText;
-        const aiResponse = await sendMessage(messageToSend);
+        const aiResponse = await sendMessage(bubbleText);
         lastAiTextRef.current = aiResponse.text;
         const aiImgMsgs: Message[] = [];
         if (aiResponse.showImages?.length) {
@@ -976,17 +959,7 @@ export function App() {
     setComposerText('');
     setAiLoading(true);
 
-    // On first AI message, prepend static chat context
-    const hasAiHistory = messages.some(m => m.type === 'ai');
-    let messageToSend = text;
-    if (!hasAiHistory) {
-      const context = buildStaticContext(messages);
-      if (context) {
-        messageToSend = `[Bisheriger Gesprächsverlauf:\n${context}\n]\n\nNachricht des Besuchers: ${text}`;
-      }
-    }
-
-    const aiResponse = await sendMessage(messageToSend);
+    const aiResponse = await sendMessage(text);
     lastAiTextRef.current = aiResponse.text;
 
     const aiImgMsgs: Message[] = [];
