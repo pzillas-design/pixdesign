@@ -27,6 +27,7 @@ import { CanvasEditor } from './CanvasEditor';
 import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
 import { useLiveVoice } from './lib/useLiveVoice';
 import { getMediaByTags } from './lib/mediaLibrary';
+import { trackPhoneClick, trackWhatsAppClick, trackEmailClick, trackInquirySent } from './lib/tracking';
 
 const AdminPanel = React.lazy(() => import('./AdminPanel').then((module) => ({ default: module.AdminPanel })));
 
@@ -923,6 +924,7 @@ export function App() {
         }
         if (aiResponse.sendEmail) {
           const result = await sendInquiry(aiResponse.sendEmail);
+          if (result.ok) trackInquirySent();
           const confirmText = result.ok ? 'Michael meldet sich in Kürze bei dir.' : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`;
           const msgs: Message[] = [];
           if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
@@ -993,6 +995,7 @@ export function App() {
 
     if (aiResponse.sendEmail) {
       const result = await sendInquiry(aiResponse.sendEmail);
+      if (result.ok) trackInquirySent();
       const confirmText = result.ok
         ? 'Michael meldet sich in Kürze bei dir.'
         : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}. Schreib direkt an pzillas2@gmail.com.`;
@@ -1161,6 +1164,9 @@ export function App() {
                               type="button"
                               onClick={() => {
                                 if (chip.href) {
+                                  if (chip.targetId === 'contact-call') trackPhoneClick();
+                                  else if (chip.targetId === 'contact-whatsapp') trackWhatsAppClick();
+                                  else if (chip.targetId === 'contact-mail') trackEmailClick();
                                   window.open(chip.href, '_blank', 'noopener');
                                 } else if (isActive) {
                                   // Second click → reset to start
