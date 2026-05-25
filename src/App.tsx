@@ -21,13 +21,14 @@ import {
 } from 'lucide-react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import React, { MouseEvent, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { MouseEvent, Suspense, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { CanvasEditor } from './CanvasEditor';
-import { AdminPanel } from './AdminPanel';
 import { sendMessage, resetSession, sendInquiry, setRuntimeContext, type GalleryCategory } from './lib/gemini';
 import { useLiveVoice } from './lib/useLiveVoice';
 import { getMediaByTags } from './lib/mediaLibrary';
+
+const AdminPanel = React.lazy(() => import('./AdminPanel').then((module) => ({ default: module.AdminPanel })));
 
 const bubbleAnim = {
   initial: { opacity: 0, y: 12 },
@@ -776,7 +777,11 @@ export function App() {
   }
 
   if (window.location.pathname === '/admin') {
-    return <AdminPanel />;
+    return (
+      <Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}>
+        <AdminPanel />
+      </Suspense>
+    );
   }
 
   const [messages, setMessages] = useState<Message[]>([{ id: 'system-start', type: 'system', nodeId: 'start' }]);
