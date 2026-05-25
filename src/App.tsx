@@ -116,6 +116,7 @@ type Message =
   | { id: string; type: 'system'; nodeId: NodeId }
   | { id: string; type: 'user'; text: string }
   | { id: string; type: 'ai'; text: string }
+  | { id: string; type: 'images'; images: string[] }
   | { id: string; type: 'sent' }
   | { id: string; type: 'typing' };
 
@@ -795,7 +796,6 @@ export function App() {
   const [stripReadyIds, setStripReadyIds] = useState<Set<string>>(new Set());
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiImages, setAiImages] = useState<string[] | null>(null);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastAiTextRef = useRef<string>('');
@@ -885,7 +885,6 @@ export function App() {
     const isAiHandled = !!(targetNode?.aiHandled);
     stripSwitchingRef.current = targetHasImages;
     focusedUserMessageIdRef.current = userMessage.id;
-    setAiImages(null);
     setMessages((current) => current.slice(0, fromIndex + 1));
     if (targetHasImages) {
       setActiveStripId('');
@@ -918,21 +917,23 @@ export function App() {
           : bubbleText;
         const aiResponse = await sendMessage(messageToSend);
         lastAiTextRef.current = aiResponse.text;
+        const aiImgMsgs: Message[] = [];
         if (aiResponse.showImages?.length) {
           const imgs = getMediaByTags(aiResponse.showImages);
-          if (imgs.length) setAiImages(imgs);
+          if (imgs.length) aiImgMsgs.push({ id: createId('images'), type: 'images', images: imgs });
         }
         if (aiResponse.sendEmail) {
           const result = await sendInquiry(aiResponse.sendEmail);
           if (result.ok) trackInquirySent();
           const confirmText = result.ok ? 'Michael meldet sich in Kürze bei dir.' : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`;
-          const msgs: Message[] = [];
+          const msgs: Message[] = [...aiImgMsgs];
           if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
           if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
           msgs.push({ id: createId('ai'), type: 'ai', text: confirmText });
           setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
         } else {
-          setMessages((current) => current.map((m) => m.id === typingId ? { id: createId('ai'), type: 'ai', text: aiResponse.text } : m));
+          const msgs: Message[] = [...aiImgMsgs, { id: createId('ai'), type: 'ai', text: aiResponse.text }];
+          setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
         }
         setAiLoading(false);
       }
@@ -988,9 +989,10 @@ export function App() {
     const aiResponse = await sendMessage(messageToSend);
     lastAiTextRef.current = aiResponse.text;
 
+    const aiImgMsgs: Message[] = [];
     if (aiResponse.showImages?.length) {
       const imgs = getMediaByTags(aiResponse.showImages);
-      if (imgs.length) setAiImages(imgs);
+      if (imgs.length) aiImgMsgs.push({ id: createId('images'), type: 'images', images: imgs });
     }
 
     if (aiResponse.sendEmail) {
@@ -999,14 +1001,14 @@ export function App() {
       const confirmText = result.ok
         ? 'Michael meldet sich in Kürze bei dir.'
         : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}. Schreib direkt an pzillas2@gmail.com.`;
-      const msgs: Message[] = [];
+      const msgs: Message[] = [...aiImgMsgs];
       if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
       if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
       msgs.push({ id: createId('ai'), type: 'ai', text: confirmText });
       setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
     } else {
-      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text };
-      setMessages((current) => current.map((m) => (m.id === typingId ? aiMessage : m)));
+      const msgs: Message[] = [...aiImgMsgs, { id: createId('ai'), type: 'ai', text: aiResponse.text }];
+      setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
     }
     setAiLoading(false);
   }
@@ -1073,6 +1075,20 @@ export function App() {
                 );
                 return;
               }
+              if (message.type === 'images') {
+                const syntheticNode: ChatNode = { id: 'start', text: '', images: message.images, chips: [] };
+                chatElements.push(
+                  <motion.div key={message.id} className="chat-segment" exit={rowExit}
+                    initial={{ height: 0, opacity: 0, clipPath: 'inset(0% 0 100%)' }}
+                    animate={{ height: 'var(--strip-height)', opacity: 1, clipPath: 'inset(0% 0 0%)' }}
+                    transition={{ duration: STRIP_TRANSITION_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <ImageStrip node={syntheticNode} onCenterChange={setBgImage} />
+                  </motion.div>
+                );
+                return;
+              }
+
               if (message.type === 'ai') {
                 chatElements.push(
                   <motion.div key={message.id} className="chat-segment system-row" exit={rowExit}>
@@ -1088,8 +1104,7 @@ export function App() {
               // System message (node)
               const isFirst = message.id === 'system-start';
               const baseImages = isFirst ? startGalleryImages : flow[message.nodeId].images;
-              const nodeImages = (message.id === activeStripId && aiImages) ? aiImages : baseImages;
-              const node = { ...flow[message.nodeId], images: nodeImages };
+              const node = { ...flow[message.nodeId], images: baseImages };
               const nextMsg = messages[index + 1];
               const selectedChip = nextMsg?.type === 'user' ? nextMsg.text : null;
 
@@ -1103,7 +1118,7 @@ export function App() {
               }
 
               // Strip above this message — only if it's the active strip
-              if (nodeImages?.length && message.id === activeStripId) {
+              if (baseImages?.length && message.id === activeStripId) {
                 const stripOpen = stripReadyIds.has(message.id);
                 chatElements.push(
                   <motion.div
