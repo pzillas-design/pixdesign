@@ -18,7 +18,7 @@ React + TypeScript + Vite. Portfolio-Chat für Michael Pzillas (PIX), Frankfurt.
 src/
   App.tsx              # Haupt-App: Chat-Flow, Image Strip, Lightbox, Voice
   styles.css           # Alle Styles — ein einziges File
-  AdminPanel.tsx       # /admin — Mediathek-Tabelle (lokal, kein Login)
+  AdminPanel.tsx       # alte Supabase-Admin-Ansicht; nicht fuer die Live-Startseite laden
   CanvasEditor.tsx     # /canvas — visueller Chat-Baum-Editor
   lib/
     gemini.ts          # Client wrapper; ruft nur /api/... auf, keine Secrets
@@ -78,8 +78,6 @@ Tags: `web`, `photo`, `video`, `startscreen` + inhaltliche Tags
 GEMINI_API_KEY=...              # nur serverseitig, niemals VITE_
 TELEGRAM_BOT_TOKEN=...          # nur serverseitig, niemals VITE_
 TELEGRAM_CHAT_ID=...            # nur serverseitig, niemals VITE_
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_ANON_KEY=...
 ```
 Auf Vercel via `npx vercel env add ...` setzen. Secrets für Gemini/Telegram dürfen nicht mit `VITE_` beginnen, weil Vite sie sonst ins Browser-Bundle schreibt.
 
@@ -113,12 +111,11 @@ npm install
 npm run dev      # → http://localhost:4299
 ```
 
-Admin-Panel: `/admin` (kein Passwort lokal)
 Canvas-Editor: `/canvas`
 
 ## Wichtige Konventionen
 
-- **Kein Supabase** — alles statisch oder via Telegram
+- **Kein Supabase fuer die Live-Seite** — alles statisch oder via Telegram. Alte Admin/Supabase-Dateien sind Altlasten und duerfen nicht in den normalen Startseiten-Bundle importiert werden.
 - **Kein Tailwind** — nur `styles.css`
 - **Kein Email-Server** — Anfragen gehen via Telegram Bot
 - Schriftgrößen als CSS-Variablen in `:root` — nicht inline ändern
