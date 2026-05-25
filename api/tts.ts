@@ -1,4 +1,4 @@
-import { handleOptions, json, pickString, readBody } from './_shared';
+import { handleOptions, json, pickString, readBody } from './_shared.js';
 
 export default async function handler(req: any, res: any) {
   if (handleOptions(req, res)) return;
@@ -12,10 +12,10 @@ export default async function handler(req: any, res: any) {
     if (!text) return json(res, 400, { error: 'Leerer Text' });
 
     const upstream = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ parts: [{ text }] }],
           generationConfig: {

@@ -619,8 +619,7 @@ img {
 
 .chat-composer input,
 .chat-composer__input {
-  display: flex;
-  align-items: center;
+  display: block;
   min-width: 0;
   flex: 1;
   min-height: 48px;
@@ -628,9 +627,9 @@ img {
   outline: 0;
   background: transparent;
   color: inherit;
-  padding: 2px 10px 2px 18px;
+  padding: 0 10px 0 18px;
   font-size: var(--type-chip);
-  line-height: 1.5;
+  line-height: 48px;
   letter-spacing: var(--tracking-tight);
   font-weight: 400;
   font-family: inherit;
@@ -1226,6 +1225,8 @@ img {
   .chat-composer input,
   .chat-composer__input {
     padding-left: 0;
+    min-height: 44px;
+    line-height: 44px;
   }
 
   .chat-composer button {

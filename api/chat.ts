@@ -1,6 +1,6 @@
-import { SYSTEM_PROMPT } from '../src/lib/systemPrompt';
-import { mediaLibrary } from '../src/lib/mediaLibrary';
-import { handleOptions, json, pickString, readBody } from './_shared';
+import { SYSTEM_PROMPT } from '../src/lib/systemPrompt.js';
+import { mediaLibrary } from '../src/lib/mediaLibrary.js';
+import { handleOptions, json, pickString, readBody } from './_shared.js';
 
 function buildSystemInstruction(runtimeContext?: { activeBranch?: string }) {
   const projectsByCategory: Record<string, string[]> = { web: [], photo: [], video: [] };
@@ -44,6 +44,14 @@ function parseJsonResponse(text: string) {
   return JSON.parse(cleaned);
 }
 
+function safeParseResponse(text: string) {
+  try {
+    return parseJsonResponse(text);
+  } catch {
+    return { text: text || 'Ich bin kurz unsicher. Kannst du das nochmal anders formulieren?' };
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (handleOptions(req, res)) return;
 
@@ -65,10 +73,10 @@ export default async function handler(req: any, res: any) {
     };
 
     const upstream = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify(payload),
       }
     );
@@ -79,7 +87,7 @@ export default async function handler(req: any, res: any) {
     }
 
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
-    const parsed = parseJsonResponse(text);
+    const parsed = safeParseResponse(text);
     return json(res, 200, {
       text: pickString(parsed.text, 'Ich bin kurz unsicher. Kannst du das nochmal anders formulieren?'),
       gallery: ['web', 'photo', 'video'].includes(parsed.gallery) ? parsed.gallery : undefined,

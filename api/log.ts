@@ -1,4 +1,4 @@
-import { handleOptions, json, pickString, readBody, telegramSend } from './_shared';
+import { handleOptions, json, pickString, readBody, telegramSend } from './_shared.js';
 
 export default async function handler(req: any, res: any) {
   if (handleOptions(req, res)) return;
