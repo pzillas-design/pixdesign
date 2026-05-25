@@ -28,12 +28,13 @@ PROJEKTE IN DER MEDIATHEK:
 ${projectsText}
 
 TOOLS ALS JSON:
-- Wenn Arbeiten gezeigt werden sollen: gallery = "web", "photo" oder "video".
+- Wenn Arbeiten gezeigt werden sollen (show_images): showImages als Array mit Tags, z.B. ["photo","realestate"]. Nutze die Tags aus der PROJEKTE-Liste oder: architektur, brand, business, event, landing, menschen, photo, realestate, startscreen, tools, video, web.
 - Wenn eine konkrete Anfrage komplett ist: sendEmail als Objekt mit gesammelten Feldern.
-- Sonst gallery und sendEmail weglassen.
+- gallery weglassen (deprecated).
+- Sonst showImages und sendEmail weglassen.
 
 Antworte ausschliesslich als JSON:
-{"text":"Antwort an den Besucher","gallery":"web|photo|video optional","sendEmail":{"Art":"..."} optional}
+{"text":"Antwort an den Besucher","showImages":["tag1","tag2"] optional,"sendEmail":{"Art":"..."} optional}
 
 # Aktueller Kontext
 ${runtimeLines.join('\n')}`;
@@ -88,9 +89,13 @@ export default async function handler(req: any, res: any) {
 
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
     const parsed = safeParseResponse(text);
+    const validTags = ['architektur','brand','business','event','landing','menschen','photo','realestate','startscreen','tools','video','web'];
+    const showImages = Array.isArray(parsed.showImages)
+      ? parsed.showImages.filter((t: unknown) => typeof t === 'string' && validTags.includes(t))
+      : undefined;
     return json(res, 200, {
       text: pickString(parsed.text, 'Ich bin kurz unsicher. Kannst du das nochmal anders formulieren?'),
-      gallery: ['web', 'photo', 'video'].includes(parsed.gallery) ? parsed.gallery : undefined,
+      showImages: showImages && showImages.length > 0 ? showImages : undefined,
       sendEmail: parsed.sendEmail && typeof parsed.sendEmail === 'object' ? parsed.sendEmail : undefined,
     });
   } catch (error) {

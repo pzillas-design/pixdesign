@@ -806,6 +806,7 @@ export function App() {
   const [stripReadyIds, setStripReadyIds] = useState<Set<string>>(new Set());
   const [composerText, setComposerText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiImages, setAiImages] = useState<string[] | null>(null);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastAiTextRef = useRef<string>('');
@@ -895,6 +896,7 @@ export function App() {
     const isAiHandled = !!(targetNode?.aiHandled);
     stripSwitchingRef.current = targetHasImages;
     focusedUserMessageIdRef.current = userMessage.id;
+    setAiImages(null);
     setMessages((current) => current.slice(0, fromIndex + 1));
     if (targetHasImages) {
       setActiveStripId('');
@@ -927,6 +929,10 @@ export function App() {
           : bubbleText;
         const aiResponse = await sendMessage(messageToSend);
         lastAiTextRef.current = aiResponse.text;
+        if (aiResponse.showImages?.length) {
+          const imgs = getMediaByTags(aiResponse.showImages);
+          if (imgs.length) setAiImages(imgs);
+        }
         if (aiResponse.sendEmail) {
           const result = await sendInquiry(aiResponse.sendEmail);
           const confirmText = result.ok ? 'Michael meldet sich in Kürze bei dir.' : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`;
@@ -992,10 +998,12 @@ export function App() {
     const aiResponse = await sendMessage(messageToSend);
     lastAiTextRef.current = aiResponse.text;
 
-    if (aiResponse.gallery) {
-      const aiMessage: Message = { id: createId('ai'), type: 'ai', text: aiResponse.text || '' };
-      setMessages((current) => current.map((m) => m.id === typingId ? aiMessage : m));
-    } else if (aiResponse.sendEmail) {
+    if (aiResponse.showImages?.length) {
+      const imgs = getMediaByTags(aiResponse.showImages);
+      if (imgs.length) setAiImages(imgs);
+    }
+
+    if (aiResponse.sendEmail) {
       const result = await sendInquiry(aiResponse.sendEmail);
       const confirmText = result.ok
         ? 'Michael meldet sich in Kürze bei dir.'
@@ -1088,7 +1096,8 @@ export function App() {
 
               // System message (node)
               const isFirst = message.id === 'system-start';
-              const nodeImages = isFirst ? startGalleryImages : flow[message.nodeId].images;
+              const baseImages = isFirst ? startGalleryImages : flow[message.nodeId].images;
+              const nodeImages = (message.id === activeStripId && aiImages) ? aiImages : baseImages;
               const node = { ...flow[message.nodeId], images: nodeImages };
               const nextMsg = messages[index + 1];
               const selectedChip = nextMsg?.type === 'user' ? nextMsg.text : null;

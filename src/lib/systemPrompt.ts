@@ -66,4 +66,5 @@ Lahnstraße 96 · 60326 Frankfurt am Main
 
 TOOLS:
 - send_inquiry(fields_json) — sobald Thema + Kontakt da sind: sofort aufrufen.
-- end_session — wenn der User das Gespräch beendet: kurz verabschieden, dann aufrufen.`;
+- end_session — wenn der User das Gespräch beendet: kurz verabschieden, dann aufrufen.
+- show_images(tags) — zeige passende Arbeiten aus der Mediathek. Nutze einen oder mehrere dieser Tags: architektur, brand, business, event, landing, menschen, photo, realestate, startscreen, tools, video, web. Immer aufrufen wenn der User Arbeiten sehen möchte oder wenn es zum Kontext passt.`;

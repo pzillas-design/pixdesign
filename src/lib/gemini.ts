@@ -19,6 +19,7 @@ export function resetSession() {
 export type AIResponse = {
   text: string;
   gallery?: GalleryCategory;
+  showImages?: string[];
   sendEmail?: Record<string, string>;
 };
 
