@@ -9,7 +9,7 @@ React + TypeScript + Vite. Portfolio-Chat für Michael Pzillas (PIX), Frankfurt.
 - **Animation:** `motion/react` (Framer Motion)
 - **AI:** Google Gemini (`@google/genai`) via `src/lib/gemini.ts`
 - **Notifications:** Telegram Bot API (kein E-Mail-Server)
-- **Deploy:** Vercel (auto-deploy bei Push auf `main` im Repo `pzillas-design/pzillas-site`)
+- **Deploy:** Vercel (auto-deploy bei Push auf `main` im Repo `pzillas-design/pixdesign`)
 - **Domain:** pixdesign.me → Vercel (A-Record `76.76.21.21`, CNAME `www → cname.vercel-dns.com`)
 
 ## Projektstruktur
