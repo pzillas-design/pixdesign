@@ -11,17 +11,17 @@ function fireConversion(label: string) {
 
 // Kontakt-Events — Labels nach Erstellung in Google Ads hier eintragen
 export function trackPhoneClick() {
-  fireConversion('AW-9121611929/PHONE_LABEL'); // ← Label aus Google Ads ersetzen
+  fireConversion('AW-627992730/cZ2PCPihorMcEJrRuasC');
 }
 
 export function trackWhatsAppClick() {
-  fireConversion('AW-9121611929/WHATSAPP_LABEL'); // ← Label aus Google Ads ersetzen
+  fireConversion('AW-627992730/0heXCN-XubMcEJrRuasC');
 }
 
 export function trackEmailClick() {
-  fireConversion('AW-9121611929/EMAIL_LABEL'); // ← Label aus Google Ads ersetzen
+  fireConversion('AW-627992730/-sxkCOKXubMcEJrRuasC');
 }
 
 export function trackInquirySent() {
-  fireConversion('AW-9121611929/INQUIRY_LABEL'); // ← Label aus Google Ads ersetzen
+  fireConversion('AW-627992730/XKE1COWXubMcEJrRuasC');
 }
