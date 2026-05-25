@@ -21,7 +21,7 @@ src/
   AdminPanel.tsx       # /admin — Mediathek-Tabelle (lokal, kein Login)
   CanvasEditor.tsx     # /canvas — visueller Chat-Baum-Editor
   lib/
-    gemini.ts          # Gemini-Chat, TTS, Telegram send_inquiry
+    gemini.ts          # Client wrapper; ruft nur /api/... auf, keine Secrets
     systemPrompt.ts    # System-Prompt für Chat- und Voice-Bot
     mediaLibrary.ts    # Statische Medienliste (ersetzt Supabase)
     useLiveVoice.ts    # Voice-Modus Hook
@@ -82,6 +82,21 @@ VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
 ```
 Auf Vercel via `npx vercel env add ...` setzen. Secrets für Gemini/Telegram dürfen nicht mit `VITE_` beginnen, weil Vite sie sonst ins Browser-Bundle schreibt.
+
+## Gemini-Modelle
+
+Wichtig: Modellnamen niemals raten. Vor jeder Änderung an Gemini-Modellcodes die offiziellen Quellen prüfen:
+
+- Gemini API Models: https://ai.google.dev/gemini-api/docs/models
+- Gemini API Release Notes: https://ai.google.dev/gemini-api/docs/changelog
+- Gemini API Deprecations: https://ai.google.dev/gemini-api/docs/deprecations
+
+Stand 2026-05-25 laut offizieller Models-Seite:
+- Text/Chat: `gemini-3.1-flash-lite` ist für PIX aktuell gewollt und hat vorher funktioniert.
+- TTS: `gemini-3.1-flash-tts-preview` ist für PIX aktuell gewollt.
+- Die Models-Seite listet außerdem neuere/andere Varianten wie Gemini 3.5 Flash; vor einem Wechsel prüfen, ob der konkrete API-Code für Gemini Developer API verfügbar ist und im Projekt-Key freigeschaltet ist.
+
+Für Produktion keine `latest`-Alias blind einsetzen. Die Google-Doku beschreibt `latest` als hot-swapped Alias; stabile, konkrete Modellcodes sind für PIX vorzuziehen.
 
 ## Deployment
 
