@@ -138,11 +138,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'web',
     aiHandled: true,
     text: 'Klar. Geht es eher um einen Auftritt, ein digitales Tool oder eine sehr fokussierte Landing Page?',
-    chips: [
-      { label: 'Business', targetId: 'web-business', icon: 'briefcase' },
-      { label: 'Tools', targetId: 'web-tools', icon: 'wrench' },
-      { label: 'Landing Pages', targetId: 'web-landing', icon: 'zap' },
-    ],
+    chips: [],
     images: [
       '/media/web_leasehub_cover.webp',
       '/media/web_crewting_cover.webp',
@@ -158,11 +154,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'photo',
     aiHandled: true,
     text: 'Professionelle Fotografie fuer jeden Anlass. Was moechtest du sehen?',
-    chips: [
-      { label: 'Business', targetId: 'photo-business', icon: 'briefcase' },
-      { label: 'Events', targetId: 'photo-events', icon: 'calendar' },
-      { label: 'Immobilien', targetId: 'photo-realestate', icon: 'home' },
-    ],
+    chips: [],
     images: [
       '/media/hd_12_event.jpg',
       '/media/hd_1_business.webp',
@@ -180,11 +172,7 @@ const flow: Record<NodeId, ChatNode> = {
     id: 'video',
     aiHandled: true,
     text: 'Bewegtbild, das nicht nur dekoriert. Welche Richtung passt zu deinem Projekt?',
-    chips: [
-      { label: 'Imagefilme', targetId: 'video-brand', icon: 'play' },
-      { label: 'Events', targetId: 'video-event', icon: 'clapperboard' },
-      { label: 'Immobilien', targetId: 'video-realestate', icon: 'home' },
-    ],
+    chips: [],
     images: ['/media/video-brand.webp', '/media/video-event.webp', '/media/video-drone.webp'],
     imageMeta: [
       { tag: 'Imagefilm', title: 'Imagefilm' },
