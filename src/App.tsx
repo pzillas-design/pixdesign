@@ -103,6 +103,7 @@ type ImageMeta = { tag?: string; title?: string; description?: string };
 type ChatNode = {
   id: NodeId;
   text: string;
+  aiHandled?: boolean; // skip static text, let AI agent respond instead
   chips?: Array<{ label: string; displayLabel?: string; targetId: NodeId; icon?: IconName; href?: string }>;
   action?: { label: string; href: string; icon?: IconName };
   images: string[];
@@ -135,6 +136,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   web: {
     id: 'web',
+    aiHandled: true,
     text: 'Klar. Geht es eher um einen Auftritt, ein digitales Tool oder eine sehr fokussierte Landing Page?',
     chips: [
       { label: 'Business', targetId: 'web-business', icon: 'briefcase' },
@@ -154,6 +156,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   photo: {
     id: 'photo',
+    aiHandled: true,
     text: 'Professionelle Fotografie fuer jeden Anlass. Was moechtest du sehen?',
     chips: [
       { label: 'Business', targetId: 'photo-business', icon: 'briefcase' },
@@ -175,6 +178,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   video: {
     id: 'video',
+    aiHandled: true,
     text: 'Bewegtbild, das nicht nur dekoriert. Welche Richtung passt zu deinem Projekt?',
     chips: [
       { label: 'Imagefilme', targetId: 'video-brand', icon: 'play' },
@@ -190,6 +194,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'web-business': {
     id: 'web-business',
+    aiHandled: true,
     text: 'Dann wuerde ich zuerst klaeren, was Menschen in den ersten zehn Sekunden verstehen muessen.',
     chips: [],
     images: ['/media/web_pms_cover.webp', '/media/web_leasehub_02-dahsboard.webp'],
@@ -200,6 +205,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'web-tools': {
     id: 'web-tools',
+    aiHandled: true,
     text: 'Wenn heute noch viel in Tabellen, Mails oder Bauchgefuehl steckt, kann ein kleines Tool sehr viel Ruhe reinbringen.',
     chips: [],
     images: ['/media/web_leasehub_02-dahsboard.webp', '/media/web_tososto_05-karte.webp'],
@@ -210,6 +216,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'web-landing': {
     id: 'web-landing',
+    aiHandled: true,
     text: 'Landing Pages sollten nicht viel erklaeren, sondern schnell die richtige Entscheidung leichter machen.',
     chips: [],
     images: ['/media/web_600kids_cover.webp', '/media/web_crewting_cover.webp'],
@@ -220,6 +227,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'photo-business': {
     id: 'photo-business',
+    aiHandled: true,
     text: 'Bei Business-Fotos geht es meistens um Vertrauen. Nicht zu steif, nicht zu inszeniert.',
     chips: [],
     images: ['/media/hd_1_business.webp', '/media/hd_17_business.webp', '/media/hd_28_business.jpg'],
@@ -231,6 +239,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'photo-events': {
     id: 'photo-events',
+    aiHandled: true,
     text: 'Events brauchen Bilder, die sich spaeter noch nach dem Abend anfuehlen.',
     chips: [],
     images: ['/media/hd_12_event.jpg', '/media/hd_15_event.webp', '/media/hd_29_event.jpg'],
@@ -242,6 +251,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'photo-realestate': {
     id: 'photo-realestate',
+    aiHandled: true,
     text: 'Klare Perspektiven, gutes Licht – Fotos die Räume wirken lassen. Shooting ab 80 €, Ergebnisse binnen 48 h. Wann soll ich kommen?',
     chips: [],
     images: ['/media/hd_2_immobilien.webp', '/media/hd_7_immobilien.jpg', '/media/hd_30_architektur.jpg'],
@@ -253,6 +263,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'video-brand': {
     id: 'video-brand',
+    aiHandled: true,
     text: 'Ein Imagefilm sollte ein Gefuehl setzen und schnell zeigen, warum es euch gibt.',
     chips: [],
     images: ['/media/video-brand.webp', '/media/video-story.webp', '/media/video-motion.webp'],
@@ -264,6 +275,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'video-event': {
     id: 'video-event',
+    aiHandled: true,
     text: 'Ein Eventfilm braucht Tempo, Stimmen und die kleinen Momente zwischen den Programmpunkten.',
     chips: [],
     images: ['/media/video-event.webp', '/media/video-konferenz.webp', '/media/hd_12_event.jpg'],
@@ -275,6 +287,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'video-realestate': {
     id: 'video-realestate',
+    aiHandled: true,
     text: 'Immobilienfilm darf ruhig sein. Ein guter Rundgang zeigt Orientierung und laesst Raeume wirken.',
     chips: [],
     images: ['/media/video-drone.webp', '/media/hd_2_immobilien.webp', '/media/hd_7_immobilien.jpg'],
@@ -286,6 +299,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-call': {
     id: 'contact-call',
+    aiHandled: true,
     text: 'Einfachste Option: anrufen.',
     action: { label: '0159 06401995', href: 'tel:+4915906401995', icon: 'phone' },
     chips: [],
@@ -293,6 +307,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-whatsapp': {
     id: 'contact-whatsapp',
+    aiHandled: true,
     text: 'Schreib mir direkt auf WhatsApp — ich antworte so schnell ich kann.',
     action: { label: 'WhatsApp öffnen', href: 'https://wa.me/4915906401995', icon: 'whatsapp' },
     chips: [],
@@ -300,6 +315,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'contact-mail': {
     id: 'contact-mail',
+    aiHandled: true,
     text: 'Erzähl mir was du brauchst und ich meld mich in Kürze bei dir.',
     action: { label: 'pzillas2@gmail.com', href: 'mailto:pzillas2@gmail.com', icon: 'mail' },
     chips: [],
@@ -863,7 +879,7 @@ export function App() {
     for (const msg of msgs) {
       if (msg.type === 'system') {
         const node = flow[msg.nodeId];
-        if (node) lines.push(`PIX: ${node.text}`);
+        if (node && !node.aiHandled && node.text) lines.push(`PIX: ${node.text}`);
       } else if (msg.type === 'user') {
         lines.push(`Besucher: ${msg.text}`);
       }
@@ -874,35 +890,56 @@ export function App() {
   function handleChipClick(label: string, targetId: NodeId, fromIndex: number, displayLabel?: string) {
     const bubbleText = displayLabel || label;
     const userMessage: Message = { id: createId('user'), type: 'user', text: bubbleText };
-    const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
-    const targetHasImages = !!(flow[targetId]?.images?.length);
+    const targetNode = flow[targetId];
+    const targetHasImages = !!(targetNode?.images?.length);
+    const isAiHandled = !!(targetNode?.aiHandled);
     stripSwitchingRef.current = targetHasImages;
     focusedUserMessageIdRef.current = userMessage.id;
-    // t=0: close old strip (only if new node has its own images)
     setMessages((current) => current.slice(0, fromIndex + 1));
     if (targetHasImages) {
       setActiveStripId('');
       setStripReadyIds(new Set());
     }
     resetSession();
-    // Let the user bubble enter while the old strip is closing; the new content waits for the strip.
     setTimeout(() => {
       setMessages((current) => [...current, userMessage]);
     }, targetHasImages ? 140 : 320);
-    setTimeout(() => {
+    setTimeout(async () => {
+      const systemMessage: Message = { id: createId('system'), type: 'system', nodeId: targetId };
       setMessages((current) => [...current, systemMessage]);
       setSliderNodeId(targetId);
-      // Only switch active strip if the new node actually has images
-      if (flow[targetId]?.images?.length) {
+      if (targetHasImages) {
         setActiveStripId(systemMessage.id);
-        requestAnimationFrame(() => {
-          settleMessageNearTop(userMessage.id);
-        });
+        requestAnimationFrame(() => settleMessageNearTop(userMessage.id));
       }
       window.setTimeout(() => {
         stripSwitchingRef.current = false;
         focusedUserMessageIdRef.current = null;
       }, targetHasImages ? STRIP_TRANSITION_MS : 0);
+
+      if (isAiHandled) {
+        const typingId = createId('typing');
+        setMessages((current) => [...current, { id: typingId, type: 'typing' }]);
+        setAiLoading(true);
+        const context = buildStaticContext(messages.slice(0, fromIndex + 1));
+        const messageToSend = context
+          ? `[Bisheriger Gesprächsverlauf:\n${context}\n]\n\nNachricht des Besuchers: ${bubbleText}`
+          : bubbleText;
+        const aiResponse = await sendMessage(messageToSend);
+        lastAiTextRef.current = aiResponse.text;
+        if (aiResponse.sendEmail) {
+          const result = await sendInquiry(aiResponse.sendEmail);
+          const confirmText = result.ok ? 'Michael meldet sich in Kürze bei dir.' : `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`;
+          const msgs: Message[] = [];
+          if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
+          if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
+          msgs.push({ id: createId('ai'), type: 'ai', text: confirmText });
+          setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
+        } else {
+          setMessages((current) => current.map((m) => m.id === typingId ? { id: createId('ai'), type: 'ai', text: aiResponse.text } : m));
+        }
+        setAiLoading(false);
+      }
     }, targetHasImages ? STRIP_TRANSITION_MS : 560);
   }
 
