@@ -242,7 +242,7 @@ const flow: Record<NodeId, ChatNode> = {
   },
   'photo-realestate': {
     id: 'photo-realestate',
-    text: 'Bei Immobilien wuerde ich ruhig bleiben. Klare Perspektiven, gutes Licht, kein Show-Effekt.',
+    text: 'Klare Perspektiven, gutes Licht – Fotos die Räume wirken lassen. Shooting ab 80 €, Ergebnisse binnen 48 h. Wann soll ich kommen?',
     chips: [],
     images: ['/media/hd_2_immobilien.webp', '/media/hd_7_immobilien.jpg', '/media/hd_30_architektur.jpg'],
     imageMeta: [
