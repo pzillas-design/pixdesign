@@ -1146,15 +1146,17 @@ export function App() {
                 >
                   <div className="system-row__spacer" />
                   <div className="system-content">
-                    <div className="system-bubble">
-                      <div>{node.text}</div>
-                      {node.action && (
-                        <a href={node.action.href} className="bubble-action-btn">
-                          {node.action.icon && <span className="chip-icon">{getIconComponent(node.action.icon)}</span>}
-                          <span>{node.action.label}</span>
-                        </a>
-                      )}
-                    </div>
+                    {(!node.aiHandled || node.action) && (
+                      <div className="system-bubble">
+                        {!node.aiHandled && <div>{node.text}</div>}
+                        {node.action && (
+                          <a href={node.action.href} className="bubble-action-btn">
+                            {node.action.icon && <span className="chip-icon">{getIconComponent(node.action.icon)}</span>}
+                            <span>{node.action.label}</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
                     {node.chips && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
