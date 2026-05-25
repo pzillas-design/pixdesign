@@ -113,6 +113,16 @@ npm run dev      # → http://localhost:4299
 
 Canvas-Editor: `/canvas`
 
+## Google Ads via Pipeboard MCP
+
+Das Pipeboard MCP hat ein hartes Call-Limit (z.B. 30 Calls pro Periode). Sparsam damit umgehen:
+
+- **Vor jedem Call abwägen:** Bringt dieser Call jetzt echten Mehrwert, oder kann ich die Info aus dem bisherigen Kontext ableiten?
+- **Calls bündeln:** Immer so viele unabhängige Operationen wie möglich in einem einzigen parallelen Block abfeuern (z.B. 3 Kampagnen gleichzeitig erstellen statt nacheinander).
+- **Kein Lookup was ich schon weiß:** Customer ID, Campaign IDs, Ad Group IDs aus dem bisherigen Gesprächsverlauf wiederverwenden — kein erneutes Abfragen wenn die Werte bekannt sind.
+- **Metriken nur wenn nötig:** `get_google_ads_campaign_metrics` kostet einen Call — nur aufrufen wenn der User explizit Performance-Daten sehen will.
+- **Limit im Blick behalten:** Bei ~25 verbrauchten Calls den User darauf hinweisen, dass das Limit sich nähert, bevor es knapp wird.
+
 ## Wichtige Konventionen
 
 - **Kein Supabase fuer die Live-Seite** — alles statisch oder via Telegram. Alte Admin/Supabase-Dateien sind Altlasten und duerfen nicht in den normalen Startseiten-Bundle importiert werden.
