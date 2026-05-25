@@ -571,7 +571,7 @@ img {
   gap: 8px;
   margin: clamp(8px, 2vh, 22px) 0 0;
   border-radius: 34px 34px 0 0;
-  background: #282426;
+  background: rgba(42, 37, 40, 0.34);
   padding: clamp(14px, 1.6vw, 22px) clamp(14px, 1.6vw, 22px) clamp(14px, 1.6vw, 22px)
     clamp(24px, 3vw, 42px);
   color: #fff;
@@ -579,8 +579,8 @@ img {
   contain: paint;
   transform: translateX(-50%) translateZ(0);
   overflow: hidden;
-  backdrop-filter: blur(42px) saturate(1.18);
-  -webkit-backdrop-filter: blur(42px) saturate(1.18);
+  backdrop-filter: blur(78px) saturate(1.28);
+  -webkit-backdrop-filter: blur(78px) saturate(1.28);
 }
 
 .chat-composer::before,
@@ -599,12 +599,12 @@ img {
   background-position: center;
   background-repeat: no-repeat;
   filter: blur(120px) saturate(1.9);
-  opacity: 0.34;
+  opacity: 0.22;
   transform: scale(1.08);
 }
 
 .chat-composer::after {
-  background: rgba(24, 20, 20, 0.72);
+  background: rgba(22, 18, 20, 0.28);
 }
 
 .voice-stop-btn {
