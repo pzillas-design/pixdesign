@@ -499,18 +499,19 @@ img {
 .sent-badge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 14px;
+  gap: 8px;
+  padding: 10px 20px;
   border-radius: 999px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
-  font-weight: 400;
+  background: #1a6cf5;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
   letter-spacing: 0.01em;
 }
 
 .theme-light .sent-badge {
-  color: rgba(0, 0, 0, 0.35);
+  background: #1a6cf5;
+  color: #fff;
 }
 
 .chat-gallery {

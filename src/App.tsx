@@ -946,10 +946,10 @@ export function App() {
           if (aiResponse.text) msgs.push({ id: createId('ai'), type: 'ai', text: aiResponse.text });
           if (result.ok) msgs.push({ id: createId('sent'), type: 'sent' });
           else msgs.push({ id: createId('ai'), type: 'ai', text: `Senden fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}` });
-          setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
+          setMessages((current) => current.filter(m => m.type !== 'images').map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
         } else {
           const msgs: Message[] = [...aiImgMsgs, { id: createId('ai'), type: 'ai', text: aiResponse.text }];
-          setMessages((current) => current.map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
+          setMessages((current) => current.filter(m => m.type !== 'images').map((m) => m.id === typingId ? msgs[0] : m).concat(msgs.slice(1)));
         }
         setAiLoading(false);
       }
