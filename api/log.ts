@@ -6,8 +6,11 @@ export default async function handler(req: any, res: any) {
   try {
     const body = await readBody(req);
     if (body.type === 'chat_session') {
+      // Backup in Vercel Runtime Logs — VOR Telegram. Filterbar mit "PIX-CHAT".
+      console.log('[PIX-CHAT]', pickString(body.text).slice(0, 3800));
       await telegramSend(`💬 Gespräch\n\n${pickString(body.text).slice(0, 3800)}`);
     } else if (body.type === 'error') {
+      console.error('[PIX-ERROR]', pickString(body.context), pickString(body.message), pickString(body.href));
       await telegramSend([
         'PIX Website Fehler',
         '',

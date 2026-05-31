@@ -11,9 +11,13 @@ export default async function handler(req: any, res: any) {
       if (val) lines.push(`${key}: ${val}`);
     }
     lines.push('', new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' }));
+    // Backup in Vercel Runtime Logs — VOR Telegram, damit der Lead auch
+    // gesichert ist falls Telegram ausfällt. Filterbar mit "PIX-INQUIRY".
+    console.log('[PIX-INQUIRY]', JSON.stringify(fields));
     await telegramSend(lines.join('\n'));
     return json(res, 200, { ok: true });
   } catch (error) {
+    console.error('[PIX-INQUIRY-FAIL]', error instanceof Error ? error.message : String(error));
     return json(res, 500, { ok: false, error: error instanceof Error ? error.message : String(error) });
   }
 }
