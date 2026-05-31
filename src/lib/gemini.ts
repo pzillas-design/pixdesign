@@ -1,4 +1,4 @@
-import { logError, logChat } from './logger';
+import { logError, logChat, isPageLeaving } from './logger';
 
 export type GalleryCategory = 'web' | 'photo' | 'video';
 
@@ -81,8 +81,13 @@ export async function sendMessage(message: string): Promise<AIResponse> {
     return response;
   } catch (error) {
     history.pop(); // remove failed user turn
+    // Bricht der Request ab, weil der User die Seite verlässt → kein echter
+    // Fehler, nicht an Telegram melden.
+    if (isPageLeaving()) {
+      return { text: '' };
+    }
     logError('sendMessage', error);
-    return { text: 'Es gab einen Verbindungsfehler. Bitte nochmal versuchen.' };
+    return { text: 'Verbindung kurz unterbrochen. Tipp deine Nachricht einfach nochmal ab — ich bin gleich wieder da.' };
   }
 }
 
@@ -99,6 +104,8 @@ export async function sendInquiry(fields: Record<string, string>): Promise<{ ok:
   try {
     return await postJson<{ ok: boolean; error?: string }>('/api/inquiry', { fields });
   } catch (error) {
+    // Seite wird verlassen → Abbruch ist kein echter Fehler
+    if (isPageLeaving()) return { ok: false, error: 'abgebrochen' };
     logError('sendInquiry', error);
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }

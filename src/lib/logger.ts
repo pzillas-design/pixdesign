@@ -8,6 +8,13 @@ type ChatEntry = { role: 'user' | 'agent'; text: string };
 let buffer: ChatEntry[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let unloadRegistered = false;
+let pageLeaving = false;
+
+// True, wenn der User die Seite gerade verlässt/in den Hintergrund schickt.
+// Wird genutzt um abgebrochene Requests (kein echter Fehler) nicht zu melden.
+export function isPageLeaving(): boolean {
+  return pageLeaving || (typeof document !== 'undefined' && document.visibilityState === 'hidden');
+}
 
 async function serverLog(payload: Record<string, unknown>): Promise<void> {
   try {
@@ -42,9 +49,10 @@ function ensureUnloadListener(): void {
   if (unloadRegistered || typeof window === 'undefined') return;
   unloadRegistered = true;
   window.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') flush();
+    if (document.visibilityState === 'hidden') { pageLeaving = true; flush(); }
+    else { pageLeaving = false; }
   });
-  window.addEventListener('pagehide', flush);
+  window.addEventListener('pagehide', () => { pageLeaving = true; flush(); });
 }
 
 export function logChat(role: 'user' | 'agent', text: string): void {
