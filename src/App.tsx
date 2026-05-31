@@ -851,6 +851,39 @@ export function App() {
     setRuntimeContext({ activeBranch: activeNode?.text ? activeNode.text.slice(0, 60) : sliderNodeId });
   }, [sliderNodeId, activeNode]);
 
+  // Hash routing
+  const HASH_ROUTES: Record<string, { label: string; targetId: NodeId; title: string; description: string }> = {
+    immobilien: {
+      label: 'Immobilienfotografie',
+      targetId: 'photo-realestate',
+      title: 'Immobilienfotografie Frankfurt · PIX',
+      description: 'Professionelle Immobilienfotos in Frankfurt. Shooting ab 80 €, Lieferung in 48 h. Kunden: Engel & Völkers, Vonovia, Von Poll.',
+    },
+    webdesign: {
+      label: 'Webdesign',
+      targetId: 'web',
+      title: 'Webdesign & Web-Apps Frankfurt · PIX',
+      description: 'Webdesign und Web-Apps aus Frankfurt. Keine Templates, keine Kompromisse — direkt, sauber, fertig.',
+    },
+    video: {
+      label: 'Video',
+      targetId: 'video',
+      title: 'Imagefilm & Videoproduktion Frankfurt · PIX',
+      description: 'Imagefilm, Eventfilm und Videoproduktion in Frankfurt. Inkl. Konzeption, Dreh, Schnitt, Color Grading.',
+    },
+  };
+  const [pendingHash] = useState(() => {
+    const hash = window.location.hash.slice(1).toLowerCase();
+    const route = HASH_ROUTES[hash];
+    if (route) {
+      document.title = route.title;
+      document.querySelector('meta[name="description"]')?.setAttribute('content', route.description);
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', route.title);
+      document.querySelector('meta[property="og:description"]')?.setAttribute('content', route.description);
+    }
+    return route ?? null;
+  });
+
   // Start gallery — hardcoded, served from /public via Vercel
   const startGalleryImages = [
     '/media/hd_6_immobilien.jpg',
@@ -922,6 +955,17 @@ export function App() {
       }
     }, targetHasImages ? STRIP_TRANSITION_MS : 560);
   }
+
+  // Trigger hash route chip once on mount
+  const hashTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (!pendingHash || hashTriggeredRef.current) return;
+    hashTriggeredRef.current = true;
+    const timer = window.setTimeout(() => {
+      handleChipClick(pendingHash.label, pendingHash.targetId, 0);
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   function resetToStartWithStripTransition() {
     if (resetToStartRef.current || activeStripId === 'system-start') return;
