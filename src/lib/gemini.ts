@@ -30,17 +30,40 @@ export type AIResponse = {
   sendEmail?: Record<string, string>;
 };
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(typeof data?.error === 'string' ? data.error : `HTTP ${res.status}`);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function postJson<T>(url: string, body: unknown, retries = 2): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    // Per-attempt timeout — fail fast & clean instead of hanging on a dead connection
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 29_000);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // 4xx = client error, don't retry; 5xx = server, retry
+        if (res.status < 500) {
+          throw new Error(typeof data?.error === 'string' ? data.error : `HTTP ${res.status}`);
+        }
+        lastError = new Error(typeof data?.error === 'string' ? data.error : `HTTP ${res.status}`);
+      } else {
+        return data as T;
+      }
+    } catch (error) {
+      // AbortError or network "Failed to fetch" — retryable
+      lastError = error;
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (attempt < retries) await sleep(600 * (attempt + 1));
   }
-  return data as T;
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 export async function sendMessage(message: string): Promise<AIResponse> {
