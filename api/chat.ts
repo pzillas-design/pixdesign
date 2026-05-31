@@ -83,7 +83,7 @@ export default async function handler(req: any, res: any) {
     let upstream: Response;
     try {
       upstream = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },

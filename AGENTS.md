@@ -83,18 +83,22 @@ Auf Vercel via `npx vercel env add ...` setzen. Secrets für Gemini/Telegram dü
 
 ## Gemini-Modelle
 
-Wichtig: Modellnamen niemals raten. Vor jeder Änderung an Gemini-Modellcodes die offiziellen Quellen prüfen:
+**WICHTIG: Modellnamen NIEMALS raten oder eigenständig ändern.** Der User wählt bewusst welches Modell eingesetzt wird.
 
-- Gemini API Models: https://ai.google.dev/gemini-api/docs/models
-- Gemini API Release Notes: https://ai.google.dev/gemini-api/docs/changelog
-- Gemini API Deprecations: https://ai.google.dev/gemini-api/docs/deprecations
+### Aktuell in Produktion
+- **Chat** (`api/chat.ts`): `gemini-3.5-flash` — neuestes stabiles Modell (Stand Mai 2026)
+- **TTS** (`api/tts.ts`): `gemini-3.1-flash-tts-preview`
 
-Stand 2026-05-25 laut offizieller Models-Seite:
-- Text/Chat: `gemini-3.1-flash-lite` ist für PIX aktuell gewollt und hat vorher funktioniert.
-- TTS: `gemini-3.1-flash-tts-preview` ist für PIX aktuell gewollt.
-- Die Models-Seite listet außerdem neuere/andere Varianten wie Gemini 3.5 Flash; vor einem Wechsel prüfen, ob der konkrete API-Code für Gemini Developer API verfügbar ist und im Projekt-Key freigeschaltet ist.
+### Wie das neueste Modell finden
+Vor *jeder* modellbezogenen Änderung: `mcp__gemini-api-docs__search_docs` mit Query `"latest Gemini models 2025"` aufrufen. Die Deprecation-Seite zeigt welche Modelle abgekündigt sind und was der Nachfolger ist:
+- Deprecations: https://ai.google.dev/gemini-api/docs/deprecations
+- Models-Übersicht: https://ai.google.dev/gemini-api/docs/models
 
-Für Produktion keine `latest`-Alias blind einsetzen. Die Google-Doku beschreibt `latest` als hot-swapped Alias; stabile, konkrete Modellcodes sind für PIX vorzuziehen.
+### Regeln
+- Modell **nur auf explizite Anweisung** ändern
+- Bei Deprecation-Warnung: recherchieren (s.o.) und dem User den empfohlenen Nachfolger vorschlagen — nicht eigenmächtig wechseln
+- `latest`-Alias nicht verwenden (hot-swapped, unkontrollierbar)
+- Deprekierte Modelle sind ein schlechter "Fix" — `gemini-2.0-flash-lite` war z.B. deprecated als es als "Fix" eingesetzt wurde
 
 ## Deployment
 
