@@ -3,6 +3,9 @@
   "outputDirectory": "dist",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "vite",
+  "functions": {
+    "api/*.ts": { "maxDuration": 30 }
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
