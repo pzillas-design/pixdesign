@@ -1,541 +1,212 @@
-import { useEffect, useRef, useState } from 'react';
-import { supabase, PixMedia, PixGallery } from './lib/supabase';
-import { Upload, Trash2, Save, Image, MessageSquare, Bot, X, Plus, Loader, Mail, Euro, Mic, LayoutGrid, Check } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Save, Check, Search } from 'lucide-react';
+import mediaData from './lib/media.json';
 
-type Tab = 'media' | 'galleries';
+type MediaItem = {
+  file: string;
+  thumb?: string;
+  tags: string[];
+  title?: string;
+  description?: string;
+};
 
-// ─────────────────────────────────────────────
-// Auth Gate
-// ─────────────────────────────────────────────
-function LoginScreen({ onLogin }: { onLogin: () => void }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    else onLogin();
-    setLoading(false);
-  }
-
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050505' }}>
-      <form onSubmit={handleSubmit} style={{ width: 340, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <img src="/pix-logo.svg" alt="PIX" style={{ width: 80, marginBottom: 16, filter: 'invert(1)' }} />
-        <h1 style={{ color: '#fff', fontSize: 20, fontWeight: 600, margin: 0 }}>Admin</h1>
-        {error && <p style={{ color: '#ff6b6b', fontSize: 14, margin: 0 }}>{error}</p>}
-        <input type="email" placeholder="E-Mail" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-        <input type="password" placeholder="Passwort" value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
-        <button type="submit" disabled={loading} style={primaryBtn}>
-          {loading ? 'Einloggen...' : 'Einloggen'}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Mediathek
-// ─────────────────────────────────────────────
-function MediaTab() {
-  const [media, setMedia] = useState<PixMedia[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [selected, setSelected] = useState<PixMedia | null>(null);
-  const [tagInput, setTagInput] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => { fetchMedia(); }, []);
-
-  async function fetchMedia() {
-    setLoading(true);
-    const { data } = await supabase.from('pix_media').select('*').order('created_at', { ascending: false });
-    setMedia(data ?? []);
-    setLoading(false);
-  }
-
-  async function handleUpload(files: FileList | null) {
-    if (!files?.length) return;
-    setUploading(true);
-    for (const file of Array.from(files)) {
-      const path = `${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from('pix-media').upload(path, file);
-      if (upErr) continue;
-      const { data: urlData } = supabase.storage.from('pix-media').getPublicUrl(path);
-      await supabase.from('pix_media').insert({ storage_path: path, url: urlData.publicUrl, filename: file.name, size_bytes: file.size });
-    }
-    await fetchMedia();
-    setUploading(false);
-  }
-
-  async function handleDelete(item: PixMedia) {
-    if (!confirm(`"${item.filename}" löschen?`)) return;
-    await supabase.storage.from('pix-media').remove([item.storage_path]);
-    await supabase.from('pix_media').delete().eq('id', item.id);
-    setSelected(null);
-    fetchMedia();
-  }
-
-  async function saveSelected() {
-    if (!selected) return;
-    await supabase.from('pix_media').update({ alt: selected.alt, description: selected.description, category: selected.category, tags: selected.tags }).eq('id', selected.id);
-    fetchMedia();
-  }
-
-  function addTag() {
-    const t = tagInput.trim();
-    if (!t || !selected || selected.tags.includes(t)) return;
-    setSelected({ ...selected, tags: [...selected.tags, t] });
-    setTagInput('');
-  }
-
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 300px' : '1fr', height: '100%' }}>
-      <div style={{ padding: 24, overflowY: 'auto' }}>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 24, alignItems: 'center' }}>
-          <button onClick={() => fileRef.current?.click()} disabled={uploading} style={primaryBtn}>
-            {uploading ? <Loader size={16} /> : <Upload size={16} />}
-            {uploading ? 'Uploading...' : 'Bilder hochladen'}
-          </button>
-          <input ref={fileRef} type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={e => handleUpload(e.target.files)} />
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{media.length} Bilder</span>
-        </div>
-        {loading ? (
-          <div style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', paddingTop: 60 }}>Lädt...</div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
-            {media.map(item => (
-              <div key={item.id} onClick={() => setSelected(item)} style={{ aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', border: selected?.id === item.id ? '2px solid #fff' : '2px solid transparent', background: '#111' }}>
-                <img src={item.url} alt={item.alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {selected && (
-        <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={labelStyle}>Details</span>
-            <button onClick={() => setSelected(null)} style={iconBtn}><X size={16} /></button>
-          </div>
-          <img src={selected.url} alt="" style={{ width: '100%', borderRadius: 10, objectFit: 'cover' }} />
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={labelStyle}>Projektname</span>
-            <input value={selected.alt} onChange={e => setSelected({ ...selected, alt: e.target.value })} placeholder="z.B. Leasehub Dashboard" style={inputStyle} />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={labelStyle}>Kategorie</span>
-            <select value={selected.category} onChange={e => setSelected({ ...selected, category: e.target.value as any })}
-              style={{ ...inputStyle, appearance: 'auto' }}>
-              <option value="">— wählen —</option>
-              <option value="web">Web</option>
-              <option value="photo">Foto</option>
-              <option value="video">Video</option>
-            </select>
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={labelStyle}>Projektbeschreibung</span>
-            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>Die AI nutzt diesen Text um über das Projekt zu sprechen</span>
-            <textarea value={selected.description} onChange={e => setSelected({ ...selected, description: e.target.value })}
-              placeholder="Kurze Beschreibung: was war das Ziel, was ist entstanden, besonderheiten..."
-              style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} />
-          </label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={labelStyle}>Tags</span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-              {selected.tags.map(t => (
-                <span key={t} style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 12, padding: '4px 10px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {t}
-                  <button onClick={() => setSelected({ ...selected, tags: selected.tags.filter(x => x !== t) })} style={{ background: 'none', color: 'rgba(255,255,255,0.5)', padding: 0, lineHeight: 1 }}><X size={12} /></button>
-                </span>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTag()} placeholder="Tag hinzufügen" style={{ ...inputStyle, flex: 1 }} />
-              <button onClick={addTag} style={iconBtn}><Plus size={16} /></button>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-            <button onClick={saveSelected} style={{ ...primaryBtn, flex: 1 }}><Save size={15} /> Speichern</button>
-            <button onClick={() => handleDelete(selected)} style={{ ...iconBtn, background: 'rgba(255,80,80,0.15)', color: '#ff6b6b' }}><Trash2 size={16} /></button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Knowledge Base Editor (single block)
-// ─────────────────────────────────────────────
-const DEFAULT_SYSTEM_PROMPT = `Du bist der KI-Assistent von PIX — Kreativagentur von Michael Pzillas in Frankfurt.
-
-Dein Job: schnell rausfinden was der Besucher braucht, kurz zeigen wie PIX helfen kann, und dann einen Lead generieren. Kein Smalltalk, keine langen Erklärungen. Direkt, knapp, mit ein bisschen Würze.
-
-ÜBER MICHAEL & PIX:
-Michael Pzillas macht seit Jahren Websites, Fotos und Videos für Unternehmen, Makler und Events in Frankfurt und Umgebung. Kein Agentur-Bullshit, kein Massengeschäft — saubere Arbeit, klare Kommunikation, faire Preise. PIX steht für Qualität ohne Theater.
-
-Was PIX macht:
-- Webdesign & Entwicklung: Unternehmenswebsites, Web-Apps, Tools, Landing Pages
-- Fotografie: Business-Portraits, Immobilien, Events, Architektur
-- Video: Imagefilme, Eventfilme, Immobilienvideos, Drohnenaufnahmen
-
-Was PIX nicht macht: Printdesign, Social-Media-Verwaltung, Massenaufträge.
-
-PREISE VIDEO (zzgl. MwSt.):
-Dreh: bis 4 Std. 400 € / jede weitere Std. 120 € / Fahrtkosten 0,50 €/km
-Schnitt: bis 4 Min. inkl. 2 Korrekturen 400 € / jede weitere Min. 100 € / Animation & extra Korrekturen 100 €/Std.
-
-PREISE IMMOBILIENFOTOS (zzgl. MwSt.):
-Shooting 80 € / Nachbearbeitung 8 €/Foto / Fahrtkosten 0,50 €/km
-Extras: Retusche 15 €/Foto / Homestaging 30 €/Foto / Drohne 60 € / 360°-Rundgang 120 €
-
-KONTAKT:
-Michael Pzillas · pzillas2@gmail.com · 0159 06401995
-Lahnstraße 96 · 60326 Frankfurt/M
-
-GESPRÄCHSFÜHRUNG:
-- Maximal 1–2 Sätze pro Antwort. Keine Aufzählungen wenn nicht nötig.
-- Frag direkt was der Besucher braucht — nicht drumherum reden.
-- Sobald klar ist was gewünscht ist: kurz zeigen wie PIX helfen kann, dann Lead abfragen.
-- Lead abfragen: nur Thema, Datum/Zeitraum und kurze Beschreibung. Mehr nicht. Dann Mail senden.
-- Wenn jemand Preise fragt: ehrlich antworten mit den Richtwerten oben.
-- Wenn etwas außerhalb des Angebots liegt: klar und freundlich absagen.`;
-
-function KnowledgeTab() {
-  const [prompt, setPrompt] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => { load(); }, []);
-
-  async function load() {
-    setLoading(true);
-    const { data } = await supabase.from('pix_knowledge').select('value').eq('key', 'system_prompt').single();
-    setPrompt(data?.value ?? DEFAULT_SYSTEM_PROMPT);
-    setLoading(false);
-  }
-
-  async function save() {
-    setSaving(true);
-    await supabase.from('pix_knowledge').upsert({ key: 'system_prompt', value: prompt }, { onConflict: 'key' });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  if (loading) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
-
-  return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, height: '100%', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>System-Prompt</h2>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '4px 0 0' }}>
-            Alles was die AI wissen soll — Charakter, Preise, Leistungen, Kontakt. Einfach reinschreiben.
-          </p>
-        </div>
-        <button onClick={save} disabled={saving} style={primaryBtn}>
-          <Save size={15} /> {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
-        </button>
-      </div>
-      <textarea
-        value={prompt}
-        onChange={e => setPrompt(e.target.value)}
-        style={{ ...inputStyle, flex: 1, resize: 'none', lineHeight: 1.6, fontFamily: 'monospace', fontSize: 13 }}
-      />
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Anfrage-Felder Editor
-// ─────────────────────────────────────────────
-type InquiryField = { id: string; label: string; question: string; required: boolean };
-
-const DEFAULT_FIELDS: InquiryField[] = [
-  { id: '1', label: 'Art', question: 'Was soll entstehen? (Webseite, Fotoshooting, Video...)', required: true },
-  { id: '2', label: 'Datum', question: 'Für welches Datum oder welchen Zeitraum planst du das?', required: true },
-  { id: '3', label: 'Ort', question: 'Wo soll es stattfinden?', required: false },
-  { id: '4', label: 'Beschreibung', question: 'Kurze Beschreibung des Projekts', required: true },
-  { id: '5', label: 'Name', question: 'Wie heißt du?', required: false },
-  { id: '6', label: 'E-Mail', question: 'Unter welcher E-Mail kann Michael dich erreichen?', required: false },
+// Erlaubte Tags — muss mit der validTags-Liste in api/chat.ts übereinstimmen.
+const ALL_TAGS = [
+  'web', 'photo', 'video', // Hauptkategorien
+  'architektur', 'brand', 'business', 'event', 'landing',
+  'menschen', 'realestate', 'startscreen', 'tools',
 ];
 
-function InquiryTab() {
-  const [fields, setFields] = useState<InquiryField[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
+const CATEGORY_TAGS = ['web', 'photo', 'video'];
 
-  useEffect(() => { load(); }, []);
+const IS_LOCAL = typeof window !== 'undefined' &&
+  ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
-  async function load() {
-    setLoading(true);
-    const { data } = await supabase.from('pix_inquiry_fields').select('*').order('sort_order');
-    setFields(data && data.length > 0 ? data : DEFAULT_FIELDS);
-    setLoading(false);
-  }
-
-  async function save() {
-    setSaving(true);
-    await supabase.from('pix_inquiry_fields').delete().neq('id', '');
-    await supabase.from('pix_inquiry_fields').insert(
-      fields.map((f, i) => ({ id: f.id, label: f.label, question: f.question, required: f.required, sort_order: i }))
-    );
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  function update(id: string, patch: Partial<InquiryField>) {
-    setFields(fs => fs.map(f => f.id === id ? { ...f, ...patch } : f));
-  }
-
-  function addField() {
-    setFields(fs => [...fs, { id: Date.now().toString(), label: '', question: '', required: false }]);
-  }
-
-  if (loading) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
-
-  return (
-    <div style={{ padding: 24, maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ color: '#fff', margin: 0, fontSize: 18 }}>Anfrage-Felder</h2>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '4px 0 0' }}>Welche Infos soll die AI abfragen bevor sie eine Anfrage abschickt?</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={addField} style={ghostBtn}><Plus size={15} /> Feld</button>
-          <button onClick={save} disabled={saving} style={primaryBtn}>
-            <Save size={15} /> {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
-          </button>
-        </div>
-      </div>
-
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>
-        Die AI stellt diese Fragen nacheinander im Chat. "Label" erscheint später in der E-Mail die du bekommst.
-      </p>
-
-      {fields.map((field, i) => (
-        <div key={field.id} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Feld {i + 1}</span>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                <input type="checkbox" checked={field.required} onChange={e => update(field.id, { required: e.target.checked })} />
-                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Pflichtfeld</span>
-              </label>
-              <button onClick={() => setFields(fs => fs.filter(f => f.id !== field.id))} style={{ ...iconBtn, width: 28, height: 28, color: '#ff6b6b', background: 'rgba(255,80,80,0.1)' }}><X size={13} /></button>
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 10 }}>
-            <div>
-              <div style={{ ...labelStyle, marginBottom: 6 }}>Label (in der Mail)</div>
-              <input value={field.label} onChange={e => update(field.id, { label: e.target.value })} placeholder="z.B. Datum" style={inputStyle} />
-            </div>
-            <div>
-              <div style={{ ...labelStyle, marginBottom: 6 }}>Frage die die AI stellt</div>
-              <input value={field.question} onChange={e => update(field.id, { question: e.target.value })} placeholder="z.B. Für welches Datum planst du das?" style={inputStyle} />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Galerien Tab
-// ─────────────────────────────────────────────
-function GalleryTab() {
-  const [galleries, setGalleries] = useState<PixGallery[]>([]);
-  const [media, setMedia] = useState<PixMedia[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => { load(); }, []);
-
-  async function load() {
-    setLoading(true);
-    const [{ data: g }, { data: m }] = await Promise.all([
-      supabase.from('pix_galleries').select('*').order('sort_order'),
-      supabase.from('pix_media').select('*').order('created_at', { ascending: false }),
-    ]);
-    setGalleries(g ?? []);
-    setMedia(m ?? []);
-    if (g?.length) setSelected(g[0].id);
-    setLoading(false);
-  }
-
-  const currentGallery = galleries.find(g => g.id === selected);
-
-  function toggleMedia(mediaId: string) {
-    if (!selected) return;
-    setGalleries(gs => gs.map(g => {
-      if (g.id !== selected) return g;
-      const ids = g.media_ids ?? [];
-      return { ...g, media_ids: ids.includes(mediaId) ? ids.filter(i => i !== mediaId) : [...ids, mediaId] };
-    }));
-  }
-
-  async function save() {
-    if (!currentGallery) return;
-    setSaving(true);
-    await supabase.from('pix_galleries').update({ media_ids: currentGallery.media_ids, updated_at: new Date().toISOString() }).eq('id', currentGallery.id);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  if (loading) return <div style={{ padding: 24, color: 'rgba(255,255,255,0.4)' }}>Lädt...</div>;
-
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', height: '100%', overflow: 'hidden' }}>
-      {/* Gallery slot list */}
-      <div style={{ borderRight: '1px solid rgba(255,255,255,0.08)', padding: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Galerien</div>
-        {galleries.map(g => (
-          <button key={g.id} onClick={() => setSelected(g.id)} style={{ textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: selected === g.id ? 'rgba(255,255,255,0.12)' : 'transparent', color: selected === g.id ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 13 }}>
-            {g.label}
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{g.media_ids?.length ?? 0} Bilder</div>
-          </button>
-        ))}
-      </div>
-
-      {/* Media picker */}
-      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ color: '#fff', fontWeight: 600 }}>{currentGallery?.label}</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>Bilder aus dem Medien-Pool auswählen</div>
-          </div>
-          <button onClick={save} disabled={saving} style={primaryBtn}>
-            <Save size={14} /> {saving ? 'Speichert...' : saved ? '✓ Gespeichert' : 'Speichern'}
-          </button>
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8, alignContent: 'start' }}>
-          {media.map(m => {
-            const isSelected = currentGallery?.media_ids?.includes(m.id) ?? false;
-            return (
-              <div key={m.id} onClick={() => toggleMedia(m.id)} style={{ position: 'relative', aspectRatio: '4/3', borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: isSelected ? '2px solid #fff' : '2px solid transparent', transition: 'border 0.15s' }}>
-                <img src={m.url} alt={m.filename} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelected ? 1 : 0.5, transition: 'opacity 0.15s' }} />
-                {isSelected && (
-                  <div style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Check size={12} color="#000" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Shell
-// ─────────────────────────────────────────────
 export function AdminPanel() {
-  const [tab, setTab] = useState<Tab>('galleries');
+  if (!IS_LOCAL) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: 24 }}>
+        <div>
+          <img src="/pix-logo.svg" alt="PIX" style={{ height: 24, filter: 'invert(1)', marginBottom: 16 }} />
+          <p>Die Mediathek-Verwaltung läuft nur lokal.<br />Starte <code style={{ color: '#4f8cff' }}>npm run dev</code> und öffne <code style={{ color: '#4f8cff' }}>localhost:4302/admin</code>.</p>
+        </div>
+      </div>
+    );
+  }
+  return <AdminEditor />;
+}
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'galleries', label: 'Galerien', icon: <LayoutGrid size={18} /> },
-    { id: 'media', label: 'Mediathek', icon: <Image size={18} /> },
-  ];
+function AdminEditor() {
+  const [items, setItems] = useState<MediaItem[]>(() =>
+    (mediaData as MediaItem[]).map((m) => ({ ...m, tags: [...m.tags] }))
+  );
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [query, setQuery] = useState('');
+  const [filterTag, setFilterTag] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    return items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => {
+        if (filterTag && !item.tags.includes(filterTag)) return false;
+        if (!query.trim()) return true;
+        const q = query.toLowerCase();
+        return (
+          item.file.toLowerCase().includes(q) ||
+          (item.title ?? '').toLowerCase().includes(q) ||
+          (item.description ?? '').toLowerCase().includes(q) ||
+          item.tags.some((t) => t.includes(q))
+        );
+      });
+  }, [items, query, filterTag]);
+
+  function update(index: number, patch: Partial<MediaItem>) {
+    setItems((cur) => cur.map((it, i) => (i === index ? { ...it, ...patch } : it)));
+    setDirty(true);
+    setSaved(false);
+  }
+
+  function toggleTag(index: number, tag: string) {
+    const item = items[index];
+    const has = item.tags.includes(tag);
+    update(index, { tags: has ? item.tags.filter((t) => t !== tag) : [...item.tags, tag] });
+  }
+
+  async function save() {
+    setSaving(true);
+    try {
+      const res = await fetch('/__save-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(items),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Fehler');
+      setDirty(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      alert(
+        'Speichern fehlgeschlagen: ' + (err instanceof Error ? err.message : String(err)) +
+        '\n\nLäuft der lokale Dev-Server? (npm run dev) — Speichern geht nur lokal.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', height: '100vh', background: '#050505', color: '#fff', fontFamily: 'inherit' }}>
-      <aside style={{ borderRight: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', padding: 20, gap: 6 }}>
-        <img src="/pix-logo.svg" alt="PIX" style={{ width: 64, marginBottom: 24, filter: 'invert(1)' }} />
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: tab === t.id ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === t.id ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 14, fontWeight: tab === t.id ? 600 : 400, textAlign: 'left', border: 'none', cursor: 'pointer', width: '100%' }}>
-            {t.icon} {t.label}
+    <div style={st.page}>
+      <header style={st.header}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/pix-logo.svg" alt="PIX" style={{ height: 22, filter: 'invert(1)' }} />
+          <span style={st.headerTitle}>Mediathek</span>
+          <span style={st.count}>{items.length} Medien</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={st.searchWrap}>
+            <Search size={15} color="#888" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Suchen…"
+              style={st.search}
+            />
+          </div>
+          <button onClick={save} disabled={!dirty || saving} style={{ ...st.saveBtn, opacity: dirty && !saving ? 1 : 0.5 }}>
+            {saved ? <Check size={16} /> : <Save size={16} />}
+            {saving ? 'Speichern…' : saved ? 'Gespeichert' : 'Speichern'}
+          </button>
+        </div>
+      </header>
+
+      <div style={st.filterBar}>
+        <button onClick={() => setFilterTag(null)} style={chipStyle(filterTag === null, false)}>Alle</button>
+        {ALL_TAGS.map((tag) => (
+          <button key={tag} onClick={() => setFilterTag(filterTag === tag ? null : tag)} style={chipStyle(filterTag === tag, CATEGORY_TAGS.includes(tag))}>
+            {tag}
           </button>
         ))}
-      </aside>
+      </div>
 
-      <main style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {tab === 'galleries' && <GalleryTab />}
-        {tab === 'media' && <MediaTab />}
-      </main>
+      <div style={st.grid}>
+        {filtered.map(({ item, index }) => (
+          <div key={item.file} style={st.card}>
+            <div style={st.thumbWrap}>
+              <img src={item.thumb || item.file} alt={item.title || ''} style={st.thumb} loading="lazy" />
+            </div>
+            <div style={st.cardBody}>
+              <code style={st.file}>{item.file.replace('/media/', '')}</code>
+              <input
+                value={item.title ?? ''}
+                onChange={(e) => update(index, { title: e.target.value })}
+                placeholder="Titel"
+                style={st.titleInput}
+              />
+              <textarea
+                value={item.description ?? ''}
+                onChange={(e) => update(index, { description: e.target.value })}
+                placeholder="Beschreibung"
+                rows={2}
+                style={st.descInput}
+              />
+              <div style={st.tagRow}>
+                {ALL_TAGS.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(index, tag)}
+                    style={chipStyle(item.tags.includes(tag), CATEGORY_TAGS.includes(tag))}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────
-const inputStyle: React.CSSProperties = {
-  border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: 10,
-  background: 'rgba(255,255,255,0.06)',
-  color: '#fff',
-  padding: '10px 14px',
-  fontSize: 14,
-  fontFamily: 'inherit',
-  outline: 'none',
-  width: '100%',
-  boxSizing: 'border-box',
-};
+function chipStyle(active: boolean, category: boolean): React.CSSProperties {
+  return {
+    fontSize: 12,
+    padding: '4px 10px',
+    borderRadius: 999,
+    border: '1px solid ' + (active ? (category ? '#4f8cff' : '#3a3a3a') : '#262626'),
+    background: active ? (category ? '#1a3a6b' : '#2a2a2a') : 'transparent',
+    color: active ? '#fff' : '#777',
+    cursor: 'pointer',
+    fontWeight: active ? 600 : 400,
+    transition: 'all 0.12s',
+  };
+}
 
-const primaryBtn: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 8,
-  padding: '10px 18px',
-  borderRadius: 999,
-  background: '#fff',
-  color: '#050505',
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: 'pointer',
-  border: 'none',
-  fontFamily: 'inherit',
-  flexShrink: 0,
-};
-
-const iconBtn: React.CSSProperties = {
-  display: 'grid',
-  placeItems: 'center',
-  width: 38,
-  height: 38,
-  borderRadius: 999,
-  background: 'rgba(255,255,255,0.1)',
-  color: '#fff',
-  cursor: 'pointer',
-  border: 'none',
-  flexShrink: 0,
-};
-
-const ghostBtn: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 8,
-  padding: '8px 14px',
-  borderRadius: 999,
-  background: 'rgba(255,255,255,0.07)',
-  color: 'rgba(255,255,255,0.6)',
-  fontSize: 13,
-  cursor: 'pointer',
-  border: 'none',
-  fontFamily: 'inherit',
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.4)',
+const st: Record<string, React.CSSProperties> = {
+  page: { minHeight: '100vh', background: '#0a0a0a', color: '#eee', fontFamily: 'system-ui, sans-serif', paddingBottom: 80 },
+  header: {
+    position: 'sticky', top: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '14px 24px', background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1c1c1c',
+  },
+  headerTitle: { fontSize: 16, fontWeight: 600 },
+  count: { fontSize: 13, color: '#666' },
+  searchWrap: { display: 'flex', alignItems: 'center', gap: 6, background: '#161616', border: '1px solid #262626', borderRadius: 8, padding: '6px 10px' },
+  search: { background: 'transparent', border: 'none', outline: 'none', color: '#eee', fontSize: 14, width: 160 },
+  saveBtn: {
+    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none',
+    background: '#1a6cf5', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+  },
+  filterBar: { display: 'flex', flexWrap: 'wrap', gap: 6, padding: '12px 24px', borderBottom: '1px solid #161616' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16, padding: 24 },
+  card: { display: 'flex', flexDirection: 'column', background: '#131313', border: '1px solid #1f1f1f', borderRadius: 12, overflow: 'hidden' },
+  thumbWrap: { width: '100%', height: 180, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  thumb: { width: '100%', height: '100%', objectFit: 'cover' },
+  cardBody: { padding: 12, display: 'flex', flexDirection: 'column', gap: 8 },
+  file: { fontSize: 11, color: '#666', wordBreak: 'break-all' },
+  titleInput: { background: '#1a1a1a', border: '1px solid #262626', borderRadius: 6, padding: '7px 10px', color: '#fff', fontSize: 14, outline: 'none' },
+  descInput: { background: '#1a1a1a', border: '1px solid #262626', borderRadius: 6, padding: '7px 10px', color: '#ccc', fontSize: 13, outline: 'none', resize: 'vertical', fontFamily: 'inherit' },
+  tagRow: { display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 2 },
 };
