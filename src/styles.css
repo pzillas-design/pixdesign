@@ -781,6 +781,11 @@ img {
   cursor: pointer;
 }
 
+/* Einzelnes Bild mittig statt links-bündig */
+.image-strip__item:only-child {
+  margin-inline: auto;
+}
+
 .image-strip__item img {
   height: 100%;
   width: auto;

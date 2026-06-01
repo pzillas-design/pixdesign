@@ -417,8 +417,10 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
   const images = node.images ?? [];
   const imageKey = images.join('|');
   const meta = node.imageMeta ?? [];
-  // Triple for infinite scroll
-  const tripled = useMemo(() => [...images, ...images, ...images], [imageKey]);
+  const singleImage = images.length <= 1;
+  // Triple for infinite scroll — aber nur bei mehreren Bildern.
+  // Ein einzelnes Bild wird NICHT wiederholt (sonst 3x dasselbe).
+  const tripled = useMemo(() => (singleImage ? images : [...images, ...images, ...images]), [imageKey, singleImage]);
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -476,6 +478,15 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
     const strip = stripRef.current;
     const track = trackRef.current;
     if (!strip || !track) return;
+    // Einzelbild: kein Endlos-Scroll, einfach am Anfang stehen lassen.
+    if (singleImage) {
+      strip.scrollLeft = 0;
+      scrollAccRef.current = 0;
+      positionedRef.current = true;
+      updateCenter();
+      markStripReady();
+      return;
+    }
     const oneThird = track.scrollWidth / 3;
     if (oneThird <= 0) {
       requestAnimationFrame(positionStrip);
@@ -486,7 +497,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
     positionedRef.current = true;
     updateCenter();
     markStripReady();
-  }, [markStripReady, updateCenter]);
+  }, [markStripReady, updateCenter, singleImage]);
 
   const markImagesLoaded = useCallback(() => {
     imagesLoadedRef.current = true;
@@ -530,6 +541,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
 
     function onScroll() {
       if (!strip || !track || jumpingRef.current) return;
+      if (singleImage) { scheduleCenterUpdate(); return; }
       const oneThird = track.scrollWidth / 3;
       if (strip.scrollLeft < oneThird * 0.25) {
         jumpingRef.current = true;
@@ -552,6 +564,7 @@ function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCente
     const strip = stripRef.current;
     if (!strip) return;
     const stripEl = strip;
+    if (singleImage) return; // Einzelbild: kein Auto-Scroll
     const speed = 10.5; // px per second
     // Track float position ourselves so sub-pixel moves are smooth
     scrollAccRef.current = stripEl.scrollLeft;
