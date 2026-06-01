@@ -151,9 +151,9 @@ export const mediaLibrary: MediaItem[] = [
   {
     file: '/media/moos.webp',
     thumb: '/media/thumb_moos.webp',
-    tags: ['photo', 'architektur'],
-    title: 'Architekturfotografie Moos',
-    description: 'Detailreiche Architekturfotografie von natürlichen Oberflächenstrukturen.',
+    tags: ['web', 'tools'],
+    title: 'EV Moosburg',
+    description: 'Ticketing- und Spielplan-Plattform für den Eishockeyverein EV Moosburg.',
   },
   {
     file: '/media/booking.webp',
