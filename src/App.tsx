@@ -934,7 +934,9 @@ export function App() {
         const aiResponse = await sendMessage(bubbleText);
         lastAiTextRef.current = aiResponse.text;
         const aiImgMsgs: Message[] = [];
-        if (aiResponse.showImages?.length) {
+        // Hat der angeklickte Node schon einen eigenen kuratierten Streifen,
+        // KEINEN zweiten KI-Streifen dazupacken → sonst Dopplung nach Chip-Klick.
+        if (!targetHasImages && aiResponse.showImages?.length) {
           const imgs = getMediaByTags(aiResponse.showImages);
           if (imgs.length) aiImgMsgs.push({ id: createId('images'), type: 'images', images: imgs });
         }
