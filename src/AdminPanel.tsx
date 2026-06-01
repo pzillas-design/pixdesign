@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Save, Check, Search } from 'lucide-react';
+import { Check, Search } from 'lucide-react';
 import mediaData from './lib/media.json';
 
 type MediaItem = {
@@ -11,13 +11,14 @@ type MediaItem = {
 };
 
 // Erlaubte Tags — muss mit der validTags-Liste in api/chat.ts übereinstimmen.
-const ALL_TAGS = [
-  'web', 'photo', 'video', // Hauptkategorien
+const CATEGORY_TAGS = ['web', 'photo', 'video'];
+const CONTENT_TAGS = [
   'architektur', 'brand', 'business', 'event', 'landing',
   'menschen', 'realestate', 'startscreen', 'tools',
 ];
+const ALL_TAGS = [...CATEGORY_TAGS, ...CONTENT_TAGS];
 
-const CATEGORY_TAGS = ['web', 'photo', 'video'];
+const ACCENT = '#0a84ff'; // Apple system blue (dark)
 
 const IS_LOCAL = typeof window !== 'undefined' &&
   ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -25,10 +26,10 @@ const IS_LOCAL = typeof window !== 'undefined' &&
 export function AdminPanel() {
   if (!IS_LOCAL) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif', textAlign: 'center', padding: 24 }}>
+      <div style={st.gate}>
         <div>
           <img src="/pix-logo.svg" alt="PIX" style={{ height: 24, filter: 'invert(1)', marginBottom: 16 }} />
-          <p>Die Mediathek-Verwaltung läuft nur lokal.<br />Starte <code style={{ color: '#4f8cff' }}>npm run dev</code> und öffne <code style={{ color: '#4f8cff' }}>localhost:4302/admin</code>.</p>
+          <p>Die Mediathek-Verwaltung läuft nur lokal.<br />Starte <code style={{ color: ACCENT }}>npm run dev</code> und öffne <code style={{ color: ACCENT }}>localhost:4302/admin</code>.</p>
         </div>
       </div>
     );
@@ -40,6 +41,7 @@ function AdminEditor() {
   const [items, setItems] = useState<MediaItem[]>(() =>
     (mediaData as MediaItem[]).map((m) => ({ ...m, tags: [...m.tags] }))
   );
+  const [selected, setSelected] = useState<number | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -61,6 +63,8 @@ function AdminEditor() {
         );
       });
   }, [items, query, filterTag]);
+
+  const sel = selected !== null ? items[selected] : null;
 
   function update(index: number, patch: Partial<MediaItem>) {
     setItems((cur) => cur.map((it, i) => (i === index ? { ...it, ...patch } : it)));
@@ -88,10 +92,8 @@ function AdminEditor() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
-      alert(
-        'Speichern fehlgeschlagen: ' + (err instanceof Error ? err.message : String(err)) +
-        '\n\nLäuft der lokale Dev-Server? (npm run dev) — Speichern geht nur lokal.'
-      );
+      alert('Speichern fehlgeschlagen: ' + (err instanceof Error ? err.message : String(err)) +
+        '\n\nLäuft der lokale Dev-Server? (npm run dev)');
     } finally {
       setSaving(false);
     }
@@ -99,114 +101,146 @@ function AdminEditor() {
 
   return (
     <div style={st.page}>
+      {/* Top bar */}
       <header style={st.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src="/pix-logo.svg" alt="PIX" style={{ height: 22, filter: 'invert(1)' }} />
-          <span style={st.headerTitle}>Mediathek</span>
-          <span style={st.count}>{items.length} Medien</span>
+        <div style={st.headerLeft}>
+          <img src="/pix-logo.svg" alt="PIX" style={{ height: 18, filter: 'invert(1)' }} />
+          <span style={st.title}>Mediathek</span>
+          <span style={st.count}>{filtered.length === items.length ? `${items.length}` : `${filtered.length} / ${items.length}`}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={st.searchWrap}>
-            <Search size={15} color="#888" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Suchen…"
-              style={st.search}
-            />
-          </div>
-          <button onClick={save} disabled={!dirty || saving} style={{ ...st.saveBtn, opacity: dirty && !saving ? 1 : 0.5 }}>
-            {saved ? <Check size={16} /> : <Save size={16} />}
-            {saving ? 'Speichern…' : saved ? 'Gespeichert' : 'Speichern'}
-          </button>
+        <div style={st.searchWrap}>
+          <Search size={14} color="#86868b" strokeWidth={2.2} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Suchen" style={st.search} />
         </div>
+        <button onClick={save} disabled={!dirty || saving} style={{ ...st.saveBtn, opacity: dirty && !saving ? 1 : 0.45 }}>
+          {saved ? <Check size={15} strokeWidth={2.5} /> : null}
+          {saving ? 'Sichern…' : saved ? 'Gesichert' : 'Sichern'}
+        </button>
       </header>
 
+      {/* Filter pills */}
       <div style={st.filterBar}>
-        <button onClick={() => setFilterTag(null)} style={chipStyle(filterTag === null, false)}>Alle</button>
+        <button onClick={() => setFilterTag(null)} style={pill(filterTag === null, false, 'filter')}>Alle</button>
         {ALL_TAGS.map((tag) => (
-          <button key={tag} onClick={() => setFilterTag(filterTag === tag ? null : tag)} style={chipStyle(filterTag === tag, CATEGORY_TAGS.includes(tag))}>
+          <button key={tag} onClick={() => setFilterTag(filterTag === tag ? null : tag)} style={pill(filterTag === tag, CATEGORY_TAGS.includes(tag), 'filter')}>
             {tag}
           </button>
         ))}
       </div>
 
-      <div style={st.grid}>
-        {filtered.map(({ item, index }) => (
-          <div key={item.file} style={st.card}>
-            <div style={st.thumbWrap}>
-              <img src={item.thumb || item.file} alt={item.title || ''} style={st.thumb} loading="lazy" />
-            </div>
-            <div style={st.cardBody}>
-              <code style={st.file}>{item.file.replace('/media/', '')}</code>
-              <input
-                value={item.title ?? ''}
-                onChange={(e) => update(index, { title: e.target.value })}
-                placeholder="Titel"
-                style={st.titleInput}
-              />
-              <textarea
-                value={item.description ?? ''}
-                onChange={(e) => update(index, { description: e.target.value })}
-                placeholder="Beschreibung"
-                rows={2}
-                style={st.descInput}
-              />
+      {/* Body: grid + inspector */}
+      <div style={st.body}>
+        <div style={st.gridScroll}>
+          <div style={st.grid}>
+            {filtered.map(({ item, index }) => {
+              const isSel = selected === index;
+              const cat = item.tags.find((t) => CATEGORY_TAGS.includes(t));
+              return (
+                <button key={item.file} onClick={() => setSelected(index)} style={{ ...st.tile, outline: isSel ? `2.5px solid ${ACCENT}` : '2.5px solid transparent' }}>
+                  <img src={item.thumb || item.file} alt="" loading="lazy" style={st.tileImg} />
+                  <div style={st.tileBar}>
+                    <span style={st.tileTitle}>{item.title || item.file.replace('/media/', '')}</span>
+                    {cat && <span style={{ ...st.dot, background: catColor(cat) }} />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Inspector */}
+        <aside style={st.inspector}>
+          {sel === null ? (
+            <div style={st.inspectorEmpty}>Wähle ein Medium</div>
+          ) : (
+            <div style={st.inspectorInner}>
+              <div style={st.previewWrap}>
+                <img src={sel.file} alt="" style={st.preview} />
+              </div>
+              <code style={st.path}>{sel.file.replace('/media/', '')}</code>
+
+              <label style={st.label}>Titel</label>
+              <input value={sel.title ?? ''} onChange={(e) => update(selected!, { title: e.target.value })} placeholder="Titel" style={st.input} />
+
+              <label style={st.label}>Beschreibung</label>
+              <textarea value={sel.description ?? ''} onChange={(e) => update(selected!, { description: e.target.value })} placeholder="Beschreibung" rows={3} style={st.textarea} />
+
+              <label style={st.label}>Kategorie</label>
               <div style={st.tagRow}>
-                {ALL_TAGS.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(index, tag)}
-                    style={chipStyle(item.tags.includes(tag), CATEGORY_TAGS.includes(tag))}
-                  >
-                    {tag}
-                  </button>
+                {CATEGORY_TAGS.map((tag) => (
+                  <button key={tag} onClick={() => toggleTag(selected!, tag)} style={pill(sel.tags.includes(tag), true, 'edit')}>{tag}</button>
+                ))}
+              </div>
+
+              <label style={st.label}>Inhalt</label>
+              <div style={st.tagRow}>
+                {CONTENT_TAGS.map((tag) => (
+                  <button key={tag} onClick={() => toggleTag(selected!, tag)} style={pill(sel.tags.includes(tag), false, 'edit')}>{tag}</button>
                 ))}
               </div>
             </div>
-          </div>
-        ))}
+          )}
+        </aside>
       </div>
     </div>
   );
 }
 
-function chipStyle(active: boolean, category: boolean): React.CSSProperties {
+function catColor(tag: string): string {
+  return tag === 'web' ? ACCENT : tag === 'photo' ? '#30d158' : '#ff9f0a';
+}
+
+function pill(active: boolean, category: boolean, ctx: 'filter' | 'edit'): React.CSSProperties {
+  const accent = category ? ACCENT : '#48484a';
   return {
-    fontSize: 12,
-    padding: '4px 10px',
+    fontSize: ctx === 'filter' ? 12.5 : 12,
+    lineHeight: 1,
+    padding: ctx === 'filter' ? '6px 11px' : '6px 10px',
     borderRadius: 999,
-    border: '1px solid ' + (active ? (category ? '#4f8cff' : '#3a3a3a') : '#262626'),
-    background: active ? (category ? '#1a3a6b' : '#2a2a2a') : 'transparent',
-    color: active ? '#fff' : '#777',
+    border: '1px solid ' + (active ? accent : 'rgba(255,255,255,0.10)'),
+    background: active ? (category ? 'rgba(10,132,255,0.22)' : 'rgba(255,255,255,0.10)') : 'transparent',
+    color: active ? '#fff' : '#86868b',
     cursor: 'pointer',
-    fontWeight: active ? 600 : 400,
-    transition: 'all 0.12s',
+    fontWeight: active ? 590 : 420,
+    letterSpacing: '-0.01em',
+    transition: 'all 0.13s ease',
+    fontFamily: 'inherit',
   };
 }
 
+const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif';
+
 const st: Record<string, React.CSSProperties> = {
-  page: { minHeight: '100vh', background: '#0a0a0a', color: '#eee', fontFamily: 'system-ui, sans-serif', paddingBottom: 80 },
-  header: {
-    position: 'sticky', top: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '14px 24px', background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1c1c1c',
-  },
-  headerTitle: { fontSize: 16, fontWeight: 600 },
-  count: { fontSize: 13, color: '#666' },
-  searchWrap: { display: 'flex', alignItems: 'center', gap: 6, background: '#161616', border: '1px solid #262626', borderRadius: 8, padding: '6px 10px' },
-  search: { background: 'transparent', border: 'none', outline: 'none', color: '#eee', fontSize: 14, width: 160 },
-  saveBtn: {
-    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none',
-    background: '#1a6cf5', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-  },
-  filterBar: { display: 'flex', flexWrap: 'wrap', gap: 6, padding: '12px 24px', borderBottom: '1px solid #161616' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16, padding: 24 },
-  card: { display: 'flex', flexDirection: 'column', background: '#131313', border: '1px solid #1f1f1f', borderRadius: 12, overflow: 'hidden' },
-  thumbWrap: { width: '100%', height: 180, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  thumb: { width: '100%', height: '100%', objectFit: 'cover' },
-  cardBody: { padding: 12, display: 'flex', flexDirection: 'column', gap: 8 },
-  file: { fontSize: 11, color: '#666', wordBreak: 'break-all' },
-  titleInput: { background: '#1a1a1a', border: '1px solid #262626', borderRadius: 6, padding: '7px 10px', color: '#fff', fontSize: 14, outline: 'none' },
-  descInput: { background: '#1a1a1a', border: '1px solid #262626', borderRadius: 6, padding: '7px 10px', color: '#ccc', fontSize: 13, outline: 'none', resize: 'vertical', fontFamily: 'inherit' },
-  tagRow: { display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 2 },
+  gate: { minHeight: '100vh', background: '#000', color: '#86868b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, textAlign: 'center', padding: 24, lineHeight: 1.6 },
+  page: { height: '100vh', display: 'flex', flexDirection: 'column', background: '#000', color: '#f5f5f7', fontFamily: FONT, overflow: 'hidden' },
+
+  header: { display: 'flex', alignItems: 'center', gap: 16, padding: '0 18px', height: 52, flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(20,20,22,0.72)', backdropFilter: 'saturate(180%) blur(20px)' },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: 10 },
+  title: { fontSize: 15, fontWeight: 600, letterSpacing: '-0.02em' },
+  count: { fontSize: 12.5, color: '#86868b', fontVariantNumeric: 'tabular-nums' },
+  searchWrap: { display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '7px 11px', flex: 1, maxWidth: 280, marginLeft: 'auto' },
+  search: { background: 'transparent', border: 'none', outline: 'none', color: '#f5f5f7', fontSize: 13.5, width: '100%', fontFamily: FONT },
+  saveBtn: { display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: 'none', background: ACCENT, color: '#fff', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', letterSpacing: '-0.01em', fontFamily: FONT },
+
+  filterBar: { display: 'flex', flexWrap: 'wrap', gap: 6, padding: '10px 18px', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.06)' },
+
+  body: { display: 'flex', flex: 1, minHeight: 0 },
+  gridScroll: { flex: 1, overflowY: 'auto', padding: 16 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 10 },
+  tile: { position: 'relative', padding: 0, border: 'none', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', background: '#141416', aspectRatio: '1 / 1', display: 'block', outlineOffset: '-2.5px' },
+  tileImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  tileBar: { position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', gap: 6, padding: '14px 8px 6px', background: 'linear-gradient(to top, rgba(0,0,0,0.78), transparent)' },
+  tileTitle: { fontSize: 10.5, color: '#fff', fontWeight: 500, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' },
+  dot: { width: 7, height: 7, borderRadius: 999, flexShrink: 0, boxShadow: '0 0 0 1.5px rgba(0,0,0,0.4)' },
+
+  inspector: { width: 320, flexShrink: 0, borderLeft: '1px solid rgba(255,255,255,0.08)', background: '#0d0d0f', overflowY: 'auto' },
+  inspectorEmpty: { padding: 40, textAlign: 'center', color: '#5a5a5e', fontSize: 13.5, marginTop: 40 },
+  inspectorInner: { padding: 18, display: 'flex', flexDirection: 'column', gap: 0 },
+  previewWrap: { width: '100%', borderRadius: 12, overflow: 'hidden', background: '#000', marginBottom: 12, aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  preview: { width: '100%', height: '100%', objectFit: 'contain' },
+  path: { fontSize: 11, color: '#5a5a5e', wordBreak: 'break-all', marginBottom: 16 },
+  label: { fontSize: 11, fontWeight: 600, color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '14px 0 7px' },
+  input: { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px', color: '#f5f5f7', fontSize: 13.5, outline: 'none', fontFamily: FONT },
+  textarea: { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px', color: '#e5e5e7', fontSize: 13, outline: 'none', resize: 'vertical', fontFamily: FONT, lineHeight: 1.45 },
+  tagRow: { display: 'flex', flexWrap: 'wrap', gap: 6 },
 };
