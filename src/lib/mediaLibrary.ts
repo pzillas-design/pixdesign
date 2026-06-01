@@ -51,13 +51,6 @@ export const mediaLibrary: MediaItem[] = [
     description: 'Videodokumentation von Konferenzen und Fachveranstaltungen.',
   },
   {
-    file: '/media/video-lab.webp',
-    thumb: '/media/thumb_video-lab.webp',
-    tags: ['video', 'brand'],
-    title: 'Laborfilm',
-    description: 'Corporate Video für Forschungs- und Laborumgebungen.',
-  },
-  {
     file: '/media/video-motion.webp',
     thumb: '/media/thumb_video-motion.webp',
     tags: ['video', 'brand'],
@@ -88,9 +81,9 @@ export const mediaLibrary: MediaItem[] = [
   {
     file: '/media/konferenz-foto.webp',
     thumb: '/media/thumb_konferenz-foto.webp',
-    tags: ['photo', 'event'],
-    title: 'Konferenzfotografie',
-    description: 'Reportage-Fotografie von Konferenzen, Panels und Keynotes.',
+    tags: ['photo', 'menschen'],
+    title: 'Portraitfotografie',
+    description: 'Authentisches Portrait mit natürlichem Licht.',
   },
   {
     file: '/media/immo-architektur.webp',
@@ -144,9 +137,9 @@ export const mediaLibrary: MediaItem[] = [
   {
     file: '/media/offenblende-produkt.webp',
     thumb: '/media/thumb_offenblende-produkt.webp',
-    tags: ['photo', 'realestate'],
-    title: 'Produktfotografie Immobilien',
-    description: 'Hochwertige Produktfotografie im Immobilienkontext.',
+    tags: ['web', 'tools'],
+    title: 'Elbphilharmonie Entdecken-App',
+    description: 'Mobile App zur Entdeckung der Elbphilharmonie und Hafencity.',
   },
   {
     file: '/media/moos.webp',
@@ -391,9 +384,9 @@ export const mediaLibrary: MediaItem[] = [
   {
     file: '/media/hd_26_business.jpg',
     thumb: '/media/sq_26_business.jpg',
-    tags: ['photo', 'business'],
-    title: 'Business Fotografie',
-    description: 'Business-Portrait in professionellem Umfeld.',
+    tags: ['web', 'tools'],
+    title: 'Elbphilharmonie Entdecken-App',
+    description: 'Mobile App zur Entdeckung der Elbphilharmonie.',
   },
   {
     file: '/media/hd_27_business.jpg',
