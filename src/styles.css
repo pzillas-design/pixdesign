@@ -415,6 +415,15 @@ img {
   letter-spacing: var(--tracking-tight);
 }
 
+.chat-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
 .chip-row {
   display: flex;
   flex-wrap: wrap;

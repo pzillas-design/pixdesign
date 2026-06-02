@@ -388,6 +388,30 @@ function getIconComponent(iconName?: IconName) {
   }
 }
 
+// E-Mails und Telefonnummern in KI-Antworten zu klickbaren Deeplinks machen.
+// Telefon: nur Läufe mit >=9 Ziffern/Leerzeichen → Preise (mit . , € /) matchen nicht.
+const LINK_RE = /([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})|(\+?\d[\d ]{7,}\d)/g;
+
+function linkify(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  LINK_RE.lastIndex = 0;
+  while ((m = LINK_RE.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    const match = m[0];
+    if (m[1]) {
+      parts.push(<a key={key++} href={`mailto:${match}`} className="chat-link">{match}</a>);
+    } else {
+      parts.push(<a key={key++} href={`tel:${match.replace(/\s+/g, '')}`} className="chat-link">{match}</a>);
+    }
+    last = m.index + match.length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts.length ? parts : text;
+}
+
 function ImageStrip({ node, onCenterChange, onReady }: { node: ChatNode; onCenterChange?: (src: string) => void; onReady?: () => void }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [grabbing, setGrabbing] = useState(false);
@@ -1127,7 +1151,7 @@ export function App() {
                   <motion.div key={message.id} className="chat-segment system-row" exit={rowExit}>
                     <div className="system-row__spacer" />
                     <div className="system-content">
-                      <motion.div className="system-bubble" {...bubbleAnim}>{message.text}</motion.div>
+                      <motion.div className="system-bubble" {...bubbleAnim}>{linkify(message.text)}</motion.div>
                     </div>
                   </motion.div>
                 );
