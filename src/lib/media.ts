@@ -1,4 +1,15 @@
-[
+// ⚠️ Auto-generiert / bearbeitet über /admin (npm run dev). Nicht von Hand sortieren.
+// Single Source of Truth für die Mediathek.
+
+export type MediaItem = {
+  file: string;
+  thumb?: string;
+  tags: string[];
+  title?: string;
+  description?: string;
+};
+
+const media: MediaItem[] = [
   {
     "file": "/media/portrait.webp",
     "thumb": "/media/thumb_portrait.webp",
@@ -646,4 +657,6 @@
     "title": "600 Kids",
     "description": "Festival-Webseite für ein Jugendfestival in Frankfurt."
   }
-]
+];
+
+export default media;

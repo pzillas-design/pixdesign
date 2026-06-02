@@ -1,14 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Check, Search } from 'lucide-react';
-import mediaData from './lib/media.json';
-
-type MediaItem = {
-  file: string;
-  thumb?: string;
-  tags: string[];
-  title?: string;
-  description?: string;
-};
+import mediaData, { type MediaItem } from './lib/media';
 
 // Erlaubte Tags — muss mit der validTags-Liste in api/chat.ts übereinstimmen.
 const CATEGORY_TAGS = ['web', 'photo', 'video'];

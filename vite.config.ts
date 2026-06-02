@@ -22,8 +22,14 @@ function mediaSavePlugin(): Plugin {
           try {
             const data = JSON.parse(body);
             if (!Array.isArray(data)) throw new Error('Erwarte ein Array');
-            const target = resolve(__dirname, 'src/lib/media.json');
-            writeFileSync(target, JSON.stringify(data, null, 2) + '\n');
+            const target = resolve(__dirname, 'src/lib/media.ts');
+            const file =
+              '// ⚠️ Auto-generiert / bearbeitet über /admin (npm run dev). Nicht von Hand sortieren.\n' +
+              '// Single Source of Truth für die Mediathek.\n\n' +
+              'export type MediaItem = {\n  file: string;\n  thumb?: string;\n  tags: string[];\n  title?: string;\n  description?: string;\n};\n\n' +
+              'const media: MediaItem[] = ' + JSON.stringify(data, null, 2) + ';\n\n' +
+              'export default media;\n';
+            writeFileSync(target, file);
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ ok: true, count: data.length }));

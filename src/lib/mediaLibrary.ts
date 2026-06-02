@@ -1,16 +1,11 @@
-// ⚠️ Die Daten leben in media.json — bearbeitbar über /admin (nur lokal, npm run dev).
-// Diese Datei stellt nur Typ + Helfer bereit.
-import mediaData from './media.json';
+// ⚠️ Die Daten leben in media.ts — bearbeitbar über /admin (nur lokal, npm run dev).
+// Diese Datei stellt nur den Helfer bereit. (media.ts statt .json, weil JSON-Importe
+// in Vercels Node-Serverless ERR_IMPORT_ATTRIBUTES werfen → Funktions-Crash.)
+import mediaData, { type MediaItem } from './media';
 
-export type MediaItem = {
-  file: string;
-  thumb?: string;
-  tags: string[];
-  title?: string;
-  description?: string;
-};
+export type { MediaItem };
 
-export const mediaLibrary: MediaItem[] = mediaData as MediaItem[];
+export const mediaLibrary: MediaItem[] = mediaData;
 
 export function getMediaByTags(tags: string[]): string[] {
   if (!tags.length) return [];
