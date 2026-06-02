@@ -86,8 +86,11 @@ Auf Vercel via `npx vercel env add ...` setzen. Secrets für Gemini/Telegram dü
 **WICHTIG: Modellnamen NIEMALS raten oder eigenständig ändern.** Der User wählt bewusst welches Modell eingesetzt wird.
 
 ### Aktuell in Produktion
-- **Chat** (`api/chat.ts`): `gemini-3.5-flash` — neuestes stabiles Modell (Stand Mai 2026)
+- **Chat** (`api/chat.ts`): `gemini-3.1-flash-lite` — stabiles Lite-Modell. Bewusst NICHT das Top-Modell `gemini-3.5-flash`, weil dessen Gratis-Tarif-Limit nur 5 RPM ist → führte zu 429-Fehlern unter Last. Lite hat höheres Gratis-Limit. (Bei aktivem Billing/Tier 1 könnte man auf 3.5-flash zurück.)
 - **TTS** (`api/tts.ts`): `gemini-3.1-flash-tts-preview`
+
+### Rate Limits / Auslastung
+429-Fehler („high demand" / „quota exceeded") sind FAST IMMER das Gratis-Tarif-Limit, nicht das Modell. Gratis-Tarif: Top-Modelle ~5 RPM, Lite-Modelle höher. Echte Lösung: Billing in Google AI Studio aktivieren (Tier 1 → ~1000 RPM). Erst Logs/Quota prüfen, bevor man „Modell ist unzuverlässig" annimmt.
 
 ### Wie das neueste Modell finden
 Vor *jeder* modellbezogenen Änderung: `mcp__gemini-api-docs__search_docs` mit Query `"latest Gemini models 2025"` aufrufen. Die Deprecation-Seite zeigt welche Modelle abgekündigt sind und was der Nachfolger ist:
