@@ -1,7 +1,7 @@
 // ⚠️ Die Daten leben in media.ts — bearbeitbar über /admin (nur lokal, npm run dev).
 // Diese Datei stellt nur den Helfer bereit. (media.ts statt .json, weil JSON-Importe
 // in Vercels Node-Serverless ERR_IMPORT_ATTRIBUTES werfen → Funktions-Crash.)
-import mediaData, { type MediaItem } from './media';
+import mediaData, { type MediaItem } from './media.js';
 
 export type { MediaItem };
 
