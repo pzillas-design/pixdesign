@@ -11,26 +11,6 @@ export type MediaItem = {
 
 const media: MediaItem[] = [
   {
-    "file": "/media/portrait.webp",
-    "thumb": "/media/thumb_portrait.webp",
-    "tags": [
-      "photo",
-      "business",
-      "startscreen"
-    ],
-    "title": "Portrait",
-    "description": "Business-Portrait von Michael Pzillas."
-  },
-  {
-    "file": "/media/slider-start.png",
-    "thumb": "/media/thumb_slider-start.png",
-    "tags": [
-      "startscreen"
-    ],
-    "title": "Slider Start",
-    "description": "Startscreen-Slider für die PIX-Website."
-  },
-  {
     "file": "/media/video-brand.webp",
     "thumb": "/media/thumb_video-brand.webp",
     "tags": [
@@ -52,16 +32,6 @@ const media: MediaItem[] = [
     "description": "Drohnenaufnahmen für Immobilienpräsentationen und Exposés."
   },
   {
-    "file": "/media/video-event.webp",
-    "thumb": "/media/thumb_video-event.webp",
-    "tags": [
-      "video",
-      "event"
-    ],
-    "title": "Eventfilm",
-    "description": "Eventfilme die Atmosphäre und Momente einfangen."
-  },
-  {
     "file": "/media/video-konferenz.webp",
     "thumb": "/media/thumb_video-konferenz.webp",
     "tags": [
@@ -70,36 +40,6 @@ const media: MediaItem[] = [
     ],
     "title": "Konferenzfilm",
     "description": "Videodokumentation von Konferenzen und Fachveranstaltungen."
-  },
-  {
-    "file": "/media/video-motion.webp",
-    "thumb": "/media/thumb_video-motion.webp",
-    "tags": [
-      "video",
-      "brand"
-    ],
-    "title": "Motion Design",
-    "description": "Animationen und Motion-Design für Branding und Social Media."
-  },
-  {
-    "file": "/media/video-social.webp",
-    "thumb": "/media/thumb_video-social.webp",
-    "tags": [
-      "video",
-      "brand"
-    ],
-    "title": "Social Media Video",
-    "description": "Kurzvideos für Instagram, LinkedIn und andere Social-Media-Plattformen."
-  },
-  {
-    "file": "/media/video-story.webp",
-    "thumb": "/media/thumb_video-story.webp",
-    "tags": [
-      "video",
-      "brand"
-    ],
-    "title": "Storytelling Film",
-    "description": "Storytelling-Formate die Unternehmenswerte und Visionen transportieren."
   },
   {
     "file": "/media/event-foto.webp",
