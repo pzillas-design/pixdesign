@@ -7,14 +7,24 @@ export type { MediaItem };
 
 export const mediaLibrary: MediaItem[] = mediaData;
 
+const CATEGORY_TAGS = ['web', 'photo', 'video'];
+
 export function getMediaByTags(tags: string[]): string[] {
   if (!tags.length) return [];
+
+  // Wird eine Kategorie (web/photo/video) angefragt, NUR Bilder dieser
+  // Kategorie zulassen — sonst rutschen über Meta-Tags wie "startscreen"
+  // kategoriefremde Bilder rein (z.B. Fotos bei einer Webdesign-Frage).
+  const reqCats = tags.filter(t => CATEGORY_TAGS.includes(t));
+  const pool = reqCats.length
+    ? mediaLibrary.filter(item => reqCats.some(c => item.tags.includes(c)))
+    : mediaLibrary;
+
   // Primär: Bilder die ALLE Tags haben (am spezifischsten)
-  const andMatch = mediaLibrary.filter(item => tags.every(t => item.tags.includes(t)));
+  const andMatch = pool.filter(item => tags.every(t => item.tags.includes(t)));
   if (andMatch.length >= 3) return andMatch.map(item => item.file);
-  // Zu wenige Treffer → breiter: Bilder die IRGENDEINEN Tag haben.
-  // AND-Treffer zuerst, dann der Rest — so bleibt es relevant, aber gefüllt.
-  const anyMatch = mediaLibrary.filter(item => tags.some(t => item.tags.includes(t)));
+  // Zu wenige → breiter, aber innerhalb der Kategorie: irgendein Tag passt.
+  const anyMatch = pool.filter(item => tags.some(t => item.tags.includes(t)));
   const ordered = [...andMatch, ...anyMatch.filter(item => !andMatch.includes(item))];
   return ordered.map(item => item.file);
 }
